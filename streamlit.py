@@ -2,6 +2,15 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+pip install gspread oauth2client
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+# Setup Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+client = gspread.authorize(credentials)
+sheet = client.open("AmusementParkSurveyResponses").sheet1
 
 # ---------------------------
 # PAGE 1: Info Sheet + Consent
@@ -64,15 +73,12 @@ with st.form("questionnaire"):
 # PAGE 3: Show Fuzzy Logic Result (Mockup)
 # ---------------------------
 if submit:
-    st.success("✅ Thank you! Here is your personalized plan based on your preferences:")
-    
-    st.markdown("### 🎯 Plan Summary")
-    st.markdown("- Preferred Zones: Thrill, Food, Water")
-    st.markdown("- Estimated Duration: {}".format(duration))
-    st.markdown("- Comfort Considerations: {}, break after '{}', walking = {}".format(crowd_sensitivity, break_time, walking))
-
-    st.markdown("### 🗺️ Example Route")
-    st.markdown("1. Entrance\n2. Roller Coaster\n3. Water Slide\n4. Food Court\n5. Lazy River\n6. Relaxation Garden")
-
-    st.markdown("---")
-    st.markdown("📥 *Optional*: You can take a screenshot of this page or export results manually.")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    row = [
+        timestamp, age_group, gender, visit_group, duration,
+        preferences['thrill'], preferences['family'], preferences['water'], preferences['entertainment'],
+        preferences['food'], preferences['shopping'], preferences['relaxation'],
+        ", ".join(priorities), wait_time, walking, crowd_sensitivity, break_time
+    ]
+    sheet.append_row(row)
+    st.success("✅ Your response has been saved.")
