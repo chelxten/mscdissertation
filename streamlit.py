@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-pip install gspread oauth2client
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
