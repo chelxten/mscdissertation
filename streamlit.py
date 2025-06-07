@@ -2,15 +2,23 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Setup Google Sheets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-client = gspread.authorize(credentials)
-sheet = client.open("AmusementParkSurveyResponses").sheet1
+# Set up Google Sheets credentials using secrets
+def connect_to_gsheet():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    return client
+
+# Connect to your Google Sheet
+@st.cache_resource
+def get_worksheet():
+    client = connect_to_gsheet()
+    sheet = client.open("YourSheetName").sheet1  # 🔁 CHANGE this to match your actual sheet title
+    return sheet
 
 # ---------------------------
 # PAGE 1: Info Sheet + Consent
@@ -70,9 +78,10 @@ with st.form("questionnaire"):
     submit = st.form_submit_button("Get My Personalized Plan")
 
 # ---------------------------
-# PAGE 3: Show Fuzzy Logic Result (Mockup)
+# PAGE 3: Save + Fuzzy Logic Result Placeholder
 # ---------------------------
 if submit:
+    sheet = get_worksheet()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = [
         timestamp, age_group, gender, visit_group, duration,
@@ -82,3 +91,7 @@ if submit:
     ]
     sheet.append_row(row)
     st.success("✅ Your response has been saved.")
+
+    # Optional placeholder for fuzzy plan
+    st.subheader("🎯 Your Personalized Plan (Coming Soon!)")
+    st.markdown("Your preferences will be used to generate a tailored tour experience. Stay tuned!")
