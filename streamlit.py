@@ -17,7 +17,7 @@ def connect_to_gsheet():
 @st.cache_resource
 def get_worksheet():
     client = connect_to_gsheet()
-    sheet = client.open("YourSheetName").sheet1  # 🔁 CHANGE this to match your actual sheet title
+    sheet = client.open("Amusement Park Survey Responses").sheet1
     return sheet
 
 # ---------------------------
