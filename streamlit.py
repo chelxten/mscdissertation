@@ -18,11 +18,9 @@ def get_worksheet():
     sheet = client.open("Amusement Park Survey Responses").sheet1
     return sheet
 
-# 2. Session flags
+# 2. Session flag
 if "consent_submitted" not in st.session_state:
     st.session_state.consent_submitted = False
-if "questionnaire_submitted" not in st.session_state:
-    st.session_state.questionnaire_submitted = False
 
 # 3. Info Sheet
 with st.expander("📄 Click to View Participant Information Sheet"):
@@ -58,6 +56,9 @@ st.header("📝 Participant Consent Form")
 
 st.markdown("**Title of Project:**  \n*The Search of Advanced AI-Powered Service Robots for Amusement Parks*")
 
+st.markdown("Please answer the following questions by ticking the response that applies:")
+
+# Questions
 questions = [
     "1. I have read the Information Sheet for this study and have had details of the study explained to me.",
     "2. My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point.",
@@ -67,35 +68,48 @@ questions = [
     "6. I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes."
 ]
 
+# Responses start empty
 responses = []
 for i, q in enumerate(questions):
     st.markdown(f"**{q}**")
-    selected = st.radio("", ["Yes", "No"], key=f"q{i}", index=None)
+    selected = st.radio(
+        label="",
+        options=["Yes", "No"],
+        key=f"q{i}",
+        index=None  # ✅ This removes default selection
+    )
     responses.append(selected)
 
+# Participant Fields
 st.markdown("**Participant Information:**")
 participant_name = st.text_input("Full Name", value="")
 participant_signature = st.text_input("Signature (type your name)", value="")
 participant_date = st.date_input("Date")
 participant_contact = st.text_input("Contact Details (optional)", value="")
 
+# Researcher Information
 st.markdown("---")
 st.markdown("**Researcher’s Information:**")
 st.markdown("**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**Course:** MSc Artificial Intelligence")
 
+# Submission Validation
 if st.button("✅ Submit Consent Form"):
-    if all(r == "Yes" for r in responses) and None not in responses and participant_name.strip() and participant_signature.strip():
-        st.session_state.consent_submitted = True
+    if (
+        all(r == "Yes" for r in responses)
+        and None not in responses
+        and participant_name.strip()
+        and participant_signature.strip()
+    ):
+        st.session_state.consent_submitted = True  # ✅ Set the flag
         st.success("✅ Consent form submitted. Thank you for participating.")
         st.rerun()
     else:
         st.error("⚠️ Please agree to all statements and fill in all required participant fields before submitting.")
 
-# -----------------------------------------
-# 🎡 6. Questionnaire – shown after consent
-# -----------------------------------------
-
-if st.session_state.consent_submitted and not st.session_state.questionnaire_submitted:
+# -----------------------------
+# 🎡 Questionnaire (Post-Consent)
+# -----------------------------
+if st.session_state.consent_submitted:
     st.header("🎡 Visitor Questionnaire")
 
     with st.form("questionnaire"):
@@ -131,7 +145,7 @@ if st.session_state.consent_submitted and not st.session_state.questionnaire_sub
         submit = st.form_submit_button("Get My Personalized Plan")
 
     if submit:
-        st.session_state.questionnaire_submitted = True
+        st.session_state.consent_submitted = False  # ✅ Lock form edits
         sheet = get_worksheet()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         row = [
@@ -142,23 +156,10 @@ if st.session_state.consent_submitted and not st.session_state.questionnaire_sub
         ]
         sheet.append_row(row)
         st.success("✅ Your response has been saved.")
-        st.rerun()
 
-# -------------------------------------------
-# 🔒 Lock form & Show Tour Plan after submit
-# -------------------------------------------
-if st.session_state.questionnaire_submitted:
-    st.header("🎯 Your Personalized Tour Plan")
+        # Add your fuzzy logic tour planner below here
+        # [Insert your complete fuzzy logic system starting with `zones` and ending with the display of final_plan]
 
-    duration = st.radio("How long do you plan to stay?", ["All day", "4 hours", "3 hours", "2 hours"])
-
-    # Fuzzy Logic Variables
-    visit_time = 240 if duration == "All day" else 60 * int(duration.split(" ")[0])
-
-    # 👇 Your fuzzy logic functions and data go here
-    # (Reuse from your previous full code, or let me paste that as Part 3 if you want to double-check)
-
-    # Then display the route
 
     # ----------------------
     # 🎢 Fuzzy Logic Planner
