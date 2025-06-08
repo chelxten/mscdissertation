@@ -1,7 +1,10 @@
+st.set_page_config(page_title="Visitor Questionnaire", page_icon="🎡")
+
 import streamlit as st
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+
 
 # 🚫 Stop if consent not submitted
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
