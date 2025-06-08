@@ -150,6 +150,8 @@ if st.session_state.consent_submitted and not st.session_state.questionnaire_sub
 if st.session_state.questionnaire_submitted:
     st.header("🎯 Your Personalized Tour Plan")
 
+    duration = st.radio("How long do you plan to stay?", ["All day", "4 hours", "3 hours", "2 hours"])
+
     # Fuzzy Logic Variables
     visit_time = 240 if duration == "All day" else 60 * int(duration.split(" ")[0])
 
