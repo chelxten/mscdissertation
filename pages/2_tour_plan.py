@@ -42,7 +42,7 @@ popularity_scores = {
 # 2. TIME ALLOCATION FUNCTION
 # --------------------------
 
-def allocate_park_time(total_time, preferences, priorities, walking_pref, crowd_sensitivity):
+def allocate_park_time(total_time, preferences, priorities, walking_pref):
     attraction_times = {}
     remaining_time = total_time
 
@@ -74,16 +74,11 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref, crowd_
     total_weight = sum(weights.values())
     weights = {k: v / total_weight for k, v in weights.items()}
 
-    allow_medium_crowd = crowd_sensitivity == "Slightly uncomfortable"
+    
 
     for zone, attractions in zones.items():
         zone_time = weights[zone] * total_time
         for attraction in attractions:
-            popularity = popularity_scores.get(attraction, 5)
-            if crowd_sensitivity == "Very uncomfortable" and popularity >= 7:
-                continue
-            if crowd_sensitivity == "Slightly uncomfortable" and popularity >= 8 and preferences[zone] < 8:
-                continue
 
             duration = attraction_durations[attraction]
             time_spent = min(duration, 15) if QUICK_MODE else duration
@@ -138,7 +133,6 @@ st.write("Thanks for your input! Here’s a preview of how we’ll personalize y
 
 preferences = data["preferences"]
 priorities = data["priorities"]
-crowd_sensitivity = data["crowd"]
 walking_pref = data["walking"]
 break_pref = data["break"]
 
@@ -151,7 +145,7 @@ duration_map = {
 visit_duration = duration_map.get(data["duration"], 180)
 
 attraction_times, leftover = allocate_park_time(
-    visit_duration, preferences, priorities, walking_pref, crowd_sensitivity
+    visit_duration, preferences, priorities, walking_pref
 )
 route = generate_navigation_order(attraction_times)
 final_plan = insert_breaks(route, break_pref)
@@ -171,7 +165,6 @@ with st.container():
     👤 **Age**: {data['age']}  
     ⏳ **Visit Duration**: {visit_duration} minutes  
     🚶‍♂️ **Walking Preference**: {walking_pref}  
-    👥 **Crowd Sensitivity**: {crowd_sensitivity}  
     🛑 **Break Preference**: {break_pref}  
     """)
 
