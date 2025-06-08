@@ -200,8 +200,18 @@ with st.container():
 
 # ✅ Route Plan with Breaks
 with st.expander("🗺️ Route with Breaks", expanded=True):
-    st.markdown("This is your suggested tour route:")
-    st.markdown(" ➡️  " + " → ".join(final_plan))
+    st.subheader("Your Suggested Route:")
+
+    for i, stop in enumerate(final_plan):
+        if stop == "Break":
+            st.markdown(f"🔹 **Take a Break 🧘‍♂️**")
+        elif stop == "Entrance":
+            st.markdown(f"🏁 **{stop}**")
+        else:
+            # Show attraction with its zone emoji
+            zone = next((z for z, a in zones.items() if stop in a), "")
+            emoji = zone_emojis.get(zone, "🎡")
+            st.markdown(f"{emoji} {i}. **{stop}**")
 
 # ✅ Time Allocation per Attraction
 with st.expander("⏱️ Time Allocation", expanded=False):
