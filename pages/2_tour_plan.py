@@ -200,18 +200,18 @@ with st.container():
 
 # ✅ Route Plan with Breaks
 with st.expander("🗺️ Route with Breaks", expanded=True):
-    st.subheader("Your Suggested Route:")
+    st.subheader("Your Route Timeline:")
 
-    for i, stop in enumerate(final_plan):
+    cumulative_time = 0
+    for stop in final_plan:
         if stop == "Break":
-            st.markdown(f"🔹 **Take a Break 🧘‍♂️**")
-        elif stop == "Entrance":
-            st.markdown(f"🏁 **{stop}**")
+            st.markdown(f"**🛑 Break** — *{cumulative_time} min*")
         else:
-            # Show attraction with its zone emoji
+            duration = attraction_durations.get(stop, 10)
+            cumulative_time += duration
             zone = next((z for z, a in zones.items() if stop in a), "")
             emoji = zone_emojis.get(zone, "🎡")
-            st.markdown(f"{emoji} {i}. **{stop}**")
+            st.markdown(f"{emoji} **{stop}** — *{cumulative_time} min*")
 
 # ✅ Time Allocation per Attraction
 with st.expander("⏱️ Time Allocation", expanded=False):
