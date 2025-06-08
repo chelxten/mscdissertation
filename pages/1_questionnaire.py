@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import time  # make sure this is imported at the top
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
@@ -73,4 +74,5 @@ if submit:
     get_worksheet().append_row(row)
 
     st.success("✅ Submitted! Redirecting to your plan...")
-    st.markdown("<meta http-equiv='refresh' content='2; url=2_tour_plan'>", unsafe_allow_html=True)
+    time.sleep(1)  # optional pause
+    st.switch_page("pages/2_tour_plan.py")  # ✅ MUST match actual filename and path
