@@ -122,7 +122,7 @@ st.markdown("**Title of Project:**  \n*The Search of Advanced AI-Powered Service
 
 st.markdown("Please answer the following questions by ticking the response that applies:")
 
-# Consent questions
+# Questions
 questions = [
     "1. I have read the Information Sheet for this study and have had details of the study explained to me.",
     "2. My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point.",
@@ -132,34 +132,35 @@ questions = [
     "6. I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes."
 ]
 
+# Responses start empty
 responses = []
 for i, q in enumerate(questions):
     st.markdown(f"**{q}**")
-    response = st.radio(
+    selected = st.radio(
         label="",
-        options=["Select an option", "Yes", "No"],
-        index=0,
-        key=f"q{i}"
+        options=["Yes", "No"],
+        key=f"q{i}",
+        index=None  # ✅ This removes default selection
     )
-    responses.append(response)
+    responses.append(selected)
 
-# Participant info
+# Participant Fields
 st.markdown("**Participant Information:**")
 participant_name = st.text_input("Full Name", value="")
 participant_signature = st.text_input("Signature (type your name)", value="")
 participant_date = st.date_input("Date")
 participant_contact = st.text_input("Contact Details (optional)", value="")
 
-# Researcher details
+# Researcher Information
 st.markdown("---")
 st.markdown("**Researcher’s Information:**")
 st.markdown("**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**Course:** MSc Artificial Intelligence")
 
-# Final validation
+# Submission Validation
 if st.button("✅ Submit Consent Form"):
     if (
         all(r == "Yes" for r in responses)
-        and "Select an option" not in responses
+        and None not in responses
         and participant_name.strip()
         and participant_signature.strip()
     ):
