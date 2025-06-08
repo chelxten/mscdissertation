@@ -116,7 +116,6 @@ if not consent:
     st.warning("⚠️ You must agree to the consent checkbox to proceed.")
     st.stop()
 
-# --- Consent Form Section ---
 st.header("📝 Participant Consent Form")
 
 st.markdown("**Title of Project:**  \n*The Search of Advanced AI-Powered Service Robots for Amusement Parks*")
@@ -134,24 +133,26 @@ questions = [
 
 responses = []
 for i, q in enumerate(questions):
-    response = st.radio(q, ["Yes", "No"], key=f"q{i}")
+    response = st.radio(q, ["", "Yes", "No"], index=None, key=f"q{i}", format_func=lambda x: "Select an option" if x == "" else x)
     responses.append(response)
 
-# Participant Fields
 st.markdown("**Participant Information:**")
 participant_name = st.text_input("Full Name")
 participant_signature = st.text_input("Signature (type your name)")
 participant_date = st.date_input("Date")
 participant_contact = st.text_input("Contact Details (optional)")
 
-# Researcher Fields (pre-filled)
 st.markdown("---")
 st.markdown("**Researcher’s Information:**")
 st.markdown("**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**Course:** MSc Artificial Intelligence")
 
-# Final validation
 if st.button("✅ Submit Consent Form"):
-    if all(r == "Yes" for r in responses) and participant_name and participant_signature:
+    if (
+        all(r in ["Yes", "No"] for r in responses)
+        and all(r == "Yes" for r in responses)
+        and participant_name.strip()
+        and participant_signature.strip()
+    ):
         st.success("✅ Consent form submitted. Thank you for participating.")
     else:
         st.error("⚠️ Please agree to all statements and fill in all required participant fields before submitting.")
