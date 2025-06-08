@@ -46,21 +46,18 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref, crowd_
     attraction_times = {}
     remaining_time = total_time
 
-    # Walking penalties (optional future expansion)
     zone_penalty = {}
     if walking_pref == "Very short distances":
         zone_penalty = {"water": 0.6, "relaxation": 0.8}
     elif walking_pref == "Moderate walking":
         zone_penalty = {"water": 0.8}
 
-    # Base weights
     total_weight = sum(preferences.values())
     weights = {
         zone: preferences[zone] / total_weight * zone_penalty.get(zone, 1)
         for zone in zones
     }
 
-    # Apply visit priorities
     if "Enjoying high-intensity rides" in priorities:
         weights["thrill"] *= 1.2
     if "Visiting family-friendly attractions together" in priorities:
@@ -74,7 +71,6 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref, crowd_
 
     QUICK_MODE = "Seeing as many attractions as possible" in priorities
 
-    # Normalize weights
     total_weight = sum(weights.values())
     weights = {k: v / total_weight for k, v in weights.items()}
 
@@ -83,7 +79,6 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref, crowd_
     for zone, attractions in zones.items():
         zone_time = weights[zone] * total_time
         for attraction in attractions:
-            # Skip crowded rides if needed
             popularity = popularity_scores.get(attraction, 5)
             if crowd_sensitivity == "Very uncomfortable" and popularity >= 7:
                 continue
@@ -91,18 +86,12 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref, crowd_
                 continue
 
             duration = attraction_durations[attraction]
-
-            # Use full or half duration based on QUICK_MODE
-            if QUICK_MODE:
-                time_spent = min(duration, 15)
-            else:
-                time_spent = duration
+            time_spent = min(duration, 15) if QUICK_MODE else duration
 
             if remaining_time >= time_spent:
                 attraction_times[attraction] = time_spent
                 remaining_time -= time_spent
 
-    # Redistribute leftover time to visited attractions
     while remaining_time >= 5:
         for attraction in attraction_times:
             addition = min(5, remaining_time)
@@ -138,7 +127,7 @@ def insert_breaks(route, break_preference):
                 time_counter = 0
 
     return updated_route
-    
+
 if "questionnaire" not in st.session_state:
     st.warning("❗ Please complete the questionnaire first.")
     st.stop()
@@ -146,7 +135,7 @@ if "questionnaire" not in st.session_state:
 data = st.session_state["questionnaire"]
 
 st.write("Thanks for your input! Here’s a preview of how we’ll personalize your visit:")
-# Get values from session data
+
 preferences = {
     "thrill": data["thrill"],
     "family": data["family"],
@@ -161,7 +150,6 @@ crowd_sensitivity = data["crowd"]
 walking_pref = data["walking"]
 break_pref = data["break"]
 
-# Estimate visit duration in minutes
 duration_map = {
     "<2 hrs": 90,
     "2–4 hrs": 180,
@@ -170,14 +158,12 @@ duration_map = {
 }
 visit_duration = duration_map.get(data["duration"], 180)
 
-# Run fuzzy logic planner
 attraction_times, leftover = allocate_park_time(
     visit_duration, preferences, priorities, walking_pref, crowd_sensitivity
 )
 route = generate_navigation_order(attraction_times)
 final_plan = insert_breaks(route, break_pref)
 
-# 👁️ Zone emoji mapping
 zone_emojis = {
     "thrill": "🎢",
     "water": "💦",
@@ -188,26 +174,23 @@ zone_emojis = {
     "relaxation": "🌳"
 }
 
-# ✅ Display Visitor Summary
 with st.container():
     st.success(f"""
-    👤 **Age/Gender**: {data['age']}, {data['gender']}  
+    👤 **Age**: {data['age']}  
     ⏳ **Visit Duration**: {visit_duration} minutes  
     🚶‍♂️ **Walking Preference**: {walking_pref}  
     👥 **Crowd Sensitivity**: {crowd_sensitivity}  
     🛑 **Break Preference**: {break_pref}  
     """)
 
-# ✅ Route Plan with Breaks
 with st.expander("🗺️ Route with Breaks", expanded=True):
     st.subheader("Your Route Timeline")
-
     cumulative_time = 0
-    for i, stop in enumerate(final_plan):
+    for stop in final_plan:
         if stop == "Break":
-            st.markdown(f"🛑 **Break** – Recharge and relax!")
+            st.markdown("🛑 **Break** – Recharge and relax!")
         elif stop == "Entrance":
-            st.markdown(f"🏁 **{stop}** – Start your adventure")
+            st.markdown("🏁 **Entrance** – Start your adventure")
         else:
             zone = next((z for z, a in zones.items() if stop in a), "")
             emoji = zone_emojis.get(zone, "🎡")
@@ -215,7 +198,6 @@ with st.expander("🗺️ Route with Breaks", expanded=True):
             cumulative_time += duration
             st.markdown(f"{emoji} **{stop}** – Approx. {duration} mins (⏱️ ~{cumulative_time} mins in)")
 
-# ✅ Time Allocation per Attraction
 with st.expander("⏱️ Time Allocation", expanded=False):
     total_time = sum(attraction_times.values())
     for attraction, time in attraction_times.items():
@@ -225,6 +207,5 @@ with st.expander("⏱️ Time Allocation", expanded=False):
         st.markdown(f"{icon} **{attraction}**: {time} min ({round(pct*100)}%)")
         st.progress(pct)
 
-# ✅ Free Time Left
 with st.expander("🕒 Leftover Time"):
     st.info(f"You have **{leftover} minutes** remaining. You can revisit your favorite attractions or relax.")
