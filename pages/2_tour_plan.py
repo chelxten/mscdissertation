@@ -74,12 +74,9 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref):
     total_weight = sum(weights.values())
     weights = {k: v / total_weight for k, v in weights.items()}
 
-    
-
     for zone, attractions in zones.items():
         zone_time = weights[zone] * total_time
         for attraction in attractions:
-
             duration = attraction_durations[attraction]
             time_spent = min(duration, 15) if QUICK_MODE else duration
 
@@ -135,11 +132,12 @@ preferences = {
     "thrill": data["thrill"],
     "family": data["family"],
     "water": data["water"],
-    "entertainment": data.get("shows", 5),  # fallback default if missing
+    "shows": data["shows"],
     "food": data["food"],
     "shopping": data["shopping"],
     "relaxation": data["relaxation"]
 }
+
 priorities = data["priorities"]
 walking_pref = data["walking"]
 break_pref = data["break"]
@@ -171,8 +169,6 @@ zone_emojis = {
 with st.container():
     st.success(f"""
     👤 **Age**: {data['age']}  
-    🧑‍🤝‍🧑 **Group**: {data['group']}  
-    🦽 **Accessibility Needs**: {data['accessibility']}  
     ⏳ **Visit Duration**: {visit_duration} minutes  
     🚶‍♂️ **Walking Preference**: {walking_pref}  
     🛑 **Break Preference**: {break_pref}  
