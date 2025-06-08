@@ -66,10 +66,12 @@ st.markdown("**Course:** MSc Artificial Intelligence")
 
 # Submission
 
+
 if st.button("✅ Submit Consent Form", type="primary"):
     if all(r == "Yes" for r in responses) and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
-        st.success("✅ Consent form submitted. Redirecting...")
-        st.switch_page("pages/1_questionnaire")  # ✅ Correct relative path
+        st.success("✅ Consent form submitted. Redirecting to questionnaire...")
+        time.sleep(1)
+        st.switch_page("1_questionnaire")  # ✅ EXACT filename, no path
     else:
         st.error("⚠️ Please agree to all questions and fill in required fields.")
