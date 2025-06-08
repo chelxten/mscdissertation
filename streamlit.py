@@ -23,55 +23,92 @@ def get_worksheet():
 # ---------------------------
 # PAGE 1: Info Sheet + Consent
 # ---------------------------
-st.set_page_config(page_title="Amusement Park Robot Survey", layout="wide")
-st.title("🎢 Research on AI-Powered Service Robots in Amusement Parks")
+with st.expander("📄 Click to View Participant Information Sheet"):
+    st.markdown("""
+    ### PARTICIPANT INFORMATION SHEET
 
+    **Title of Project**  
+    _The Search of Advanced AI-Powered Service Robots for Amusement Parks_
 
-st.header("Participant Information Sheet")
+    **Legal Basis for the Research**  
+    The University undertakes research as part of its function for the community under its legal status.  
+    Data protection allows us to use personal data for research with appropriate safeguards in place under the legal basis of public tasks that are in the public interest.  
+    A full statement of your rights can be found at: [Privacy Notice for Research](https://www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research).  
+    All University research is reviewed to ensure participants are treated appropriately. This study has been submitted for ethical review and is awaiting approval.  
+    Learn more: [Research Ethics](https://www.shu.ac.uk/research/excellence/ethics-and-integrity)
 
-st.markdown("""
-### Study Title: Exploring AI-Powered Service Robots in Amusement Parks
+    **Invitation and Purpose of the Research**  
+    You are invited to take part in a study on how AI technologies can enhance service robots in amusement parks.  
+    The goal is to explore how systems like AI navigation and fuzzy logic can improve visitor interaction and adaptability.
 
-#### Researcher Information:
-- **Name:** Cherry San  
-- **Course:** MSc Artificial Intelligence, Sheffield Hallam University  
-- **Email:** c3065323@hallam.shu.ac.uk  
-- **Supervisor:** Dr Samuele Vinanzi (s.vinanzi@shu.ac.uk)
+    **Why You Have Been Invited**  
+    You were selected because people in your age group frequently visit amusement parks and can provide helpful insights into service robot design.
 
----
+    **Voluntary Participation**  
+    Your participation is voluntary. You can withdraw at any time without reason. However, all survey questions must be answered to proceed.
 
-### Purpose of the Study
-This project explores how AI-powered service robots can improve navigation and visitor experience in amusement parks. The system uses fuzzy logic and visitor preferences to create a personalised tour plan.
+    **What You Will Be Asked to Do**  
+    You'll complete a short online questionnaire using sliders and multiple-choice options. There are no open-ended questions. It takes about 5 minutes.
 
----
+    **Where the Study Will Take Place**  
+    The entire questionnaire is online and can be accessed anytime on a phone or computer.
 
-### What will happen if I take part?
-- You will complete a short questionnaire about your visit preferences.
-- Based on your answers, the system will generate a suggested personalised route.
-- No personal identifiers (like names or contact details) are required unless you choose to share them voluntarily for follow-up.
+    **Time Commitment**  
+    Completion time is approx. 5 minutes. Some participants may be invited for follow-up after robot deployment—this is optional.
 
----
+    **Use of Deception**  
+    There is no deception. All study details are transparent from the beginning.
 
-### Voluntary Participation
-Participation is entirely voluntary. You can withdraw at any time before submitting your answers by simply closing the page.
+    ---
 
----
+    ### Risks and Benefits
 
-### Risks and Benefits
-- **Risks:** Minimal. The questionnaire asks only general, non-sensitive preferences.
-- **Benefits:** Your insights help us improve the design of visitor-focused service robots.
+    **Risks**  
+    This is a low-risk study with only standard preference and experience questions—no personal or sensitive topics.
 
----
+    **Benefits**  
+    Although there is no direct benefit to you, your responses will contribute to research that could improve robotics in entertainment settings.  
+    All results will be anonymous and used only for education and research.
 
-### Confidentiality
-- Your responses are anonymous and will be stored securely.
-- Data will be used only for academic research purposes and shared in a way that does not identify you.
+    ---
 
----
+    ### Data and Contact Information
 
-### Contact
-If you have questions, you may contact the researcher or supervisor using the email addresses above.
-""")
+    **Opportunity for Questions**  
+    You may contact the researcher anytime with questions (see contact below).
+
+    **Confidentiality**  
+    Your name is not collected. Only age and gender are required (for demographic analysis). Contact info is optional.  
+    Data is anonymous, and no identifying info will be recorded.
+
+    **Data Management**  
+    The researcher is responsible for secure data storage. Only the researcher and supervisor can access it.
+
+    **Data Retention**  
+    Data will be kept securely for up to five years and only used for this study.
+
+    **Use of Results**  
+    Results will be reported anonymously in the researcher’s postgraduate dissertation.
+
+    **Study Timeline**  
+    Research will run from June 2025 to September 2025.
+
+    **Requesting Results**  
+    If you’d like a summary after the study, email the researcher (see below).
+
+    **Researcher Contact**  
+    Name: **Cherry San**  
+    Email: [c3065323@hallam.shu.ac.uk](mailto:c3065323@hallam.shu.ac.uk)  
+    Course: MSc Artificial Intelligence
+
+    **Supervisor Contact**  
+    Name: **Dr. Samuele Vinanzi**  
+    Email: [s.vinanzi@shu.ac.uk](mailto:s.vinanzi@shu.ac.uk)
+
+    **Further Support**  
+    - **Data Concerns**: [DPO@shu.ac.uk](mailto:DPO@shu.ac.uk)  
+    - **Ethics Concerns**: [ethicssupport@shu.ac.uk](mailto:ethicssupport@shu.ac.uk)
+    """, unsafe_allow_html=True)
 
 consent = st.checkbox("I have read the Participant Information Sheet and agree to take part in this study.")
 
