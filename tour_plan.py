@@ -1,12 +1,23 @@
+# tour_plan.py — Tour Planner Page
 
 import streamlit as st
 
-st.set_page_config(page_title="Tour Plan", page_icon="📍")
-st.title("📍 Your Personalized Tour Plan")
-
-if not st.session_state.get("questionnaire_done"):
-    st.warning("Please complete the questionnaire first.")
+if "questionnaire" not in st.session_state:
+    st.warning("⚠️ Please complete the questionnaire first.")
     st.stop()
+
+st.title("🗺️ Your Personalized Park Plan")
+
+data = st.session_state.questionnaire
+
+zones = { ... }  # same attraction setup as previous
+attraction_durations = { ... }
+popularity_scores = { ... }
+
+# Functions: allocate_park_time, generate_navigation_order, insert_breaks
+... (keep your full fuzzy logic functions here)
+
+
 
     # ----------------------
     # 🎢 Fuzzy Logic Planner
@@ -119,25 +130,16 @@ if not st.session_state.get("questionnaire_done"):
                 time_counter = 0
 
         return updated_route
+visit_time = 240 if data['duration'] == "All day" else 60 * int(data['duration'].split()[0])
+attraction_times, leftover = allocate_park_time(visit_time, data['preferences'], data['priorities'], data['walking'], data['crowd'])
+route = generate_navigation_order(attraction_times)
+final_plan = insert_breaks(route, data['break'])
 
-    # ✅ Generate fuzzy plan
-    attraction_times, leftover_time = allocate_park_time(
-        total_time=visit_time,
-        preferences=preferences,
-        priorities=priorities,
-        walking_pref=walking,
-        crowd_sensitivity=crowd_sensitivity
-    )
-    route = generate_navigation_order(attraction_times)
-    final_plan = insert_breaks(route, break_time)
+st.markdown("Here’s your optimized plan based on your answers:")
+for step in final_plan:
+    if step == "Break":
+        st.markdown("☕ **Break Time**")
+    else:
+        st.markdown(f"🎢 **{step}** — {attraction_times.get(step, 'N/A')} min")
 
-    st.subheader("🎯 Your Personalized Plan")
-    st.markdown("Here is your customized route including breaks:")
-
-    for step in final_plan:
-        if step == "Break":
-            st.markdown("☕ **Break Time**")
-        else:
-            st.markdown(f"🎡 **{step}** – {attraction_times.get(step, 'N/A')} min")
-
-    st.markdown(f"🕒 Estimated Total Duration: **{visit_time - leftover_time} minutes**")
+st.markdown(f"🕒 Estimated Total Time: **{visit_time - leftover} minutes**")
