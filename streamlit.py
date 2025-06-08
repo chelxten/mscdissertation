@@ -139,10 +139,10 @@ for i, q in enumerate(questions):
 
 # Participant Fields
 st.markdown("**Participant Information:**")
-participant_name = st.text_input("Full Name")
-participant_signature = st.text_input("Signature (type your name)")
+participant_name = st.text_input("Full Name", value="")
+participant_signature = st.text_input("Signature (type your name)", value="")
 participant_date = st.date_input("Date")
-participant_contact = st.text_input("Contact Details (optional)")
+participant_contact = st.text_input("Contact Details (optional)", value="")
 
 # Researcher Details
 st.markdown("---")
