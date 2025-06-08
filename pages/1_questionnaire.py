@@ -1,21 +1,16 @@
-
 import streamlit as st
-
-st.set_page_config(page_title="1_questionnaire") 
-
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+st.set_page_config(page_title="Visitor Questionnaire")
 
-# 🚫 Stop if consent not submitted
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
-    st.warning("⚠️ You must submit the consent form first on the Home page.")
+    st.warning("⚠️ You must submit the consent form first.")
     st.stop()
 
 st.title("🎡 Visitor Questionnaire")
 
-# ✅ Google Sheets connection
 @st.cache_resource
 def get_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -25,60 +20,51 @@ def get_worksheet():
     sheet = client.open("Amusement Park Survey Responses").sheet1
     return sheet
 
-# 📝 Questionnaire Form
 with st.form("questionnaire"):
-    age_group = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
-    gender = st.selectbox("What is your gender?", ["Male", "Female", "Non-binary", "Prefer not to say"])
-    visit_group = st.selectbox("Who are you visiting with?", ["Alone", "With family", "With friends", "With young children", "With a partner"])
-    duration = st.selectbox("How long do you plan to stay in the park today?", ["Less than 2 hours", "2–4 hours", "4–6 hours", "All day"])
+    age = st.selectbox("Age group:", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
+    gender = st.selectbox("Gender:", ["Male", "Female", "Non-binary", "Prefer not to say"])
+    group = st.selectbox("Who are you visiting with?", ["Alone", "Family", "Friends", "Partner", "Children"])
+    duration = st.selectbox("Visit duration:", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
 
     preferences = {
         "thrill": st.slider("Thrill rides", 1, 10, 5),
         "family": st.slider("Family rides", 1, 10, 5),
         "water": st.slider("Water rides", 1, 10, 5),
-        "entertainment": st.slider("Live shows", 1, 10, 5),
-        "food": st.slider("Food & dining", 1, 10, 5),
+        "shows": st.slider("Live shows", 1, 10, 5),
+        "food": st.slider("Food", 1, 10, 5),
         "shopping": st.slider("Shopping", 1, 10, 5),
-        "relaxation": st.slider("Relaxation zones", 1, 10, 5)
+        "relaxation": st.slider("Relaxation", 1, 10, 5),
     }
 
-    priorities = st.multiselect("Top priorities:", [
-        "Enjoying high-intensity rides",
-        "Visiting family-friendly attractions",
-        "Seeing many attractions",
-        "Staying comfortable",
-        "Having food/rest breaks"
+    top_priorities = st.multiselect("Top priorities:", [
+        "High-intensity rides", "Family activities", "See many attractions", "Comfort", "Frequent breaks"
     ])
 
     wait_time = st.selectbox("Max wait time:", ["<10 min", "10–20 min", "20–30 min", "30+ min"])
-    walking = st.selectbox("Walking preference:", ["Very short", "Moderate", "I don’t mind walking"])
-    crowd_sensitivity = st.selectbox("Crowd sensitivity:", ["Very uncomfortable", "Slightly uncomfortable", "Neutral", "Comfortable"])
-    break_time = st.selectbox("Preferred break time:", ["After 1 hour", "After 2 hours", "After every big ride", "I decide as I go"])
+    walking = st.selectbox("Walking preference:", ["Short", "Moderate", "Don’t mind walking"])
+    crowd = st.selectbox("Crowd comfort:", ["Very uncomfortable", "Slightly uncomfortable", "Neutral", "Comfortable"])
+    break_time = st.selectbox("Preferred break time:", ["1 hr", "2 hrs", "After big rides", "Flexible"])
 
-    submit = st.form_submit_button("📥 Submit Questionnaire")
+    submit = st.form_submit_button("📩 Submit")
 
-# ✅ Save data and redirect
 if submit:
-    st.session_state.update({
-        "questionnaire": {
-            "age_group": age_group,
-            "gender": gender,
-            "visit_group": visit_group,
-            "duration": duration,
-            "preferences": preferences,
-            "priorities": priorities,
-            "wait_time": wait_time,
-            "walking": walking,
-            "crowd": crowd_sensitivity,
-            "break": break_time
-        }
-    })
+    st.session_state["questionnaire"] = {
+        "age": age,
+        "gender": gender,
+        "group": group,
+        "duration": duration,
+        "preferences": preferences,
+        "priorities": top_priorities,
+        "wait_time": wait_time,
+        "walking": walking,
+        "crowd": crowd,
+        "break": break_time,
+    }
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    row = [timestamp, age_group, gender, visit_group, duration] + list(preferences.values()) + [
-        ", ".join(priorities), wait_time, walking, crowd_sensitivity, break_time
-    ]
+    row = [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), age, gender, group, duration] + \
+          list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, crowd, break_time]
+
     get_worksheet().append_row(row)
 
-    st.success("✅ Questionnaire submitted! Redirecting to your personalized tour plan...")
-    st.markdown("<meta http-equiv='refresh' content='2; url=/2_tour_plan'>", unsafe_allow_html=True)
+    st.success("✅ Submitted! Redirecting to your plan...")
+    st.markdown("<meta http-equiv='refresh' content='2; url=2_tour_plan'>", unsafe_allow_html=True)
