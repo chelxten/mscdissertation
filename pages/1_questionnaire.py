@@ -13,64 +13,59 @@ if "consent_submitted" not in st.session_state or not st.session_state.consent_s
 
 st.title("🎡 Visitor Questionnaire")
 
+# ✅ Google Sheets setup
 @st.cache_resource
 def get_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    return client.open("Amusement Park Survey Responses").sheet1
+    sheet = client.open("Amusement Park Survey Responses").sheet1
+    return sheet
 
 # 📝 Questionnaire form
 with st.form("questionnaire_form"):
-    age_group = st.selectbox("What is your age group?", ["Under 18", "18–30", "31–50", "51–65", "Over 65"])
-    accessibility = st.radio("Do you have any accessibility needs?", ["Yes", "No"])
-    visit_group = st.selectbox("Who are you visiting with today?", [
-        "Alone", "With friends", "With family (children)", "With older adults", "Mixed-age group"
-    ])
-    visit_duration = st.slider("How long do you plan to stay in the park today? (in hours)", 1, 12, 4)
+    age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
+    gender = st.selectbox("What is your gender?", ["Male", "Female", "Non-binary", "Prefer not to say"])
+    group = st.selectbox("Who are you visiting with today?", ["Alone", "Family", "Friends", "Partner", "Children"])
+    duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
+    accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
 
-    st.subheader("Rate your interest in the following areas (1 = Low, 10 = High):")
+    # Preferences (1–10 scale)
     preferences = {
         "thrill": st.slider("Thrill rides", 1, 10, 5),
-        "family": st.slider("Family-friendly rides", 1, 10, 5),
-        "water": st.slider("Water attractions", 1, 10, 5),
-        "entertainment": st.slider("Live shows or performances", 1, 10, 5),
-        "food": st.slider("Food & snacks", 1, 10, 5),
-        "shopping": st.slider("Shops & souvenirs", 1, 10, 5),
-        "relaxation": st.slider("Rest & relaxation areas", 1, 10, 5)
+        "family": st.slider("Family rides", 1, 10, 5),
+        "water": st.slider("Water rides", 1, 10, 5),
+        "shows": st.slider("Live shows", 1, 10, 5),
+        "food": st.slider("Food & Dining", 1, 10, 5),
+        "shopping": st.slider("Shopping", 1, 10, 5),
+        "relaxation": st.slider("Relaxation areas", 1, 10, 5),
     }
 
-    priorities = st.multiselect("What are your top 3 visit priorities?", [
+    # Priorities
+    top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
         "Visiting family-friendly attractions together",
         "Seeing as many attractions as possible",
         "Staying comfortable throughout the visit",
-        "Having regular food and rest breaks",
-        "Spending time together as a group",
-        "Keeping walking to a minimum"
-    ], max_selections=3)
-
-    walking_pref = st.radio("How far are you willing to walk?", [
-        "Very short distances", "Moderate walking is okay", "I don’t mind long walks"
+        "Having regular food and rest breaks"
     ])
 
-    break_pref = st.selectbox("When would you prefer to take breaks?", [
-        "After every big ride", "After 1 hour", "After 2 hours", "Only when tired"
-    ])
-
-    wait_time = st.radio("How long are you willing to wait for rides?", [
-        "Less than 10 minutes", "Up to 20 minutes", "Up to 30 minutes", "I don’t mind waiting"
-    ])
+    wait_time = st.selectbox("What is the maximum wait time you are okay with?", ["<10 min", "10–20 min", "20–30 min", "30+ min"])
+    walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
+    crowd = st.selectbox("How comfortable are you with crowds?", ["Very uncomfortable", "Slightly uncomfortable", "Neutral", "Comfortable"])
+    break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
 
     submit = st.form_submit_button("📩 Submit")
 
-# ✅ Handle submission
+# ✅ Handle form submission
 if submit:
     st.session_state["questionnaire"] = {
-        "age": age_group,
+        "age": age,
+        "gender": gender,
+        "group": group,
         "duration": duration,
-        "accessibility": accessibility,  # ✅ new field
+        "accessibility": accessibility,
         "thrill": preferences["thrill"],
         "family": preferences["family"],
         "water": preferences["water"],
@@ -80,15 +75,23 @@ if submit:
         "relaxation": preferences["relaxation"],
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
-        "walking": walking,              # ✅ must exist here
+        "walking": walking,
+        "crowd": crowd,
         "break": break_time,
     }
 
-    row = [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-           age_group, accessibility, visit_group, visit_duration] + \
-          list(preferences.values()) + [", ".join(priorities), walking_pref, break_pref, wait_time]
+    # Format data row for Google Sheets
+    row = [
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        age, gender, group, duration, accessibility
+    ] + list(preferences.values()) + [
+        ", ".join(top_priorities),
+        wait_time, walking, crowd, break_time
+    ]
 
+    # Save to Google Sheet
     get_worksheet().append_row(row)
+
     st.success("✅ Submitted! Redirecting to your personalized tour plan...")
     time.sleep(1.5)
     st.switch_page("pages/2_tour_plan.py")
