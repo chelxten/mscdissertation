@@ -53,41 +53,57 @@ if not consent:
 
 # 5. Consent Form
 st.header("📝 Participant Consent Form")
-st.markdown("*Please answer the following by selecting Yes or No:*")
 
+st.markdown("**Title of Project:**  \n*The Search of Advanced AI-Powered Service Robots for Amusement Parks*")
+
+st.markdown("Please answer the following questions by ticking the response that applies:")
+
+# Questions
 questions = [
-    "1. I have read the Information Sheet for this study.",
-    "2. My questions have been answered and I can ask more anytime.",
-    "3. I can withdraw at any time without reason.",
-    "4. I agree to share information under the confidentiality terms.",
-    "5. I wish to participate under the described conditions.",
-    "6. I consent to the anonymous use of my data for future research."
+    "1. I have read the Information Sheet for this study and have had details of the study explained to me.",
+    "2. My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point.",
+    "3. I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.",
+    "4. I agree to provide information to the researchers under the conditions of confidentiality set out in the Information Sheet.",
+    "5. I wish to participate in the study under the conditions set out in the Information Sheet.",
+    "6. I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes."
 ]
 
+# Responses start empty
 responses = []
 for i, q in enumerate(questions):
     st.markdown(f"**{q}**")
-    response = st.radio("", ["Yes", "No"], key=f"q{i}")
-    responses.append(response)
+    selected = st.radio(
+        label="",
+        options=["Yes", "No"],
+        key=f"q{i}",
+        index=None  # ✅ This removes default selection
+    )
+    responses.append(selected)
 
-# 6. Participant Details
+# Participant Fields
 st.markdown("**Participant Information:**")
-participant_name = st.text_input("Full Name")
-participant_signature = st.text_input("Signature (type your name)")
+participant_name = st.text_input("Full Name", value="")
+participant_signature = st.text_input("Signature (type your name)", value="")
 participant_date = st.date_input("Date")
-participant_contact = st.text_input("Contact Details (optional)")
+participant_contact = st.text_input("Contact Details (optional)", value="")
 
-# 7. Researcher Details
+# Researcher Information
 st.markdown("---")
-st.markdown("**Researcher’s Information:**  \n**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**Course:** MSc Artificial Intelligence")
+st.markdown("**Researcher’s Information:**")
+st.markdown("**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**Course:** MSc Artificial Intelligence")
 
-# 8. Submit Button
+# Submission Validation
 if st.button("✅ Submit Consent Form"):
-    if all(r == "Yes" for r in responses) and participant_name.strip() and participant_signature.strip():
-        st.session_state.consent_submitted = True
+    if (
+        all(r == "Yes" for r in responses)
+        and None not in responses
+        and participant_name.strip()
+        and participant_signature.strip()
+    ):
         st.success("✅ Consent form submitted. Thank you for participating.")
     else:
-        st.error("⚠️ Please agree to all statements and fill in all required fields.")
+        st.error("⚠️ Please agree to all statements and fill in all required participant fields before submitting.")
+        
 
 # 9. Questionnaire - only shown if consent submitted
 if st.session_state.consent_submitted:
