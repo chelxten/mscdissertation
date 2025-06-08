@@ -34,7 +34,7 @@ with st.form("questionnaire_form"):
         "thrill": st.slider("Thrill rides", 1, 10, 5),
         "family": st.slider("Family rides", 1, 10, 5),
         "water": st.slider("Water rides", 1, 10, 5),
-        "shows": st.slider("Live shows", 1, 10, 5),
+        "entertainment": st.slider("Live shows", 1, 10, 5),
         "food": st.slider("Food & Dining", 1, 10, 5),
         "shopping": st.slider("Shopping", 1, 10, 5),
         "relaxation": st.slider("Relaxation areas", 1, 10, 5),
