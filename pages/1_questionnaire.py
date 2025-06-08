@@ -61,7 +61,7 @@ if submit:
         "food": preferences["food"],
         "shopping": preferences["shopping"],
         "relaxation": preferences["relaxation"],
-        "priorities": top_priorities,
+        "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
         "crowd": crowd,
