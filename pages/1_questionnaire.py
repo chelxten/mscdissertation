@@ -73,6 +73,7 @@ if submit:
             "crowd": crowd_sensitivity,
             "break": break_time
         }
+    })
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = [timestamp, age_group, gender, visit_group, duration] + list(preferences.values()) + [
