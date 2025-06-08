@@ -68,15 +68,21 @@ with st.form("questionnaire_form"):
 # ✅ Handle submission
 if submit:
     st.session_state["questionnaire"] = {
-        "age_group": age_group,
-        "accessibility": accessibility,
-        "visit_group": visit_group,
-        "visit_duration": visit_duration,
-        "preferences": preferences,
-        "priorities": priorities,
-        "walking_pref": walking_pref,
-        "break_pref": break_pref,
-        "wait_time": wait_time
+        "age": age,
+        "group": group,
+        "duration": duration,
+        "accessibility": accessibility,  # ✅ new field
+        "thrill": preferences["thrill"],
+        "family": preferences["family"],
+        "water": preferences["water"],
+        "shows": preferences["shows"],
+        "food": preferences["food"],
+        "shopping": preferences["shopping"],
+        "relaxation": preferences["relaxation"],
+        "priorities": top_priorities.copy(),
+        "wait_time": wait_time,
+        "walking": walking,              # ✅ must exist here
+        "break": break_time,
     }
 
     row = [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
