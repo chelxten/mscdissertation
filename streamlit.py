@@ -157,7 +157,7 @@ if st.session_state.questionnaire_submitted:
     # (Reuse from your previous full code, or let me paste that as Part 3 if you want to double-check)
 
     # Then display the route
-    
+
     # ----------------------
     # 🎢 Fuzzy Logic Planner
     # ----------------------
