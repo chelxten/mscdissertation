@@ -133,23 +133,26 @@ questions = [
 
 responses = []
 for i, q in enumerate(questions):
-    response = st.radio(q, ["", "Yes", "No"], index=None, key=f"q{i}", format_func=lambda x: "Select an option" if x == "" else x)
+    st.markdown(f"**{q}**")
+    response = st.radio("", options=["Yes", "No"], key=f"q{i}", index=-1)
     responses.append(response)
 
+# Participant Fields
 st.markdown("**Participant Information:**")
 participant_name = st.text_input("Full Name")
 participant_signature = st.text_input("Signature (type your name)")
 participant_date = st.date_input("Date")
 participant_contact = st.text_input("Contact Details (optional)")
 
+# Researcher Details
 st.markdown("---")
 st.markdown("**Researcher’s Information:**")
 st.markdown("**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**Course:** MSc Artificial Intelligence")
 
+# Validation
 if st.button("✅ Submit Consent Form"):
     if (
-        all(r in ["Yes", "No"] for r in responses)
-        and all(r == "Yes" for r in responses)
+        all(r == "Yes" for r in responses)
         and participant_name.strip()
         and participant_signature.strip()
     ):
