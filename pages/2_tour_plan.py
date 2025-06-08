@@ -177,12 +177,42 @@ attraction_times, leftover = allocate_park_time(
 route = generate_navigation_order(attraction_times)
 final_plan = insert_breaks(route, break_pref)
 
-# Display results
-st.subheader("🗺️ Suggested Route with Breaks")
-st.write(final_plan)
+# 👁️ Zone emoji mapping
+zone_emojis = {
+    "thrill": "🎢",
+    "water": "💦",
+    "family": "👨‍👩‍👧‍👦",
+    "entertainment": "🎭",
+    "food": "🍔",
+    "shopping": "🛍️",
+    "relaxation": "🌳"
+}
 
-st.subheader("⏱️ Time Allocation per Attraction")
-st.write(attraction_times)
+# ✅ Display Visitor Summary
+with st.container():
+    st.success(f"""
+    👤 **Age/Gender**: {data['age']}, {data['gender']}  
+    ⏳ **Visit Duration**: {visit_duration} minutes  
+    🚶‍♂️ **Walking Preference**: {walking_pref}  
+    👥 **Crowd Sensitivity**: {crowd_sensitivity}  
+    🛑 **Break Preference**: {break_pref}  
+    """)
 
-st.subheader("🕒 Leftover Time")
-st.write(f"{leftover} minutes")
+# ✅ Route Plan with Breaks
+with st.expander("🗺️ Route with Breaks", expanded=True):
+    st.markdown("This is your suggested tour route:")
+    st.markdown(" ➡️  " + " → ".join(final_plan))
+
+# ✅ Time Allocation per Attraction
+with st.expander("⏱️ Time Allocation", expanded=False):
+    total_time = sum(attraction_times.values())
+    for attraction, time in attraction_times.items():
+        zone = next((z for z, a in zones.items() if attraction in a), "")
+        icon = zone_emojis.get(zone, "🎡")
+        pct = time / total_time
+        st.markdown(f"{icon} **{attraction}**: {time} min ({round(pct*100)}%)")
+        st.progress(pct)
+
+# ✅ Free Time Left
+with st.expander("🕒 Leftover Time"):
+    st.info(f"You have **{leftover} minutes** remaining. You can revisit your favorite attractions or relax.")
