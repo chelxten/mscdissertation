@@ -64,9 +64,14 @@ st.markdown("**Email:** c3065323@hallam.shu.ac.uk")
 st.markdown("**Course:** MSc Artificial Intelligence")
 
 # Submission
-if st.button("✅ Submit Consent Form"):
+if st.button("✅ Submit Consent Form", type="primary"):
     if all(r == "Yes" for r in responses) and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
-        st.success("✅ Consent form submitted. You may now proceed to the questionnaire.")
+        st.success("✅ Consent form submitted. Redirecting to questionnaire...")
+
+        # Auto-redirect after short delay
+        st.markdown("""
+            <meta http-equiv="refresh" content="1;url=/?page=1_Questionnaire" />
+        """, unsafe_allow_html=True)
     else:
         st.error("⚠️ Please agree to all questions and fill in required fields.")
