@@ -102,7 +102,7 @@ if st.button("✅ Submit Consent Form"):
     ):
         st.session_state.consent_submitted = True  # ✅ Set the flag
         st.success("✅ Consent form submitted. Thank you for participating.")
-        st.experimental_rerun()  # ✅ Rerun to show the questionnaire
+        st.rerun()  # ✅ Rerun to show the questionnaire
     else:
         st.error("⚠️ Please agree to all statements and fill in all required participant fields before submitting.")
         
