@@ -60,18 +60,19 @@ with st.form("questionnaire"):
 # ✅ Save data and redirect
 if submit:
     st.session_state.consent_submitted = True
-    st.session_state.questionnaire = {
-        "age_group": age_group,
-        "gender": gender,
-        "visit_group": visit_group,
-        "duration": duration,
-        "preferences": preferences,
-        "priorities": priorities,
-        "wait_time": wait_time,
-        "walking": walking,
-        "crowd": crowd_sensitivity,
-        "break": break_time
-    }
+    st.session_state.update({
+        "questionnaire": {
+            "age_group": age_group,
+            "gender": gender,
+            "visit_group": visit_group,
+            "duration": duration,
+            "preferences": preferences,
+            "priorities": priorities,
+            "wait_time": wait_time,
+            "walking": walking,
+            "crowd": crowd_sensitivity,
+            "break": break_time
+        }
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = [timestamp, age_group, gender, visit_group, duration] + list(preferences.values()) + [
