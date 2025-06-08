@@ -26,7 +26,7 @@ def get_worksheet():
 st.set_page_config(page_title="Amusement Park Robot Survey", layout="wide")
 st.title("🎢 Research on AI-Powered Service Robots in Amusement Parks")
 
-st.header("Participant Information Sheet")
+
 import base64
 
 def show_pdf(file_path):
