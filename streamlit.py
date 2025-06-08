@@ -27,16 +27,19 @@ st.set_page_config(page_title="Amusement Park Robot Survey", layout="wide")
 st.title("🎢 Research on AI-Powered Service Robots in Amusement Parks")
 
 
-import base64
+import fitz  # PyMuPDF
+from PIL import Image
+import io
 
-def show_pdf(file_path):
-    with open(file_path, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
-    st.markdown(pdf_display, unsafe_allow_html=True)
+def show_pdf_as_images(pdf_path):
+    doc = fitz.open(pdf_path)
+    for page in doc:
+        pix = page.get_pixmap()
+        img = Image.open(io.BytesIO(pix.tobytes("png")))
+        st.image(img)
 
 st.header("Participant Information Sheet")
-show_pdf("PARTICIPANT INFORMATION SHEET.pdf")
+show_pdf_as_images("PARTICIPANT INFORMATION SHEET.pdf")
 
 consent = st.checkbox("I have read the Participant Information Sheet and agree to take part in this study.")
 
