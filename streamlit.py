@@ -71,7 +71,7 @@ if st.button("✅ Submit Consent Form", type="primary"):
 
         # Auto-redirect after short delay
         st.markdown("""
-            <meta http-equiv="refresh" content="1;url=/?page=1_Questionnaire" />
+            <meta http-equiv="refresh" content="1;url=/?page=1_questionnaire" />
         """, unsafe_allow_html=True)
     else:
         st.error("⚠️ Please agree to all questions and fill in required fields.")
