@@ -273,7 +273,15 @@ def insert_breaks(route, break_preference):
     return updated_route
 
 # 4. Generate and Show the Plan
-visit_time = 240 if duration == "All day" else 60 * int(duration.split(" ")[0])
+if duration == "All day":
+    visit_time = 240
+elif "Less than" in duration:
+    visit_time = 90  # Default estimate for short visits
+else:
+    try:
+        visit_time = 60 * int(duration.split("-")[0].strip())
+    except Exception:
+        visit_time = 180  # Default fallback
 attraction_times, leftover_time = allocate_park_time(
     total_time=visit_time,
     preferences=preferences,
