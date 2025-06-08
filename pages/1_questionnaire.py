@@ -64,7 +64,7 @@ if submit:
         "thrill": preferences["thrill"],
         "family": preferences["family"],
         "water": preferences["water"],
-        "entertainment": preferences["shows"],
+        "entertainment": preferences["entertainment"],
         "food": preferences["food"],
         "shopping": preferences["shopping"],
         "relaxation": preferences["relaxation"],
