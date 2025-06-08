@@ -68,7 +68,7 @@ with st.form("questionnaire_form"):
 # ✅ Handle submission
 if submit:
     st.session_state["questionnaire"] = {
-        "age": age,
+        "age": age_group,
         "group": group,
         "duration": duration,
         "accessibility": accessibility,  # ✅ new field
