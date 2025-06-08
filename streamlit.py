@@ -65,8 +65,6 @@ st.markdown("**Email:** c3065323@hallam.shu.ac.uk")
 st.markdown("**Course:** MSc Artificial Intelligence")
 
 # Submission
-import streamlit as st
-import time
 
 if st.button("✅ Submit Consent Form", type="primary"):
     if all(r == "Yes" for r in responses) and name.strip() and signature.strip():
