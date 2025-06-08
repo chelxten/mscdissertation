@@ -70,10 +70,7 @@ if st.button("✅ Submit Consent Form", type="primary"):
         st.session_state.consent_submitted = True
         st.success("✅ Consent form submitted. Redirecting to questionnaire...")
 
-        # Add delay before redirect
         time.sleep(1)
-
-        # 👇 This redirects to the Questionnaire page
-        st.switch_page("pages/1_questionnaire.py")
+        st.switch_page("1_questionnaire.py")  # ✅ Correct usage
     else:
         st.error("⚠️ Please agree to all questions and fill in required fields.")
