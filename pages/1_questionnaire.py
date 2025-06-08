@@ -59,7 +59,6 @@ with st.form("questionnaire"):
 
 # ✅ Save data and redirect
 if submit:
-    st.session_state.consent_submitted = True
     st.session_state.update({
         "questionnaire": {
             "age_group": age_group,
@@ -82,5 +81,4 @@ if submit:
     get_worksheet().append_row(row)
 
     st.success("✅ Questionnaire submitted! Redirecting to your personalized tour plan...")
-
     st.markdown("<meta http-equiv='refresh' content='2; url=/2_tour_plan'>", unsafe_allow_html=True)
