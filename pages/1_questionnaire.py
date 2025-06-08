@@ -75,4 +75,4 @@ if submit:
 
     st.success("✅ Submitted! Redirecting to your plan...")
     time.sleep(1)  # optional pause
-    st.switch_page("pages/2_tour_plan.py")  # ✅ MUST match actual filename and path
+    st.switch_page("2_tour_plan")
