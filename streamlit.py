@@ -145,7 +145,6 @@ if st.session_state.consent_submitted:
         submit = st.form_submit_button("Get My Personalized Plan")
 
     if submit:
-        st.session_state.consent_submitted = False  # ✅ Lock form edits
         sheet = get_worksheet()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         row = [
@@ -156,10 +155,15 @@ if st.session_state.consent_submitted:
         ]
         sheet.append_row(row)
         st.success("✅ Your response has been saved.")
+    
+        # ✅ Lock form inputs after submission
+        st.session_state["form_submitted"] = True
 
-        # Add your fuzzy logic tour planner below here
-        # [Insert your complete fuzzy logic system starting with `zones` and ending with the display of final_plan]
-
+        # ✅ Duration handling
+        try:
+            visit_time = 240 if duration == "All day" else 60 * int(duration.split("–")[0].strip().split(" ")[0])
+        except:
+            visit_time = 120  # Fallback
 
     # ----------------------
     # 🎢 Fuzzy Logic Planner
@@ -273,7 +277,7 @@ if st.session_state.consent_submitted:
 
         return updated_route
 
-    # 🔁 Run planner
+    # ✅ Generate fuzzy plan
     attraction_times, leftover_time = allocate_park_time(
         total_time=visit_time,
         preferences=preferences,
@@ -281,12 +285,12 @@ if st.session_state.consent_submitted:
         walking_pref=walking,
         crowd_sensitivity=crowd_sensitivity
     )
-
     route = generate_navigation_order(attraction_times)
     final_plan = insert_breaks(route, break_time)
 
-    # 🎉 Show results
+    st.subheader("🎯 Your Personalized Plan")
     st.markdown("Here is your customized route including breaks:")
+
     for step in final_plan:
         if step == "Break":
             st.markdown("☕ **Break Time**")
