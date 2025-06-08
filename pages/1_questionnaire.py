@@ -26,11 +26,9 @@ def get_worksheet():
 # 📝 Questionnaire form
 with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
-    gender = st.selectbox("What is your gender?", ["Male", "Female", "Non-binary", "Prefer not to say"])
-    group = st.selectbox("Who are you visiting with today?", ["Alone", "Family", "Friends", "Partner", "Children"])
-    duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
-
+    duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
+    
     # Preferences (1–10 scale)
     preferences = {
         "thrill": st.slider("Thrill rides", 1, 10, 5),
@@ -53,7 +51,6 @@ with st.form("questionnaire_form"):
 
     wait_time = st.selectbox("What is the maximum wait time you are okay with?", ["<10 min", "10–20 min", "20–30 min", "30+ min"])
     walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
-    crowd = st.selectbox("How comfortable are you with crowds?", ["Very uncomfortable", "Slightly uncomfortable", "Neutral", "Comfortable"])
     break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
 
     submit = st.form_submit_button("📩 Submit")
@@ -62,8 +59,6 @@ with st.form("questionnaire_form"):
 if submit:
     st.session_state["questionnaire"] = {
         "age": age,
-        "gender": gender,
-        "group": group,
         "duration": duration,
         "accessibility": accessibility,
         "thrill": preferences["thrill"],
@@ -76,18 +71,14 @@ if submit:
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
-        "crowd": crowd,
         "break": break_time,
     }
 
-    # Format data row for Google Sheets
+   # Prepare row for Google Sheet
     row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        age, gender, group, duration, accessibility
-    ] + list(preferences.values()) + [
-        ", ".join(top_priorities),
-        wait_time, walking, crowd, break_time
-    ]
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"), age, duration, accessibility
+    ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
+
 
     # Save to Google Sheet
     get_worksheet().append_row(row)
