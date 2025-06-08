@@ -134,7 +134,7 @@ questions = [
 responses = []
 for i, q in enumerate(questions):
     st.markdown(f"**{q}**")
-    response = st.radio("", options=["Yes", "No"], key=f"q{i}", index=-1)
+    response = st.radio("", options=["Select an option", "Yes", "No"], key=f"q{i}")
     responses.append(response)
 
 # Participant Fields
@@ -152,7 +152,8 @@ st.markdown("**Name:** Cherry San  \n**Email:** c3065323@hallam.shu.ac.uk  \n**C
 # Validation
 if st.button("✅ Submit Consent Form"):
     if (
-        all(r == "Yes" for r in responses)
+        all(r == "Yes" for r in responses if r != "Select an option")
+        and "Select an option" not in responses
         and participant_name.strip()
         and participant_signature.strip()
     ):
