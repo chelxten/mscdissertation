@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+import time 
 
 # Set session state defaults
 if "consent_submitted" not in st.session_state:
@@ -69,9 +70,10 @@ if st.button("✅ Submit Consent Form", type="primary"):
         st.session_state.consent_submitted = True
         st.success("✅ Consent form submitted. Redirecting to questionnaire...")
 
-        # Auto-redirect after short delay
-        st.markdown("""
-            <meta http-equiv="refresh" content="1;url=/?page=1_questionnaire" />
-        """, unsafe_allow_html=True)
+        # Add delay before redirect
+        time.sleep(1)
+
+        # 👇 This redirects to the Questionnaire page
+        st.switch_page("pages/1_questionnaire.py")
     else:
         st.error("⚠️ Please agree to all questions and fill in required fields.")
