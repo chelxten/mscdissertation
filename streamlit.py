@@ -172,7 +172,19 @@ final_plan, time_allocation, leftover = generate_plan_streamlit_interface(
     crowd_sensitivity,
     break_time
 )
-
+# 🔁 Fuzzy Logic Integration Function
+def generate_plan_streamlit_interface(preferences, priorities, duration_minutes, walking, crowd_sensitivity, break_time):
+    attraction_times, leftover = allocate_park_time(
+        duration_minutes,
+        preferences,
+        priorities,
+        walking,
+        crowd_sensitivity
+    )
+    route = generate_navigation_order(attraction_times)
+    final_plan = insert_breaks(route, break_time)
+    return final_plan, attraction_times, leftover
+    
 # Show results
 st.success("✅ Your response has been saved.")
 st.subheader("🎯 Your Personalized Plan")
