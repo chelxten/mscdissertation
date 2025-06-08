@@ -24,7 +24,7 @@ def get_worksheet():
     return sheet
 
 # 📝 Questionnaire form
-with st.form("questionnaire"):
+with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     gender = st.selectbox("What is your gender?", ["Male", "Female", "Non-binary", "Prefer not to say"])
     group = st.selectbox("Who are you visiting with?", ["Alone", "Family", "Friends", "Partner", "Children"])
