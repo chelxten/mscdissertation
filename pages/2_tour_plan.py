@@ -132,7 +132,7 @@ preferences = {
     "thrill": data["thrill"],
     "family": data["family"],
     "water": data["water"],
-    "shows": data["shows"],
+    "entertainment": data["entertainment"],
     "food": data["food"],
     "shopping": data["shopping"],
     "relaxation": data["relaxation"]
