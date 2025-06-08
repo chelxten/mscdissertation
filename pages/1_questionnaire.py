@@ -55,7 +55,7 @@ with st.form("questionnaire"):
 
 # ✅ Save data and redirect
 if submit:
-    # Save to session_state (include everything)
+    st.session_state.consent_submitted = True
     st.session_state.questionnaire = {
         "age_group": age_group,
         "gender": gender,
@@ -69,13 +69,12 @@ if submit:
         "break": break_time
     }
 
-    # Save to Google Sheet
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = [timestamp, age_group, gender, visit_group, duration] + list(preferences.values()) + [
         ", ".join(priorities), wait_time, walking, crowd_sensitivity, break_time
     ]
     get_worksheet().append_row(row)
 
-    # Notify and auto-redirect
-    st.success("✅ Questionnaire submitted! Redirecting to your personalized plan...")
-    st.markdown("""<meta http-equiv="refresh" content="1;url=/?page=2_TourPlan" />""", unsafe_allow_html=True)
+    st.success("✅ Questionnaire submitted! Redirecting to your personalized tour plan...")
+
+    st.markdown("<meta http-equiv='refresh' content='2; url=/2_tour_plan'>", unsafe_allow_html=True)
