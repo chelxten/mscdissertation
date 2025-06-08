@@ -133,8 +133,8 @@ questions = [
 ]
 
 responses = []
-for q in questions:
-    response = st.radio(q, ["Yes", "No"], index=0, key=q)
+for i, q in enumerate(questions):
+    response = st.radio(q, ["Yes", "No"], key=f"q{i}")
     responses.append(response)
 
 # Participant Fields
