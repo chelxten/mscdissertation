@@ -153,6 +153,31 @@ if st.session_state.consent_submitted:
             ", ".join(priorities), wait_time, walking, crowd_sensitivity, break_time
         ]
         sheet.append_row(row)
-        st.success("✅ Your response has been saved.")
-        st.subheader("🎯 Your Personalized Plan (Coming Soon!)")
-        st.markdown("Thanks! Your preferences will be used to generate a smart tour plan.")
+
+# Map visit duration text to minutes
+duration_map = {
+    "Less than 2 hours": 90,
+    "2–4 hours": 180,
+    "4–6 hours": 300,
+    "All day": 480
+}
+duration_minutes = duration_map[duration]
+
+# Generate personalized tour plan
+final_plan, time_allocation, leftover = generate_plan_streamlit_interface(
+    preferences,
+    priorities,
+    duration_minutes,
+    walking,
+    crowd_sensitivity,
+    break_time
+)
+
+# Show results
+st.success("✅ Your response has been saved.")
+st.subheader("🎯 Your Personalized Plan")
+st.markdown("Your smart plan based on your preferences:")
+
+st.write("🗺️ **Tour Route (with breaks):**", final_plan)
+st.write("⏱️ **Time Allocation per Attraction:**", time_allocation)
+st.write("🕒 **Leftover Time (minutes):**", leftover)
