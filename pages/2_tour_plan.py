@@ -199,20 +199,21 @@ with st.container():
     """)
 
 # ✅ Route Plan with Breaks
-from streamlit_extras.tags import tag  # Requires `pip install streamlit-extras`
-
 with st.expander("🗺️ Route with Breaks", expanded=True):
-    st.subheader("Your Suggested Tour:")
+    st.subheader("Your Route Timeline")
 
-    for stop in final_plan:
+    cumulative_time = 0
+    for i, stop in enumerate(final_plan):
         if stop == "Break":
-            tag(body="🛑 Break", color="red")
+            st.markdown(f"🛑 **Break** – Recharge and relax!")
         elif stop == "Entrance":
-            tag(body="🏁 Entrance", color="blue")
+            st.markdown(f"🏁 **{stop}** – Start your adventure")
         else:
             zone = next((z for z, a in zones.items() if stop in a), "")
             emoji = zone_emojis.get(zone, "🎡")
-            tag(body=f"{emoji} {stop}", color="green")
+            duration = attraction_durations.get(stop, 10)
+            cumulative_time += duration
+            st.markdown(f"{emoji} **{stop}** – Approx. {duration} mins (⏱️ ~{cumulative_time} mins in)")
 
 # ✅ Time Allocation per Attraction
 with st.expander("⏱️ Time Allocation", expanded=False):
