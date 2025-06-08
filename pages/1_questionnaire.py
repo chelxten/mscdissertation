@@ -4,6 +4,8 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+st.set_page_config(page_title="Visitor Questionnaire")
+
 # 🚫 Stop if consent not submitted
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
     st.warning("⚠️ You must submit the consent form first on the Home page.")
