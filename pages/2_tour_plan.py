@@ -131,7 +131,15 @@ data = st.session_state["questionnaire"]
 
 st.write("Thanks for your input! Here’s a preview of how we’ll personalize your visit:")
 
-preferences = data["preferences"]
+preferences = {
+    "thrill": data["thrill"],
+    "family": data["family"],
+    "water": data["water"],
+    "entertainment": data.get("shows", 5),  # fallback default if missing
+    "food": data["food"],
+    "shopping": data["shopping"],
+    "relaxation": data["relaxation"]
+}
 priorities = data["priorities"]
 walking_pref = data["walking"]
 break_pref = data["break"]
@@ -163,6 +171,8 @@ zone_emojis = {
 with st.container():
     st.success(f"""
     👤 **Age**: {data['age']}  
+    🧑‍🤝‍🧑 **Group**: {data['group']}  
+    🦽 **Accessibility Needs**: {data['accessibility']}  
     ⏳ **Visit Duration**: {visit_duration} minutes  
     🚶‍♂️ **Walking Preference**: {walking_pref}  
     🛑 **Break Preference**: {break_pref}  
