@@ -65,12 +65,14 @@ st.markdown("**Email:** c3065323@hallam.shu.ac.uk")
 st.markdown("**Course:** MSc Artificial Intelligence")
 
 # Submission
+import streamlit as st
+import time
+
 if st.button("✅ Submit Consent Form", type="primary"):
     if all(r == "Yes" for r in responses) and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
         st.success("✅ Consent form submitted. Redirecting to questionnaire...")
-
         time.sleep(1)
-        st.switch_page("1_questionnaire.py")  # ✅ Correct usage
+        st.switch_page("1_questionnaire.py")  # ✅ Just the filename
     else:
         st.error("⚠️ Please agree to all questions and fill in required fields.")
