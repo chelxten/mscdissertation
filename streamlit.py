@@ -27,19 +27,51 @@ st.set_page_config(page_title="Amusement Park Robot Survey", layout="wide")
 st.title("🎢 Research on AI-Powered Service Robots in Amusement Parks")
 
 
-import fitz  # PyMuPDF
-from PIL import Image
-import io
-
-def show_pdf_as_images(pdf_path):
-    doc = fitz.open(pdf_path)
-    for page in doc:
-        pix = page.get_pixmap()
-        img = Image.open(io.BytesIO(pix.tobytes("png")))
-        st.image(img)
-
 st.header("Participant Information Sheet")
-show_pdf_as_images("PARTICIPANT INFORMATION SHEET.pdf")
+
+st.markdown("""
+### Study Title: Exploring AI-Powered Service Robots in Amusement Parks
+
+#### Researcher Information:
+- **Name:** Cherry San  
+- **Course:** MSc Artificial Intelligence, Sheffield Hallam University  
+- **Email:** c3065323@hallam.shu.ac.uk  
+- **Supervisor:** Dr Samuele Vinanzi (s.vinanzi@shu.ac.uk)
+
+---
+
+### Purpose of the Study
+This project explores how AI-powered service robots can improve navigation and visitor experience in amusement parks. The system uses fuzzy logic and visitor preferences to create a personalised tour plan.
+
+---
+
+### What will happen if I take part?
+- You will complete a short questionnaire about your visit preferences.
+- Based on your answers, the system will generate a suggested personalised route.
+- No personal identifiers (like names or contact details) are required unless you choose to share them voluntarily for follow-up.
+
+---
+
+### Voluntary Participation
+Participation is entirely voluntary. You can withdraw at any time before submitting your answers by simply closing the page.
+
+---
+
+### Risks and Benefits
+- **Risks:** Minimal. The questionnaire asks only general, non-sensitive preferences.
+- **Benefits:** Your insights help us improve the design of visitor-focused service robots.
+
+---
+
+### Confidentiality
+- Your responses are anonymous and will be stored securely.
+- Data will be used only for academic research purposes and shared in a way that does not identify you.
+
+---
+
+### Contact
+If you have questions, you may contact the researcher or supervisor using the email addresses above.
+""")
 
 consent = st.checkbox("I have read the Participant Information Sheet and agree to take part in this study.")
 
