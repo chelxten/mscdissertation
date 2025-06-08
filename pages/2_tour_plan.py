@@ -136,15 +136,7 @@ data = st.session_state["questionnaire"]
 
 st.write("Thanks for your input! Here’s a preview of how we’ll personalize your visit:")
 
-preferences = {
-    "thrill": data["thrill"],
-    "family": data["family"],
-    "water": data["water"],
-    "entertainment": data["shows"],
-    "food": data["food"],
-    "shopping": data["shopping"],
-    "relaxation": data["relaxation"],
-}
+preferences = data["preferences"]
 priorities = data["priorities"]
 crowd_sensitivity = data["crowd"]
 walking_pref = data["walking"]
