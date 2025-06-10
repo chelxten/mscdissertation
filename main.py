@@ -99,54 +99,6 @@ agreed = st.checkbox("I have read and agree to all the above statements.")
 name = st.text_input("Full Name")
 signature = st.text_input("Signature")
 
-def generate_consent_pdf(name, signature, info_sheet_text):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-
-    # ✅ Add University Logo
-    pdf.image("Sheffield-Hallam-University.png", x=10, y=8, w=40)
-    pdf.ln(30)
-
-    # ✅ Add and use DejaVu font (supports UTF-8)
-    pdf.add_font("DejaVu", "", "DejaVuSans.ttf", uni=True)
-    pdf.add_font("DejaVu", "B", "DejaVuSans-Bold.ttf", uni=True)
-    pdf.set_font("DejaVu", "", 11)
-
-    # ✅ Title
-    pdf.set_font("DejaVu", 'B', 14)
-    pdf.cell(0, 10, "Participant Information Sheet and Consent Form", ln=True, align="C")
-    pdf.ln(10)
-
-    # ✅ Info Sheet
-    pdf.set_font("DejaVu", 'B', 12)
-    pdf.cell(0, 10, "Participant Information Sheet", ln=True)
-    pdf.set_font("DejaVu", '', 10)
-    pdf.multi_cell(0, 7, info_sheet_text)
-
-    # ✅ Consent Section
-    pdf.set_font("DejaVu", 'B', 12)
-    pdf.cell(0, 10, "Consent Confirmation", ln=True)
-    pdf.set_font("DejaVu", '', 10)
-    pdf.multi_cell(0, 7, """1. I have read the Information Sheet and understand the study.
-2. I understand I can withdraw at any time without reason.
-3. I agree to provide information under confidentiality.
-4. I wish to participate under the conditions outlined.
-5. I consent to anonymised data being used for research purposes.""")
-
-    # ✅ Participant Info
-    pdf.set_font("DejaVu", 'B', 12)
-    pdf.cell(0, 10, "Participant Details", ln=True)
-    pdf.set_font("DejaVu", '', 10)
-    pdf.cell(0, 7, f"Name: {name}", ln=True)
-    pdf.cell(0, 7, f"Signature: {signature}", ln=True)
-    pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
-
-    filename = f"{name.replace(' ', '_')}_Consent_Form.pdf"
-    pdf.output(filename)
-    return filename
-    
-
 if st.button("Submit Consent"):
     if agreed and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
