@@ -38,14 +38,12 @@ signature = st.text_input("Signature")
 
 if st.button("Submit Consent"):
     if agreed and name.strip() and signature.strip():
-        st.session_state.consent_submitted = True
+        # ✅ Generate unique ID and store in session
+        unique_id = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{name.strip().replace(' ', '_')}"
+        st.session_state.unique_id = unique_id
         st.session_state.participant_name = name.strip()
         st.session_state.participant_signature = signature.strip()
-
-        # ✅ Store to second worksheet
-        sheet = get_consent_worksheet()
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([timestamp, name.strip(), signature.strip(), "", "", ""])
+        st.session_state.consent_submitted = True
 
         st.success("✅ Consent submitted. Redirecting to your personalized tour plan...")
         st.switch_page("pages/1_questionnaire.py")
