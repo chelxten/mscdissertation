@@ -117,19 +117,30 @@ def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
     pdf.ln(10)
 
     # ✅ Information Sheet
+    # Info Sheet
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    add_plain_text(pdf, INFO_SHEET)
+    for line in info_sheet.strip().split("\n"):
+        if line.strip() == "":
+            pdf.ln(2)
+        else:
+            wrapped_lines = textwrap.wrap(line.strip(), width=100)
+            for wrapped in wrapped_lines:
+                pdf.multi_cell(0, 7, wrapped)
 
+    # Consent
     # Consent
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
-    add_plain_text(pdf, CONSENT_TEXT)
-    pdf.cell(0, 7, f"Name: {name}", ln=True)
-    pdf.cell(0, 7, f"Signature: {signature}", ln=True)
-    pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
-    pdf.ln(10)
+    pdf.set_font("DejaVu", "", 10)
+    for line in CONSENT_TEXT.strip().split("\n"):
+        if line.strip() == "":
+            pdf.ln(2)
+        else:
+            wrapped_lines = textwrap.wrap(line.strip(), width=100)
+            for wrapped in wrapped_lines:
+                pdf.multi_cell(0, 7, wrapped)
 
     # ✅ Tour Plan
     pdf.set_font("DejaVu", "B", 12)
