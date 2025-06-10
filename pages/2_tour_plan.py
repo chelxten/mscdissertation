@@ -2,6 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Personalized Tour Plan")
 
+st.image("Sheffield-Hallam-University.png", width=250)
 st.title("🎢 Your Personalized Tour Plan")
 
 # --------------------------
