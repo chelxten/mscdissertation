@@ -119,7 +119,7 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     # ✅ Info Sheet
     pdf.set_font("DejaVu", 'B', 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
-    pdf.set_font("Arial", '', 10)
+    pdf.set_font("DejaVu", '', 10)
     pdf.multi_cell(0, 7, info_sheet_text)
 
     # ✅ Consent Section
@@ -135,7 +135,7 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     # ✅ Participant Info
     pdf.set_font("DejaVu", 'B', 12)
     pdf.cell(0, 10, "Participant Details", ln=True)
-    pdf.set_font("Arial", '', 10)
+    pdf.set_font("DejaVu", '', 10)
     pdf.cell(0, 7, f"Name: {name}", ln=True)
     pdf.cell(0, 7, f"Signature: {signature}", ln=True)
     pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
