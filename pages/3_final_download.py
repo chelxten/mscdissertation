@@ -4,26 +4,28 @@ from datetime import datetime
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
+st.image("Sheffield-Hallam-University.png", width=250)
 st.title("📥 Final Document Download")
 
-# ✅ User Inputs (Assume passed from session state or questionnaire)
+# ✅ Load from session state
 name = st.session_state.get("participant_name", "Participant Name")
 signature = st.session_state.get("participant_signature", "Signature")
 tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
+rating = st.session_state.get("tour_rating", "Not Provided")
+feedback = st.session_state.get("tour_feedback", "No comments.")
 
-# ✅ Full Info Sheet (you can shorten or update this as needed)
+# ✅ Full info sheet text
 info_sheet = """
 Title of Project: The Search of Advanced AI-Powered Service Robots for Amusement Parks
 
 Legal Basis for the Research:
-The University undertakes research... [Content trimmed here for brevity]
+The University undertakes research in accordance with its ethical and legal obligations...
 
 Contact Details:
 - Researcher: Cherry San – c3065323@hallam.shu.ac.uk
 - Supervisor: Dr Samuele Vinanzi – s.vinanzi@shu.ac.uk
 """
 
-# ✅ Consent Details
 consent_text = """
 1. I have read the Information Sheet and understand the study.
 2. I understand I can withdraw at any time without reason.
@@ -32,13 +34,13 @@ consent_text = """
 5. I consent to anonymised data being used for research purposes.
 """
 
-# ✅ Generate Final PDF
-def generate_final_pdf(name, signature, info_sheet, tour_plan):
+# ✅ PDF Generator
+def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # ✅ Use DejaVu Font
+    # ✅ Fonts
     pdf.add_font("DejaVu", "", "DejaVuSans.ttf", uni=True)
     pdf.add_font("DejaVu", "B", "DejaVuSans-Bold.ttf", uni=True)
     pdf.set_font("DejaVu", "B", 14)
@@ -62,23 +64,31 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan):
     pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
     pdf.ln(10)
 
-    # ✅ Tour Plan Section
+    # ✅ Tour Plan
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Personalized Tour Plan", ln=True)
     pdf.set_font("DejaVu", "", 10)
     pdf.multi_cell(0, 7, tour_plan)
 
-    # ✅ Export PDF
-    filename = f"{name.replace(' ', '_')}_Final_Document.pdf"
+    # ✅ Feedback Section
+    pdf.set_font("DejaVu", "B", 12)
+    pdf.cell(0, 10, "📝 Tour Plan Feedback", ln=True)
+    pdf.set_font("DejaVu", "", 10)
+    pdf.cell(0, 10, f"Rating: {rating}/10 ⭐", ln=True)
+    pdf.multi_cell(0, 7, f"Comments: {feedback}")
+
+    # ✅ Save to file
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = f"{name.replace(' ', '_')}_FinalDocument_{timestamp}.pdf"
     pdf.output(filename)
     return filename
 
-# ✅ Generate and Display Button
+# ✅ Generate and Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    file_path = generate_final_pdf(name, signature, info_sheet, tour_plan)
+    file_path = generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
     with open(file_path, "rb") as f:
         st.download_button(
-            label="⬇️ Click to Download Final Document",
+            label="⬇️ Download Your Complete File",
             data=f,
             file_name=file_path,
             mime="application/pdf"
