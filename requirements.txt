@@ -4,3 +4,4 @@ oauth2client
 pandas
 PyMuPDF
 streamlit-extras
+fpdf
