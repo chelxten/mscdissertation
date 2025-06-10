@@ -3,6 +3,7 @@ from fpdf import FPDF
 from datetime import datetime
 from constants import INFO_SHEET, CONSENT_TEXT
 import re
+import textwrap
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -16,11 +17,11 @@ tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 
-def add_markdown_text(pdf, text):
+def add_markdown_text(pdf, text, max_char=100):
     lines = text.strip().split("\n")
     for line in lines:
         line = line.strip()
-        # Detect bold headings like **Title:** ...
+        # Detect **Bold** headings
         match = re.match(r"\*\*(.+?)\*\*\s*:?(.+)?", line)
         if match:
             heading = match.group(1).strip()
@@ -29,15 +30,18 @@ def add_markdown_text(pdf, text):
             pdf.multi_cell(0, 7, heading)
             if content:
                 pdf.set_font("DejaVu", "", 10)
-                pdf.multi_cell(0, 7, content)
+                for wrapped_line in textwrap.wrap(content, width=max_char):
+                    pdf.multi_cell(0, 7, wrapped_line)
         elif line.startswith("- "):
             pdf.set_font("DejaVu", "", 10)
-            pdf.multi_cell(0, 7, line)
+            for wrapped_line in textwrap.wrap(line, width=max_char):
+                pdf.multi_cell(0, 7, wrapped_line)
         elif line == "":
             pdf.ln(2)
         else:
             pdf.set_font("DejaVu", "", 10)
-            pdf.multi_cell(0, 7, line)
+            for wrapped_line in textwrap.wrap(line, width=max_char):
+                pdf.multi_cell(0, 7, wrapped_line)
             
 # ✅ PDF Generator
 def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback):
