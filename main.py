@@ -39,7 +39,7 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     **Opportunity for Questions**
     If you have any questions about the study, you are welcome to contact the researcher at any time using the email provided below.
 
-    **Confidentiality**
+    **Confidentiality**\n
     The questionnaire does not ask for your name. Only your age and gender will be required, which are collected solely for demographic analysis. Providing contact details is optional for those who wish to be contacted for a future follow-up. All data will be stored anonymously, and no one will be able to identify you from your responses.
 
     **Responsibility for Data**
