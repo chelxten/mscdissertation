@@ -106,36 +106,40 @@ if st.button("Submit Consent"):
     else:
         st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
 
+from fpdf import FPDF
+from datetime import datetime
+
 def generate_consent_pdf(name, signature, info_sheet_text):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # ✅ Add Logo
+    # ✅ Add University Logo
     pdf.image("Sheffield-Hallam-University.png", x=10, y=8, w=40)
     pdf.ln(30)
 
+    # ✅ Title
     pdf.set_font("Arial", 'B', 14)
     pdf.cell(0, 10, "Participant Information Sheet and Consent Form", ln=True, align="C")
     pdf.ln(10)
 
-    # ✅ Add Info Sheet
+    # ✅ Info Sheet
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 7, info_sheet_text)
 
-    # ✅ Add Consent Statements
+    # ✅ Consent Section
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
     pdf.set_font("Arial", '', 10)
-    pdf.multi_cell(0, 7, """1.	I have read the Information Sheet for this study and have had details of the study explained to me.
-2.	My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point. 
-3.	I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.          
-4.	I agree to provide information to the researchers under the conditions of confidentiality set out in the Information Sheet.
-5.	I wish to participate in the study under the conditions set out in the Information Sheet.
-6.	I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes.""")
+    pdf.multi_cell(0, 7, """1. I have read the Information Sheet and understand the study.
+2. I understand I can withdraw at any time without reason.
+3. I agree to provide information under confidentiality.
+4. I wish to participate under the conditions outlined.
+5. I consent to anonymised data being used for research purposes.""")
 
-    # ✅ Add User Info
+    # ✅ Participant Info
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, "Participant Details", ln=True)
     pdf.set_font("Arial", '', 10)
@@ -146,7 +150,7 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     filename = f"{name.replace(' ', '_')}_Consent_Form.pdf"
     pdf.output(filename)
     return filename
-
+    
 file_path = generate_consent_pdf(name, signature, info_sheet_text)
 with open(file_path, "rb") as f:
     st.download_button("📄 Download Your Consent PDF", f, file_name=file_path, mime="application/pdf")
