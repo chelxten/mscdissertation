@@ -27,7 +27,7 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     **Time & Place**  
     The questionnaire will be entirely online and takes approximately 5 minutes to complete.
 
-    **Use of Deception*  
+    **Use of Deception**  
     There is no deception involved in this study. All information about the purpose and process of the research is explained clearly to participants from the beginning.
 
     **Risks**  
