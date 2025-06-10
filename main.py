@@ -74,7 +74,7 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     - **Research Ethics Queries:** ethicssupport@shu.ac.uk  
     """)
 
-    st.caption("Study Duration: June to September 2025")
+    st.caption("Study Duration: June 2025 to September 2025")
 
 questions = [
     "I confirm I am 18 years or older.",
