@@ -101,13 +101,14 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
 
 # ✅ Generate and Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    file_path = generate_final_pdf(name, signature,
-                               st.session_state.get("INFO_SHEET", INFO_SHEET),
-                               tour_plan, rating, feedback)
-    with open(file_path, "rb") as f:
-        st.download_button(
-            label="⬇️ Download Your Complete File",
-            data=f,
-            file_name=file_path,
-            mime="application/pdf"
-        )
+    try:
+        file_path = generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
+        with open(file_path, "rb") as f:
+            st.download_button(
+                label="⬇️ Download Your Complete File",
+                data=f,
+                file_name=file_path,
+                mime="application/pdf"
+            )
+    except Exception as e:
+        st.error(f"❌ An error occurred: {str(e)}")
