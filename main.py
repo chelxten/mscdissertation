@@ -152,6 +152,5 @@ if st.button("Submit Consent"):
         st.session_state.consent_submitted = True
         st.session_state.participant_name = name.strip()
         st.session_state.participant_signature = signature.strip()
-        st.success("✅ Consent submitted." Redirecting to your personalized tour plan...")
-        time.sleep(1.5)
+        st.success("✅ Consent submitted. Redirecting to your personalized tour plan...")
         st.switch_page("pages/1_questionnaire.py")
