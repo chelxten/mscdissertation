@@ -22,7 +22,7 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     Taking part in this study is entirely voluntary. You are free to withdraw at any time, without giving a reason, and without any negative consequences. However, once you begin the questionnaire, all questions must be answered in order to complete the survey.
 
     **What You Will Do**  
-    f you choose to take part, you will be asked to complete a short online questionnaire. The questions will include rating scales from 1 to 10, percentage-based responses, and multiple-choice options. There are no open-ended questions, and the survey is designed to be quick and straightforward.
+    If you choose to take part, you will be asked to complete a short online questionnaire. The questions will include rating scales from 1 to 10, percentage-based responses, and multiple-choice options. There are no open-ended questions, and the survey is designed to be quick and straightforward.
 
     **Time & Place**  
     The questionnaire will be entirely online and takes approximately 5 minutes to complete.
