@@ -1,7 +1,7 @@
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
-from constants import info_sheet, consent_text
+from constants import INFO_SHEET, CONSENT_TEXT
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -14,8 +14,8 @@ signature = st.session_state.get("participant_signature", "Signature")
 tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
-info_sheet = st.session_state.get("info_sheet", "No info sheet available.")
-consent_text = st.session_state.get("consent_text", "No consent text available.")
+info_sheet = st.session_state.get("INFO_SHEET", "No info sheet available.")
+consent_text = st.session_state.get("CONSENT_TEXT", "No consent text available.")
 
 
 # ✅ PDF Generator
