@@ -116,7 +116,8 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
     pdf.set_font("DejaVu", "", 10)
     pdf.multi_cell(0, 7, consent_text)
-
+    
+    pdf.set_font("DejaVu", "", 12)
     pdf.cell(0, 7, f"Name: {name}", ln=True)
     pdf.cell(0, 7, f"Signature: {signature}", ln=True)
     pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
