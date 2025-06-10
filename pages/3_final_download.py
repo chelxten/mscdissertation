@@ -14,7 +14,7 @@ signature = st.session_state.get("participant_signature", "Signature")
 tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
-info_sheet = st.session_state.get("info_sheet_text", "No info sheet available.")
+info_sheet = st.session_state.get("info_sheet", "No info sheet available.")
 consent_text = st.session_state.get("consent_text", "No consent text available.")
 
 
