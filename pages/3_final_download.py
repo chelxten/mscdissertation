@@ -1,13 +1,9 @@
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
-import re
 import textwrap
+import re
 
-st.set_page_config(page_title="Final Download", layout="centered")
-
-st.image("Sheffield-Hallam-University.png", width=250)
-st.title("📥 Final Document Download")
 
 # ✅ Load from session state
 name = st.session_state.get("participant_name", "Participant Name")
@@ -93,78 +89,84 @@ CONSENT_TEXT = """
 6.	I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes.
     """
 
-def add_plain_text(pdf, text, max_char=100):
-    pdf.set_font("DejaVu", "", 10)
-    for line in text.strip().split("\n"):
-        line = line.strip()
-        if line == "":
-            pdf.ln(2)
-        else:
-            for wrapped in textwrap.wrap(line, width=max_char):
-                pdf.multi_cell(0, 7, wrapped)
-                
 # ✅ PDF Generator
-def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback):
+def generate_final_pdf(name, signature, info_sheet, consent_text, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # ✅ Fonts
+    # Fonts
     pdf.add_font("DejaVu", "", "DejaVuSans.ttf", uni=True)
     pdf.add_font("DejaVu", "B", "DejaVuSans-Bold.ttf", uni=True)
     pdf.set_font("DejaVu", "B", 14)
     pdf.cell(0, 10, "Participant Information, Consent, and Tour Plan", ln=True, align="C")
     pdf.ln(10)
 
-    # ✅ Information Sheet
+    def add_markdown_text(pdf, text):
+        lines = text.strip().split("\n")
+        for line in lines:
+            if line.strip() == "":
+                pdf.ln(2)
+            else:
+                match = re.match(r"\*\*(.+?)\*\*\s*(.*)", line)
+                if match:
+                    pdf.set_font("DejaVu", "B", 11)
+                    pdf.multi_cell(0, 7, match.group(1))
+                    content = match.group(2).strip()
+                    if content:
+                        pdf.set_font("DejaVu", "", 10)
+                        for wrapped in textwrap.wrap(content, width=100):
+                            pdf.multi_cell(0, 7, wrapped)
+                else:
+                    pdf.set_font("DejaVu", "", 10)
+                    for wrapped in textwrap.wrap(line.strip(), width=100):
+                        pdf.multi_cell(0, 7, wrapped)
+
     # Info Sheet
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    for line in INFO_SHEET.strip().split("\n"):
-        if line.strip() == "":
-            pdf.ln(2)
-        else:
-            wrapped_lines = textwrap.wrap(line.strip(), width=100)
-            for wrapped in wrapped_lines:
-                pdf.multi_cell(0, 7, wrapped)
+    add_markdown_text(pdf, info_sheet)
 
-    # Consent
-    # Consent
+    # Consent Section
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    for line in CONSENT_TEXT.strip().split("\n"):
-        if line.strip() == "":
-            pdf.ln(2)
-        else:
-            wrapped_lines = textwrap.wrap(line.strip(), width=100)
-            for wrapped in wrapped_lines:
-                pdf.multi_cell(0, 7, wrapped)
+    add_markdown_text(pdf, consent_text)
+    pdf.cell(0, 7, f"Name: {name}", ln=True)
+    pdf.cell(0, 7, f"Signature: {signature}", ln=True)
+    pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
+    pdf.ln(10)
 
-    # ✅ Tour Plan
+    # Tour Plan
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Personalized Tour Plan", ln=True)
     pdf.set_font("DejaVu", "", 10)
     pdf.multi_cell(0, 7, tour_plan)
 
-    # ✅ Feedback Section
+    # Feedback
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "📝 Tour Plan Feedback", ln=True)
     pdf.set_font("DejaVu", "", 10)
     pdf.cell(0, 10, f"Rating: {rating}/10 ⭐", ln=True)
     pdf.multi_cell(0, 7, f"Comments: {feedback}")
 
-    # ✅ Save to file
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f"{name.replace(' ', '_')}_FinalDocument_{timestamp}.pdf"
+    # Save file
+    filename = f"{name.replace(' ', '_')}_FinalDocument_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
     pdf.output(filename)
     return filename
 
-# ✅ Generate and Download Button
+# ✅ Streamlit UI
+st.set_page_config(page_title="Final Download", layout="centered")
+st.image("Sheffield-Hallam-University.png", width=250)
+st.title("📥 Final Document Download")
 
-# ✅ Button
 if st.button("📄 Generate & Download Final PDF"):
-    file_path = generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
+    file_path = generate_final_pdf(name, signature, INFO_SHEET, CONSENT_TEXT, tour_plan, rating, feedback)
     with open(file_path, "rb") as f:
-        st.download_button("⬇️ Download Your Complete File", data=f, file_name=file_path, mime="application/pdf")
+        st.download_button(
+            label="⬇️ Download Your Complete File",
+            data=f,
+            file_name=file_path,
+            mime="application/pdf"
+        )
