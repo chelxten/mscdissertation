@@ -121,7 +121,7 @@ def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    for line in info_sheet.strip().split("\n"):
+    for line in INFO_SHEET.strip().split("\n"):
         if line.strip() == "":
             pdf.ln(2)
         else:
