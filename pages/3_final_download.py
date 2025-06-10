@@ -17,11 +17,21 @@ tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 
+import textwrap
+import re
+
 def add_markdown_text(pdf, text, max_char=100):
+    def break_long_words(line, limit=80):
+        # Insert spaces every `limit` characters in overly long "words" (e.g., URLs)
+        return re.sub(r"(\S{" + str(limit) + r",})", lambda m: insert_soft_breaks(m.group(0), limit), line)
+
+    def insert_soft_breaks(word, limit):
+        return ' '.join([word[i:i+limit] for i in range(0, len(word), limit)])
+
     lines = text.strip().split("\n")
     for line in lines:
-        line = line.strip()
-        # Detect **Bold** headings
+        line = break_long_words(line.strip())
+
         match = re.match(r"\*\*(.+?)\*\*\s*:?(.+)?", line)
         if match:
             heading = match.group(1).strip()
