@@ -45,6 +45,16 @@ if st.button("Submit Consent"):
         st.session_state.participant_signature = signature.strip()
         st.session_state.consent_submitted = True
 
+        # ✅ Write to Google Sheet (Sheet2)
+        sheet2 = get_consent_worksheet()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        sheet2.append_row([
+            timestamp,
+            unique_id,
+            name.strip(),
+            signature.strip()
+        ])
+
         st.success("✅ Consent submitted. Redirecting to your personalized tour plan...")
         st.switch_page("pages/1_questionnaire.py")
     else:
