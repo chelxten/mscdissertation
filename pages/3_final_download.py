@@ -15,7 +15,7 @@ rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 
 # ✅ Full info sheet text
-INFO_SHEET = """
+info_sheet = """
 Title of Project: The Search of Advanced AI-Powered Service Robots for Amusement Parks
 
 Legal Basis for the Research  
