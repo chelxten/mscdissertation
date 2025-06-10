@@ -11,7 +11,7 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     ### Title of Project  
     *The Search of Advanced AI-Powered Service Robots for Amusement Parks*
 
-    ### Legal Basis for the Research  
+    **Legal Basis for the Research**  
     The University undertakes research as part of its function for the community under its legal status.  
     Data protection allows us to use personal data for research with appropriate safeguards in place under the legal basis of public tasks that are in the public interest.  
 
