@@ -14,21 +14,13 @@ st.image("Sheffield-Hallam-University.png", width=250)
 st.title("📝 Participant Consent Form")
 
 
-
 with st.expander("📄 Participant Information Sheet", expanded=True):
     st.markdown(info_sheet)
 
 st.header("Consent Confirmation")
 
 with st.expander("🔍 Please confirm the following statements before continuing:", expanded=True):
-    st.markdown("""
-1.	I have read the Information Sheet for this study and have had details of the study explained to me.
-2.	My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point. 
-3.	I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.          
-4.	I agree to provide information to the researchers under the conditions of confidentiality set out in the Information Sheet.
-5.	I wish to participate in the study under the conditions set out in the Information Sheet.
-6.	I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes.
-    """)
+    st.markdown(consent_text)
 
 agreed = st.checkbox("I have read and agree to all the above statements.")
 name = st.text_input("Full Name")
