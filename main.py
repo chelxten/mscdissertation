@@ -4,7 +4,7 @@ from fpdf import FPDF
 from datetime import datetime
 import base64
 import os
-from constants import info_sheet, consent_text
+from constants import INFO_SHEET, CONSENT_TEXT
 
 st.set_page_config(page_title="Consent Form")
 
