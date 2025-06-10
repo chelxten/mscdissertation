@@ -16,8 +16,7 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     A full statement of your rights can be found at:  
     [www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research](https://www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research)  
 
-    However, all University research is reviewed to ensure that participants are treated appropriately and their rights respected.  
-    This study has been submitted for ethical review and is awaiting approval by the University’s Research Ethics Committee.  
+    However, all University research is reviewed to ensure that participants are treated appropriately and their rights respected. This study has been submitted for ethical review and is awaiting approval by the University’s Research Ethics Committee.  
 
     Further information at:  
     [www.shu.ac.uk/research/excellence/ethics-and-integrity](https://www.shu.ac.uk/research/excellence/ethics-and-integrity)
