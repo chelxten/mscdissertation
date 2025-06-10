@@ -80,11 +80,12 @@ st.header("Consent Confirmation")
 
 with st.expander("🔍 Please confirm the following statements before continuing:", expanded=True):
     st.markdown("""
-- I confirm I am 18 years or older.  
-- I understand my participation is voluntary.  
-- I understand the data will be anonymous and only used for academic purposes.  
-- I agree my responses can be used for this study.  
-- I understand I can stop at any time without giving a reason.  
+1.	I have read the Information Sheet for this study and have had details of the study explained to me.
+2.	My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point. 
+3.	I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.          
+4.	I agree to provide information to the researchers under the conditions of confidentiality set out in the Information Sheet.
+5.	I wish to participate in the study under the conditions set out in the Information Sheet.
+6.	I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes.
     """)
 
 agreed = st.checkbox("I have read and agree to all the above statements.")
