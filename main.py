@@ -8,10 +8,13 @@ from constants import INFO_SHEET, CONSENT_TEXT
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("YOUR_CREDENTIALS_FILE.json", scope)
-client = gspread.authorize(credentials)
-sheet = client.open("Amusement Park Survey Responses").worksheet("Consent & Feedback")
+def get_consent_worksheet():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("Amusement Park Survey Responses").worksheet("Sheet2")
+    return sheet
 
 st.set_page_config(page_title="Consent Form")
 
@@ -35,14 +38,14 @@ signature = st.text_input("Signature")
 
 if st.button("Submit Consent"):
     if agreed and name.strip() and signature.strip():
-        # Store in session state
         st.session_state.consent_submitted = True
         st.session_state.participant_name = name.strip()
         st.session_state.participant_signature = signature.strip()
 
-        # ✅ Save to Google Sheet
+        # ✅ Store to second worksheet
+        sheet = get_consent_worksheet()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([timestamp, name.strip(), signature.strip(), "", "", ""])  # Tour, rating, feedback to be filled later
+        sheet.append_row([timestamp, name.strip(), signature.strip(), "", "", ""])
 
         st.success("✅ Consent submitted. Redirecting to your personalized tour plan...")
         st.switch_page("pages/1_questionnaire.py")
