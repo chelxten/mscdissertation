@@ -15,12 +15,12 @@ st.title("📝 Participant Consent Form")
 
 
 with st.expander("📄 Participant Information Sheet", expanded=True):
-    st.markdown(info_sheet)
+    st.markdown(INFO_SHEET)
 
 st.header("Consent Confirmation")
 
 with st.expander("🔍 Please confirm the following statements before continuing:", expanded=True):
-    st.markdown(consent_text)
+    st.markdown(CONSENT_TEXT)
 
 agreed = st.checkbox("I have read and agree to all the above statements.")
 name = st.text_input("Full Name")
