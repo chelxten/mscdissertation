@@ -33,13 +33,13 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    pdf.multi_cell(0, 7, info_sheet)
+    pdf.multi_cell(0, 7, INFO_SHEET)
 
     # ✅ Consent Section
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    pdf.multi_cell(0, 7, consent_text)
+    pdf.multi_cell(0, 7, CONSENT_TEXT)
 
     pdf.cell(0, 7, f"Name: {name}", ln=True)
     pdf.cell(0, 7, f"Signature: {signature}", ln=True)
