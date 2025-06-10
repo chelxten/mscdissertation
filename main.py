@@ -76,24 +76,26 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
 
     st.caption("Study Duration: June 2025 to September 2025")
 
-questions = [
-    "I confirm I am 18 years or older.",
-    "I understand my participation is voluntary.",
-    "I understand the data will be anonymous and only used for academic purposes.",
-    "I agree my responses can be used for this study.",
-    "I understand I can stop at any time without giving a reason.",
-]
+st.header("Consent Confirmation")
 
-responses = [st.radio(q, ["No", "Yes"], key=f"q{i}") for i, q in enumerate(questions)]
+with st.expander("🔍 Please confirm the following statements before continuing:", expanded=True):
+    st.markdown("""
+- I confirm I am 18 years or older.  
+- I understand my participation is voluntary.  
+- I understand the data will be anonymous and only used for academic purposes.  
+- I agree my responses can be used for this study.  
+- I understand I can stop at any time without giving a reason.  
+    """)
 
+agreed = st.checkbox("I have read and agree to all the above statements.")
 name = st.text_input("Full Name")
 signature = st.text_input("Signature")
 
 if st.button("Submit Consent"):
-    if all(r == "Yes" for r in responses) and name.strip() and signature.strip():
+    if agreed and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
         st.success("✅ Consent submitted. Redirecting...")
         time.sleep(1)
         st.switch_page("pages/1_questionnaire.py")
     else:
-        st.error("⚠️ Please agree to all questions and fill in your name and signature.")
+        st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
