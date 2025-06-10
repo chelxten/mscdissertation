@@ -1,4 +1,4 @@
-info_sheet = """
+INFO_SHEET = """
 **Title of Project:** *The Search of Advanced AI-Powered Service Robots for Amusement Parks*
 
 **Legal Basis for the Research**  
@@ -66,7 +66,7 @@ If you would like a summary of the study’s findings once the research is compl
 - **Research Ethics Queries:** ethicssupport@shu.ac.uk  
 """
 
-consent_text = """
+CONSENT_TEXT = """
 1.	I have read the Information Sheet for this study and have had details of the study explained to me.
 2.	My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point. 
 3.	I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.          
