@@ -1,5 +1,7 @@
 import streamlit as st
 import time
+from fpdf import FPDF
+from datetime import datetime
 
 st.set_page_config(page_title="Consent Form")
 
@@ -8,9 +10,8 @@ st.image("Sheffield-Hallam-University.png", width=250)
 
 st.title("📝 Participant Consent Form")
 
-with st.expander("📄 Participant Information Sheet", expanded=True):
-    st.markdown("""
-    **Title of Project:** *The Search of Advanced AI-Powered Service Robots for Amusement Parks*
+info_sheet_text = """
+**Title of Project:** *The Search of Advanced AI-Powered Service Robots for Amusement Parks*
 
     **Legal Basis for the Research**  
     The University undertakes research as part of its function for the community under its legal status.  
@@ -75,9 +76,10 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     - **Supervisor:** Dr Samuele Vinanzi – s.vinanzi@shu.ac.uk  
     - **Data Concerns:** DPO@shu.ac.uk  
     - **Research Ethics Queries:** ethicssupport@shu.ac.uk  
-    """)
+    """
 
-    st.caption("Study Duration: June 2025 to September 2025")
+with st.expander("📄 Participant Information Sheet", expanded=True):
+    st.markdown(info_sheet_text)
 
 st.header("Consent Confirmation")
 
@@ -103,3 +105,49 @@ if st.button("Submit Consent"):
         st.switch_page("pages/1_questionnaire.py")
     else:
         st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
+
+def generate_consent_pdf(name, signature, info_sheet_text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    # ✅ Add Logo
+    pdf.image("Sheffield-Hallam-University.png", x=10, y=8, w=40)
+    pdf.ln(30)
+
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(0, 10, "Participant Information Sheet and Consent Form", ln=True, align="C")
+    pdf.ln(10)
+
+    # ✅ Add Info Sheet
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "Participant Information Sheet", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 7, strip_markdown(info_sheet_text))  # 👈 Reuse markdown content here
+
+    # ✅ Add Consent Statements
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "Consent Confirmation", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.multi_cell(0, 7, """1.	I have read the Information Sheet for this study and have had details of the study explained to me.
+2.	My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point. 
+3.	I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.          
+4.	I agree to provide information to the researchers under the conditions of confidentiality set out in the Information Sheet.
+5.	I wish to participate in the study under the conditions set out in the Information Sheet.
+6.	I consent to the information collected for the purposes of this research study, once anonymised (so that I cannot be identified), to be used for any other research purposes.""")
+
+    # ✅ Add User Info
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "Participant Details", ln=True)
+    pdf.set_font("Arial", '', 10)
+    pdf.cell(0, 7, f"Name: {name}", ln=True)
+    pdf.cell(0, 7, f"Signature: {signature}", ln=True)
+    pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
+
+    filename = f"{name.replace(' ', '_')}_Consent_Form.pdf"
+    pdf.output(filename)
+    return filename
+
+file_path = generate_consent_pdf(name, signature, info_sheet_text)
+with open(file_path, "rb") as f:
+    st.download_button("📄 Download Your Consent PDF", f, file_name=file_path, mime="application/pdf")
