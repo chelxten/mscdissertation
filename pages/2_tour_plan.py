@@ -227,19 +227,24 @@ plan_text += f"Leftover Time: {leftover} minutes\n"
 st.session_state.tour_plan = plan_text
 
 # --------------------------
-# 4. FEEDBACK SECTION
+# 4. FEEDBACK SECTION (Updated)
 # --------------------------
 st.subheader("⭐ Rate and Feedback")
 
-st.markdown("Please rate your personalized tour plan and share your feedback to help us improve:")
+st.markdown("Please rate your personalized tour plan and share your thoughts:")
 
-rating = st.slider("How satisfied are you with the plan?", min_value=1, max_value=5, value=4, format="%d ⭐")
+rating = st.slider("How satisfied are you with the plan?", min_value=1, max_value=10, value=8, format="%d ⭐")
 
 feedback = st.text_area("Any comments, suggestions, or things you liked/disliked?", placeholder="Your feedback here...")
 
 if st.button("Submit Feedback"):
-    st.success("✅ Thank you for your feedback!")
+    st.success("✅ Thank you! Redirecting you to the download page...")
 
-    # Optionally store it (you can later save to a file or Google Sheet in `3_final_download`)
+    # Save feedback to session state
     st.session_state.tour_rating = rating
     st.session_state.tour_feedback = feedback
+
+    # Wait briefly before redirect
+    import time
+    time.sleep(1.5)
+    st.switch_page("pages/3_final_download.py")
