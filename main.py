@@ -144,20 +144,25 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     pdf.output(filename)
     return filename
     
-if st.button("Submit Consent"):
+if st.button("✅ Submit Consent and Download PDF"):
     if agreed and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
         st.success("✅ Consent submitted.")
 
-        # ✅ Generate and display download button
+        # ✅ Generate PDF
         file_path = generate_consent_pdf(name, signature, info_sheet_text)
+
+        # ✅ Read PDF file for download
         with open(file_path, "rb") as f:
-            st.download_button(
-                "📄 Download Your Consent PDF", 
-                f, 
-                file_name=file_path, 
-                mime="application/pdf"
-            )
+            pdf_bytes = f.read()
+
+        # ✅ Download immediately
+        st.download_button(
+            "📄 Click here to download your consent form",
+            pdf_bytes,
+            file_name=file_path,
+            mime="application/pdf"
+        )
 
         # ✅ Delay and redirect
         time.sleep(1)
