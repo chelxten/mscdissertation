@@ -147,38 +147,43 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     return filename
     
 
-if st.button("✅ Submit Consent and Download PDF"):
+import base64
+import os
+
+if st.button("✅ Submit Consent"):
     if agreed and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
         st.success("✅ Consent submitted.")
 
-        # ✅ Generate PDF
         file_path = generate_consent_pdf(name, signature, info_sheet_text)
 
-        # ✅ Read PDF and encode to base64
         with open(file_path, "rb") as f:
             pdf_bytes = f.read()
             b64_pdf = base64.b64encode(pdf_bytes).decode()
 
-        # ✅ Create download link
-        href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="{file_path}" style="display:none" id="auto-download"></a>'
-        st.markdown(href, unsafe_allow_html=True)
+        filename = f"{name.replace(' ', '_')}_Consent_Form.pdf"
+        download_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="{filename}">📄 Click here if download does not start</a>'
+        st.markdown("Your PDF is being prepared. Please wait or use the link below:")
+        st.markdown(download_link, unsafe_allow_html=True)
 
-        # ✅ Trigger auto-download with JS
-        st.markdown(
-            """
-            <script>
-            document.getElementById('auto-download').click();
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+        # Trigger auto-download via HTML/JS (non-guaranteed in all environments)
+        st.markdown(f"""
+        <script>
+            setTimeout(function(){{
+                var link = document.createElement('a');
+                link.href = "data:application/pdf;base64,{b64_pdf}";
+                link.download = "{filename}";
+                link.click();
+            }}, 500);
+        </script>
+        """, unsafe_allow_html=True)
 
-        # ✅ Optional: clean up the file
+        # Optional: Clean up
         os.remove(file_path)
 
-        # ✅ Delay and redirect
-        time.sleep(1)
+        # Delay and redirect
+        time.sleep(2)
         st.switch_page("pages/1_questionnaire.py")
+
     else:
         st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
