@@ -67,7 +67,7 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
 
 # ✅ Generate and Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    file_path = generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
+    file_path = generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
     with open(file_path, "rb") as f:
         st.download_button(
             label="⬇️ Download Your Complete File",
