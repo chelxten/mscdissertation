@@ -17,9 +17,6 @@ tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 
-import textwrap
-import re
-
 def add_markdown_text(pdf, text, max_char=100):
     def break_long_words(line, limit=80):
         # Insert spaces every `limit` characters in overly long "words" (e.g., URLs)
@@ -104,7 +101,9 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
 
 # ✅ Generate and Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    file_path = generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
+    file_path = generate_final_pdf(name, signature,
+                               st.session_state.get("INFO_SHEET", INFO_SHEET),
+                               tour_plan, rating, feedback)
     with open(file_path, "rb") as f:
         st.download_button(
             label="⬇️ Download Your Complete File",
