@@ -226,6 +226,18 @@ plan_text += f"Leftover Time: {leftover} minutes\n"
 # ✅ Store in session_state for download
 st.session_state.tour_plan = plan_text
 
+def update_rating_feedback_sheet2(unique_id, rating, feedback):
+    sheet = get_consent_worksheet()  # This points to Sheet2
+    records = sheet.get_all_values()
+
+    for i, row in enumerate(records):
+        if unique_id in row:
+            # Row found, update Rating and Feedback (adjust column index as needed)
+            sheet.update_cell(i + 1, len(row) + 1, rating)
+            sheet.update_cell(i + 1, len(row) + 2, feedback)
+            return True
+    return False
+    
 # --------------------------
 # 4. FEEDBACK SECTION (Updated)
 # --------------------------
@@ -244,7 +256,25 @@ if st.button("Submit Feedback"):
     st.session_state.tour_rating = rating
     st.session_state.tour_feedback = feedback
 
-    # Wait briefly before redirect
+    # ✅ Also update in Google Sheet (Sheet2)
+    from datetime import datetime
     import time
+
+    def update_rating_feedback_sheet2(unique_id, rating, feedback):
+        sheet = get_consent_worksheet()  # Sheet2
+        records = sheet.get_all_values()
+
+        for i, row in enumerate(records):
+            if unique_id in row:
+                sheet.update_cell(i + 1, len(row) + 1, rating)
+                sheet.update_cell(i + 1, len(row) + 2, feedback)
+                return True
+        return False
+
+    uid = st.session_state.get("unique_id")
+    if uid:
+        update_rating_feedback_sheet2(uid, rating, feedback)
+
+    # Wait briefly before redirect
     time.sleep(1.5)
     st.switch_page("pages/3_final_download.py")
