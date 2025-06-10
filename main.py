@@ -2,6 +2,8 @@ import streamlit as st
 import time
 from fpdf import FPDF
 from datetime import datetime
+import base64
+import os
 
 st.set_page_config(page_title="Consent Form")
 
@@ -144,6 +146,7 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     pdf.output(filename)
     return filename
     
+
 if st.button("✅ Submit Consent and Download PDF"):
     if agreed and name.strip() and signature.strip():
         st.session_state.consent_submitted = True
@@ -152,17 +155,27 @@ if st.button("✅ Submit Consent and Download PDF"):
         # ✅ Generate PDF
         file_path = generate_consent_pdf(name, signature, info_sheet_text)
 
-        # ✅ Read PDF file for download
+        # ✅ Read PDF and encode to base64
         with open(file_path, "rb") as f:
             pdf_bytes = f.read()
+            b64_pdf = base64.b64encode(pdf_bytes).decode()
 
-        # ✅ Download immediately
-        st.download_button(
-            "📄 Click here to download your consent form",
-            pdf_bytes,
-            file_name=file_path,
-            mime="application/pdf"
+        # ✅ Create download link
+        href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="{file_path}" style="display:none" id="auto-download"></a>'
+        st.markdown(href, unsafe_allow_html=True)
+
+        # ✅ Trigger auto-download with JS
+        st.markdown(
+            """
+            <script>
+            document.getElementById('auto-download').click();
+            </script>
+            """,
+            unsafe_allow_html=True
         )
+
+        # ✅ Optional: clean up the file
+        os.remove(file_path)
 
         # ✅ Delay and redirect
         time.sleep(1)
