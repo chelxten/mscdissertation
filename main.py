@@ -13,25 +13,52 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     Sheffield Hallam University conducts research under its legal duty to serve the public. Your data will be used for research purposes with appropriate safeguards. Full privacy notice: [Privacy Notice for Research](https://www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research)
 
     **Invitation and Purpose**  
-    You are invited to participate in a study on AI-enhanced service robots in amusement parks, focusing on technologies such as fuzzy logic and adaptive navigation. Your feedback will help improve how these robots support visitors.
+    You are invited to take part in a research study about the use of advanced artificial intelligence technologies to improve service robots in amusement parks. This study aims to understand how technologies like AI-driven navigation, fuzzy logic, and learning systems can help robots become more adaptable and engaging for visitors.
 
     **Why You Were Invited**  
-    Your demographic is typical of amusement park visitors, and your experience will help identify what robot behaviours are most effective and enjoyable.
-
+    You have been invited to take part because people in your age group are typical users of amusement parks and can provide valuable insights into how technology, like service robots, could improve the visitor experience. Your feedback will help us understand what features and behaviours make these robots more useful, engaging, and enjoyable for guests.
+    
     **Voluntary Participation**  
-    Your participation is voluntary. You can withdraw at any time. Once the survey begins, all questions must be completed to finish.
+    Taking part in this study is entirely voluntary. You are free to withdraw at any time, without giving a reason, and without any negative consequences. However, once you begin the questionnaire, all questions must be answered in order to complete the survey.
 
     **What You Will Do**  
-    You’ll complete a short online questionnaire with rating scales and multiple-choice questions. There are no open-ended responses.
+    f you choose to take part, you will be asked to complete a short online questionnaire. The questions will include rating scales from 1 to 10, percentage-based responses, and multiple-choice options. There are no open-ended questions, and the survey is designed to be quick and straightforward.
 
     **Time & Place**  
-    The survey is online and takes approximately 5 minutes to complete.
+    The questionnaire will be entirely online and takes approximately 5 minutes to complete.
 
-    **Risks & Benefits**  
-    There are no risks or sensitive questions. While there is no direct benefit to you, your answers will contribute to academic research and development in robotics.
+    **Use of Deception**
+    There is no deception involved in this study. All information about the purpose and process of the research is explained clearly to participants from the beginning.
 
-    **Confidentiality & Data Use**  
-    No names are collected. Age and gender are collected only for analysis. All data is anonymized and stored securely by the researcher. Only the researcher and their supervisor will access it.
+    **Risks**
+    This is a low-risk study. The questionnaire only includes multiple-choice and rating-scale questions about amusement park experiences and ride preferences. No sensitive or personal topics are involved.
+
+    **Benefits**
+    While there is no direct benefit to you as a participant, your responses will contribute to academic research in robotics and help improve the use of service robots in amusement parks. The findings may support future developments that enhance visitor experiences in entertainment environments. All results will be reported anonymously and used solely for educational and research purposes.
+
+    **Opportunity for Questions**
+    If you have any questions about the study, you are welcome to contact the researcher at any time using the email provided below.
+
+    **Confidentiality**
+    The questionnaire does not ask for your name. Only your age and gender will be required, which are collected solely for demographic analysis. Providing contact details is optional for those who wish to be contacted for a future follow-up. All data will be stored anonymously, and no one will be able to identify you from your responses.
+
+    **Responsibility for Data**
+    The researcher is solely responsible for storing and managing the data securely in accordance with the university’s data protection policies.
+
+    **Access to Data**
+    Only the researcher and their academic supervisor will have access to the collected data. It will not be shared with anyone else.
+
+    **Data Retention and Future Use**
+    All data will be stored securely and retained for up to five years in line with university policy. The data will be used only for this study and will not be shared or used in any other research projects.
+
+    **Use of Results**
+    The results of this study will be used in a postgraduate dissertation submitted as part of the researcher’s academic programme. All findings will be reported anonymously.
+
+    **Study Duration**
+    The study will take place between June 2025 and September 2025, which includes the period of data collection and analysis.
+    
+    **Access to Results**
+    If you would like a summary of the study’s findings once the research is complete, you may request this by contacting the researcher using the email provided below.
 
     **Contact Details**  
     - **Researcher:** Cherry San – c3065323@hallam.shu.ac.uk  
