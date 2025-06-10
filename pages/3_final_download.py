@@ -17,9 +17,12 @@ tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 
+import textwrap
+import re
+
 def add_markdown_text(pdf, text, max_char=100):
-    def break_long_words(line, limit=80):
-        # Insert spaces every `limit` characters in overly long "words" (e.g., URLs)
+    def break_long_words(line, limit=40):
+        # Insert spaces into very long words (e.g., URLs or long unbroken text)
         return re.sub(r"(\S{" + str(limit) + r",})", lambda m: insert_soft_breaks(m.group(0), limit), line)
 
     def insert_soft_breaks(word, limit):
@@ -29,27 +32,52 @@ def add_markdown_text(pdf, text, max_char=100):
     for line in lines:
         line = break_long_words(line.strip())
 
+        # Bold headings (e.g., **Title**: Content)
         match = re.match(r"\*\*(.+?)\*\*\s*:?(.+)?", line)
         if match:
             heading = match.group(1).strip()
             content = match.group(2).strip() if match.group(2) else ""
+
             pdf.set_font("DejaVu", "B", 11)
             pdf.multi_cell(0, 7, heading)
+
             if content:
                 pdf.set_font("DejaVu", "", 10)
-                for wrapped_line in textwrap.wrap(content, width=max_char):
-                    pdf.multi_cell(0, 7, wrapped_line)
+                wrapped_lines = textwrap.wrap(content, width=max_char, break_long_words=True, break_on_hyphens=False)
+                for wrapped_line in wrapped_lines:
+                    try:
+                        pdf.multi_cell(0, 7, wrapped_line)
+                    except:
+                        # Fallback manual split
+                        for safe_line in [wrapped_line[i:i+max_char] for i in range(0, len(wrapped_line), max_char)]:
+                            pdf.multi_cell(0, 7, safe_line)
+
+        # Bullet points
         elif line.startswith("- "):
             pdf.set_font("DejaVu", "", 10)
-            for wrapped_line in textwrap.wrap(line, width=max_char):
-                pdf.multi_cell(0, 7, wrapped_line)
+            wrapped_lines = textwrap.wrap(line, width=max_char, break_long_words=True, break_on_hyphens=False)
+            for wrapped_line in wrapped_lines:
+                try:
+                    pdf.multi_cell(0, 7, wrapped_line)
+                except:
+                    for safe_line in [wrapped_line[i:i+max_char] for i in range(0, len(wrapped_line), max_char)]:
+                        pdf.multi_cell(0, 7, safe_line)
+
+        # Empty line = spacing
         elif line == "":
             pdf.ln(2)
+
+        # Regular paragraphs
         else:
             pdf.set_font("DejaVu", "", 10)
-            for wrapped_line in textwrap.wrap(line, width=max_char):
-                pdf.multi_cell(0, 7, wrapped_line)
-            
+            wrapped_lines = textwrap.wrap(line, width=max_char, break_long_words=True, break_on_hyphens=False)
+            for wrapped_line in wrapped_lines:
+                try:
+                    pdf.multi_cell(0, 7, wrapped_line)
+                except:
+                    for safe_line in [wrapped_line[i:i+max_char] for i in range(0, len(wrapped_line), max_char)]:
+                        pdf.multi_cell(0, 7, safe_line)
+                        
 # ✅ PDF Generator
 def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback):
     pdf = FPDF()
@@ -75,7 +103,7 @@ def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
     pdf.set_font("DejaVu", "", 10)
     add_markdown_text(pdf, CONSENT_TEXT)
 
-    pdf.cell(0, 7, f"Name: {name}", ln=True)
+    pdf.cell(0, 7, f"Name: {name}", ln=True, align="C")
     pdf.cell(0, 7, f"Signature: {signature}", ln=True)
     pdf.cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
     pdf.ln(10)
