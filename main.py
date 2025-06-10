@@ -10,8 +10,18 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     **Title of Project:** *The Search of Advanced AI-Powered Service Robots for Amusement Parks*
 
     **Legal Basis for the Research**  
-    Sheffield Hallam University conducts research under its legal duty to serve the public. Your data will be used for research purposes with appropriate safeguards. Full privacy notice: [Privacy Notice for Research](https://www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research)
+    The University undertakes research as part of its function for the community under its legal status.  
+    Data protection allows us to use personal data for research with appropriate safeguards in place under the legal basis of public tasks that are in the public interest.  
 
+    A full statement of your rights can be found at:  
+    [www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research](https://www.shu.ac.uk/about-this-website/privacy-policy/privacy-notices/privacy-notice-for-research)  
+
+    However, all University research is reviewed to ensure that participants are treated appropriately and their rights respected.  
+    This study has been submitted for ethical review and is awaiting approval by the University’s Research Ethics Committee.  
+
+    Further information at:  
+    [www.shu.ac.uk/research/excellence/ethics-and-integrity](https://www.shu.ac.uk/research/excellence/ethics-and-integrity)
+ 
     **Invitation and Purpose**  
     You are invited to take part in a research study about the use of advanced artificial intelligence technologies to improve service robots in amusement parks. This study aims to understand how technologies like AI-driven navigation, fuzzy logic, and learning systems can help robots become more adaptable and engaging for visitors.
 
