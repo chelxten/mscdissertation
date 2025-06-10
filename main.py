@@ -106,21 +106,25 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     pdf.image("Sheffield-Hallam-University.png", x=10, y=8, w=40)
     pdf.ln(30)
 
+    # ✅ Add and use DejaVu font (supports UTF-8)
+    pdf.add_font("DejaVu", "", "DejaVuSans.ttf", uni=True)
+    pdf.set_font("DejaVu", "", 11)
+
     # ✅ Title
-    pdf.set_font("Arial", 'B', 14)
+    pdf.set_font("DejaVu", 'B', 14)
     pdf.cell(0, 10, "Participant Information Sheet and Consent Form", ln=True, align="C")
     pdf.ln(10)
 
     # ✅ Info Sheet
-    pdf.set_font("Arial", 'B', 12)
+    pdf.set_font("DejaVu", 'B', 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.multi_cell(0, 7, info_sheet_text)
 
     # ✅ Consent Section
-    pdf.set_font("Arial", 'B', 12)
+    pdf.set_font("DejaVu", 'B', 12)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
-    pdf.set_font("Arial", '', 10)
+    pdf.set_font("DejaVu", '', 10)
     pdf.multi_cell(0, 7, """1. I have read the Information Sheet and understand the study.
 2. I understand I can withdraw at any time without reason.
 3. I agree to provide information under confidentiality.
@@ -128,7 +132,7 @@ def generate_consent_pdf(name, signature, info_sheet_text):
 5. I consent to anonymised data being used for research purposes.""")
 
     # ✅ Participant Info
-    pdf.set_font("Arial", 'B', 12)
+    pdf.set_font("DejaVu", 'B', 12)
     pdf.cell(0, 10, "Participant Details", ln=True)
     pdf.set_font("Arial", '', 10)
     pdf.cell(0, 7, f"Name: {name}", ln=True)
