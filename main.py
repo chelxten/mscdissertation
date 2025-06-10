@@ -106,9 +106,6 @@ if st.button("Submit Consent"):
     else:
         st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
 
-from fpdf import FPDF
-from datetime import datetime
-
 def generate_consent_pdf(name, signature, info_sheet_text):
     pdf = FPDF()
     pdf.add_page()
