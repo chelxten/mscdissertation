@@ -75,11 +75,15 @@ if submit:
         "break": break_time,
     }
 
-   # Prepare row for Google Sheet
-    row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"), age, duration, accessibility
-    ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
 
+    # Prepare row for Google Sheet (with unique ID)
+    row = [
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        st.session_state.get("unique_id", "unknown"),  # ✅ Insert Unique ID
+        age,
+        duration,
+        accessibility
+    ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
 
     # Save to Google Sheet
     get_worksheet().append_row(row)
