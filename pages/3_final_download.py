@@ -1,6 +1,7 @@
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
+from constants import INFO_SHEET, CONSENT_TEXT
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -13,26 +14,9 @@ signature = st.session_state.get("participant_signature", "Signature")
 tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
+info_sheet = st.session_state.get("info_sheet_text", "No info sheet available.")
+consent_text = st.session_state.get("consent_text", "No consent text available.")
 
-# ✅ Full info sheet text
-info_sheet = """
-Title of Project: The Search of Advanced AI-Powered Service Robots for Amusement Parks
-
-Legal Basis for the Research:
-The University undertakes research in accordance with its ethical and legal obligations...
-
-Contact Details:
-- Researcher: Cherry San – c3065323@hallam.shu.ac.uk
-- Supervisor: Dr Samuele Vinanzi – s.vinanzi@shu.ac.uk
-"""
-
-consent_text = """
-1. I have read the Information Sheet and understand the study.
-2. I understand I can withdraw at any time without reason.
-3. I agree to provide information under confidentiality.
-4. I wish to participate under the conditions outlined.
-5. I consent to anonymised data being used for research purposes.
-"""
 
 # ✅ PDF Generator
 def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback):
