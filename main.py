@@ -97,15 +97,6 @@ agreed = st.checkbox("I have read and agree to all the above statements.")
 name = st.text_input("Full Name")
 signature = st.text_input("Signature")
 
-if st.button("Submit Consent"):
-    if agreed and name.strip() and signature.strip():
-        st.session_state.consent_submitted = True
-        st.success("✅ Consent submitted. Redirecting...")
-        time.sleep(1)
-        st.switch_page("pages/1_questionnaire.py")
-    else:
-        st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
-
 def generate_consent_pdf(name, signature, info_sheet_text):
     pdf = FPDF()
     pdf.add_page()
@@ -148,6 +139,23 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     pdf.output(filename)
     return filename
     
-file_path = generate_consent_pdf(name, signature, info_sheet_text)
-with open(file_path, "rb") as f:
-    st.download_button("📄 Download Your Consent PDF", f, file_name=file_path, mime="application/pdf")
+if st.button("Submit Consent"):
+    if agreed and name.strip() and signature.strip():
+        st.session_state.consent_submitted = True
+        st.success("✅ Consent submitted.")
+
+        # ✅ Generate and display download button
+        file_path = generate_consent_pdf(name, signature, info_sheet_text)
+        with open(file_path, "rb") as f:
+            st.download_button(
+                "📄 Download Your Consent PDF", 
+                f, 
+                file_name=file_path, 
+                mime="application/pdf"
+            )
+
+        # ✅ Delay and redirect
+        time.sleep(1)
+        st.switch_page("pages/1_questionnaire.py")
+    else:
+        st.error("⚠️ Please agree to the consent statement and fill in your name and signature.")
