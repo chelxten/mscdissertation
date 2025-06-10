@@ -11,6 +11,7 @@ if "consent_submitted" not in st.session_state or not st.session_state.consent_s
     st.warning("⚠️ You must submit the consent form first.")
     st.stop()
 
+st.image("Sheffield-Hallam-University.png", width=250)
 st.title("🎡 Visitor Questionnaire")
 
 # ✅ Google Sheets setup
