@@ -83,7 +83,7 @@ Contact Details
 - Research Ethics Queries: ethicssupport@shu.ac.uk  
 """
 
-CONSENT_TEXT = """
+consent_text = """
 1.	I have read the Information Sheet for this study and have had details of the study explained to me.
 2.	My questions about the study have been answered to my satisfaction and I understand that I may ask further questions at any point. 
 3.	I understand that I am free to withdraw from the study within the time limits outlined in the Information Sheet, without giving a reason for my withdrawal or to decline to answer any particular questions in the study without any consequences to my future treatment by the researcher.          
