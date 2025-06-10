@@ -27,28 +27,28 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     **Time & Place**  
     The questionnaire will be entirely online and takes approximately 5 minutes to complete.
 
-    **Use of Deception**
+    **Time & Place**  
     There is no deception involved in this study. All information about the purpose and process of the research is explained clearly to participants from the beginning.
 
-    **Risks**
+    **Time & Place**  
     This is a low-risk study. The questionnaire only includes multiple-choice and rating-scale questions about amusement park experiences and ride preferences. No sensitive or personal topics are involved.
 
-    **Benefits**
+    **Time & Place**  
     While there is no direct benefit to you as a participant, your responses will contribute to academic research in robotics and help improve the use of service robots in amusement parks. The findings may support future developments that enhance visitor experiences in entertainment environments. All results will be reported anonymously and used solely for educational and research purposes.
 
-    **Opportunity for Questions**
+    **Opportunity for Questions**  
     If you have any questions about the study, you are welcome to contact the researcher at any time using the email provided below.
 
-    **Confidentiality**\n
+    **Confidentiality**  
     The questionnaire does not ask for your name. Only your age and gender will be required, which are collected solely for demographic analysis. Providing contact details is optional for those who wish to be contacted for a future follow-up. All data will be stored anonymously, and no one will be able to identify you from your responses.
 
-    **Responsibility for Data**
+    **Responsibility for Data**  
     The researcher is solely responsible for storing and managing the data securely in accordance with the university’s data protection policies.
 
-    **Access to Data**
+    **Access to Data**  
     Only the researcher and their academic supervisor will have access to the collected data. It will not be shared with anyone else.
 
-    **Data Retention and Future Use**
+    **Data Retention and Future Use**  
     All data will be stored securely and retained for up to five years in line with university policy. The data will be used only for this study and will not be shared or used in any other research projects.
 
     **Use of Results**
