@@ -51,7 +51,7 @@ def add_markdown_text(pdf, text, max_char=100):
                 pdf.multi_cell(0, 7, wrapped_line)
             
 # ✅ PDF Generator
-def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback):
+def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -102,7 +102,7 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
 # ✅ Generate and Download Button
 if st.button("📄 Generate & Download Final PDF"):
     try:
-        file_path = generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
+        file_path = generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
         with open(file_path, "rb") as f:
             st.download_button(
                 label="⬇️ Download Your Complete File",
