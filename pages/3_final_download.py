@@ -1,7 +1,6 @@
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
-from constants import INFO_SHEET, CONSENT_TEXT
 import re
 import textwrap
 
@@ -121,7 +120,7 @@ def generate_final_pdf(name, signature, INFO_SHEET, tour_plan, rating, feedback)
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    add_plain_text(pdf, info_sheet)
+    add_plain_text(pdf, INFO_SHEET)
 
     # Consent
     pdf.set_font("DejaVu", "B", 12)
