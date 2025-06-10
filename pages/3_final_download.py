@@ -2,6 +2,7 @@ import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
 from constants import INFO_SHEET, CONSENT_TEXT
+import re
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -15,7 +16,29 @@ tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 
-
+def add_markdown_text(pdf, text):
+    lines = text.strip().split("\n")
+    for line in lines:
+        line = line.strip()
+        # Detect bold headings like **Title:** ...
+        match = re.match(r"\*\*(.+?)\*\*\s*:?(.+)?", line)
+        if match:
+            heading = match.group(1).strip()
+            content = match.group(2).strip() if match.group(2) else ""
+            pdf.set_font("DejaVu", "B", 11)
+            pdf.multi_cell(0, 7, heading)
+            if content:
+                pdf.set_font("DejaVu", "", 10)
+                pdf.multi_cell(0, 7, content)
+        elif line.startswith("- "):
+            pdf.set_font("DejaVu", "", 10)
+            pdf.multi_cell(0, 7, line)
+        elif line == "":
+            pdf.ln(2)
+        else:
+            pdf.set_font("DejaVu", "", 10)
+            pdf.multi_cell(0, 7, line)
+            
 # ✅ PDF Generator
 def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback):
     pdf = FPDF()
@@ -33,13 +56,13 @@ def generate_final_pdf(name, signature, info_sheet, tour_plan, rating, feedback)
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    pdf.multi_cell(0, 7, INFO_SHEET)
+    add_markdown_text(pdf, INFO_SHEET)
 
     # ✅ Consent Section
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Consent Confirmation", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    pdf.multi_cell(0, 7, CONSENT_TEXT)
+    add_markdown_text(pdf, CONSENT_TEXT)
 
     pdf.cell(0, 7, f"Name: {name}", ln=True)
     pdf.cell(0, 7, f"Signature: {signature}", ln=True)
