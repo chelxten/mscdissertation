@@ -3,7 +3,7 @@ import time
 
 st.set_page_config(page_title="Consent Form")
 
-st.image("Sheffield-Hallam-University.png", width=250)  # You can adjust the width
+st.image("Sheffield-Hallam-University.png", width=250)
 
 
 st.title("📝 Participant Consent Form")
