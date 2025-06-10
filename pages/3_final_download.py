@@ -1,7 +1,7 @@
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
-from constants import INFO_SHEET, CONSENT_TEXT
+from constants import info_sheet, consent_text
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
