@@ -201,3 +201,27 @@ with st.expander("⏱️ Time Allocation", expanded=False):
 
 with st.expander("🕒 Leftover Time"):
     st.info(f"You have **{leftover} minutes** remaining. You can revisit your favorite attractions or relax.")
+
+# Save final plan to session_state for download in 3_final_download
+plan_text = "Your Personalized Amusement Park Tour Plan\n\n"
+plan_text += f"Visitor Age Group: {data['age']}\n"
+plan_text += f"Visit Duration: {visit_duration} minutes\n"
+plan_text += f"Walking Preference: {walking_pref}\n"
+plan_text += f"Break Preference: {break_pref}\n\n"
+plan_text += "Planned Route:\n"
+for stop in final_plan:
+    if stop == "Break":
+        plan_text += "- 🛑 Break\n"
+    elif stop == "Entrance":
+        plan_text += "- 🏁 Entrance\n"
+    else:
+        zone = next((z for z, a in zones.items() if stop in a), "")
+        emoji = zone_emojis.get(zone, "🎡")
+        duration = attraction_durations.get(stop, 10)
+        plan_text += f"- {emoji} {stop} ({duration} mins)\n"
+
+plan_text += f"\nEstimated Time Used: {sum(attraction_times.values())} minutes\n"
+plan_text += f"Leftover Time: {leftover} minutes\n"
+
+# ✅ Store in session_state for download
+st.session_state.tour_plan = plan_text
