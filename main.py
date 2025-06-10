@@ -123,7 +123,6 @@ def generate_consent_pdf(name, signature, info_sheet_text):
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, "Participant Information Sheet", ln=True)
     pdf.set_font("Arial", '', 10)
-    pdf.multi_cell(0, 7, strip_markdown(info_sheet_text))  # 👈 Reuse markdown content here
 
     # ✅ Add Consent Statements
     pdf.set_font("Arial", 'B', 12)
