@@ -108,6 +108,7 @@ def generate_consent_pdf(name, signature, info_sheet_text):
 
     # ✅ Add and use DejaVu font (supports UTF-8)
     pdf.add_font("DejaVu", "", "DejaVuSans.ttf", uni=True)
+    pdf.add_font("DejaVu", "B", "DejaVuSans-Bold.ttf", uni=True)
     pdf.set_font("DejaVu", "", 11)
 
     # ✅ Title
