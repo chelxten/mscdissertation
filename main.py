@@ -27,13 +27,13 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     **Time & Place**  
     The questionnaire will be entirely online and takes approximately 5 minutes to complete.
 
-    **Time & Place**  
+    **Use of Deception*  
     There is no deception involved in this study. All information about the purpose and process of the research is explained clearly to participants from the beginning.
 
-    **Time & Place**  
+    **Risks**  
     This is a low-risk study. The questionnaire only includes multiple-choice and rating-scale questions about amusement park experiences and ride preferences. No sensitive or personal topics are involved.
 
-    **Time & Place**  
+    **Benefits**  
     While there is no direct benefit to you as a participant, your responses will contribute to academic research in robotics and help improve the use of service robots in amusement parks. The findings may support future developments that enhance visitor experiences in entertainment environments. All results will be reported anonymously and used solely for educational and research purposes.
 
     **Opportunity for Questions**  
@@ -51,13 +51,13 @@ with st.expander("📄 Participant Information Sheet", expanded=True):
     **Data Retention and Future Use**  
     All data will be stored securely and retained for up to five years in line with university policy. The data will be used only for this study and will not be shared or used in any other research projects.
 
-    **Use of Results**
+    **Use of Results**  
     The results of this study will be used in a postgraduate dissertation submitted as part of the researcher’s academic programme. All findings will be reported anonymously.
 
-    **Study Duration**
+    **Study Duration**  
     The study will take place between June 2025 and September 2025, which includes the period of data collection and analysis.
     
-    **Access to Results**
+    **Access to Results**  
     If you would like a summary of the study’s findings once the research is complete, you may request this by contacting the researcher using the email provided below.
 
     **Contact Details**  
