@@ -14,8 +14,6 @@ signature = st.session_state.get("participant_signature", "Signature")
 tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
-info_sheet = st.session_state.get("INFO_SHEET", "No info sheet available.")
-consent_text = st.session_state.get("CONSENT_TEXT", "No consent text available.")
 
 
 # ✅ PDF Generator
