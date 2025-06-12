@@ -3,6 +3,7 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
+from streamlit_sortables import sort_items
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
@@ -37,25 +38,20 @@ with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
-    
-    st.markdown("### Please rank your preferences from 1 (most important) to 7 (least important). Each rank can only be used once.")
 
-    # Define categories
-    preference_categories = ["Thrill rides", "Family rides", "Water rides", "Live shows", "Food & Dining", "Shopping", "Relaxation areas"]
+    st.subheader("Please rank your preferences by dragging them into your desired order (top = most important)")
 
-    # Build ranking inputs dynamically
-    preference_ranks = {}
-    used_ranks = set()
-
-    for category in preference_categories:
-        # Calculate available ranks for this field
-        available_ranks = [str(i) for i in range(1, 8) if i not in used_ranks]
-    
-        selected_rank = st.selectbox(f"{category} rank:", options=available_ranks, key=category)
-        selected_rank_int = int(selected_rank)
-    
-        preference_ranks[category.lower().replace(" ", "_")] = selected_rank_int
-        used_ranks.add(selected_rank_int)
+    # ✅ Drag and drop ranking interface
+    preference_items = [
+        "Thrill rides",
+        "Family rides",
+        "Water rides",
+        "Live shows",
+        "Food & Dining",
+        "Shopping",
+        "Relaxation areas"
+    ]
+    sorted_preferences = sort_items(preference_items, direction="vertical", item_height=40)
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
@@ -78,8 +74,7 @@ with st.form("questionnaire_form"):
 
     submit = st.form_submit_button("📩 Submit")
 
-# ✅ Show download button (outside of form, still visually above submit)
-
+# ✅ Download button (outside form)
 st.download_button(
     label="📄 Download Participant Information Sheet (PDF)",
     data=pis_data,
@@ -89,23 +84,30 @@ st.download_button(
 
 # ✅ Handle form submission
 if submit:
+    # ✅ Convert ranked order to numeric rankings
+    ranked_preferences = {
+        "thrill": sorted_preferences.index("Thrill rides") + 1,
+        "family": sorted_preferences.index("Family rides") + 1,
+        "water": sorted_preferences.index("Water rides") + 1,
+        "entertainment": sorted_preferences.index("Live shows") + 1,
+        "food": sorted_preferences.index("Food & Dining") + 1,
+        "shopping": sorted_preferences.index("Shopping") + 1,
+        "relaxation": sorted_preferences.index("Relaxation areas") + 1,
+    }
+
+    # ✅ Save full questionnaire state
     st.session_state["questionnaire"] = {
         "age": age,
         "duration": duration,
         "accessibility": accessibility,
-        "thrill": preference_ranks["thrill_rides"],
-        "family": preference_ranks["family_rides"],
-         "water": preference_ranks["water_rides"],
-        "entertainment": preference_ranks["live_shows"],
-        "food": preference_ranks["food_&_dining"],
-        "shopping": preference_ranks["shopping"],
-        "relaxation": preference_ranks["relaxation_areas"],
+        **ranked_preferences,
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
         "break": break_time,
     }
 
+    # ✅ Save into Google Sheet
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     unique_id = st.session_state.get("unique_id", "unknown")
 
@@ -115,7 +117,7 @@ if submit:
 
     update_values = [
         [age, duration, accessibility]
-        + list(preferences.values())
+        + list(ranked_preferences.values())
         + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
