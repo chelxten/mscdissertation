@@ -39,7 +39,6 @@ with st.form("questionnaire_form"):
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
-    st.markdown("### Please rank your preferences from 1 (most important) to 7 (least important).")
     
     preference_items = [
         "Thrill rides",
@@ -51,15 +50,10 @@ with st.form("questionnaire_form"):
         "Relaxation areas"
     ]
     
-    sorted_preferences = sort_items(
-        preference_items,
-        direction="vertical",
-        custom_css={
-            "background-color": "#f0f2f6",   # light grey-blue like Streamlit default
-            "border-color": "#cccccc",
-            "color": "#000000"
-        }
-    )
+    with st.container():
+        st.markdown("### Please rank your preferences:")
+
+        sorted_preferences = sort_items(preference_items, direction="vertical")
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
