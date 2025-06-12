@@ -24,13 +24,21 @@ def get_questionnaire_worksheet():
     sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
 
-# ✅ Questionnaire Form
+# ✅ Load PDF once
+@st.cache_resource
+def load_pis_file():
+    with open("PISPCF.pdf", "rb") as f:
+        return f.read()
+
+pis_data = load_pis_file()
+
+# 📝 Questionnaire form
 with st.form("questionnaire_form"):
-    # All your questions here
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
+    # Preferences (1–10 scale)
     preferences = {
         "thrill": st.slider("Thrill rides", 1, 10, 5),
         "family": st.slider("Family rides", 1, 10, 5),
@@ -41,6 +49,7 @@ with st.form("questionnaire_form"):
         "relaxation": st.slider("Relaxation areas", 1, 10, 5),
     }
 
+    # Priorities
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
         "Visiting family-friendly attractions together",
@@ -53,22 +62,26 @@ with st.form("questionnaire_form"):
     walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
     break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
 
-    # ✅ Consent statement inside the form (SHU style)
+    # ✅ Consent Text & Download before submit button
     st.markdown("""
     ---
-    By clicking the **‘Submit’** button below, you are consenting to participate in this study, as it is described in the Participant Information Sheet.
+    By clicking the **‘Submit’** button below, you are consenting to participate in this study,
+    as it is described in the Participant Information Sheet.
 
-    If you have not yet downloaded a copy for your records, you may download it [**here (Participant Information Sheet)**](/static/PISPCF.pdf).
+    If you have not yet downloaded a copy for your records, you may download it now:
     """)
 
-    # ✅ Download button outside form (below)
-    st.form_submit_button("📩 Submit")
+    st.download_button(
+        label="📄 Download Participant Information Sheet (PDF)",
+        data=pis_data,
+        file_name="PISPCF.pdf",
+        mime="application/pdf"
+    )
 
+    submit = st.form_submit_button("📩 Submit")
 
-
-# ✅ Handle submission after form
-if st.session_state.get("questionnaire_form"):
-    # store session
+# ✅ Handle form submission
+if submit:
     st.session_state["questionnaire"] = {
         "age": age,
         "duration": duration,
@@ -86,15 +99,20 @@ if st.session_state.get("questionnaire_form"):
         "break": break_time,
     }
 
+    # ✅ Get timestamp & unique ID from session (already created at consent page)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     unique_id = st.session_state.get("unique_id", "unknown")
 
+    # ✅ Find row by UID
     sheet = get_questionnaire_worksheet()
-    cell = sheet.find(unique_id, in_column=2)
+    cell = sheet.find(unique_id, in_column=2)  # column B
     row_num = cell.row
 
+    # ✅ Update columns C-P (columns 3-16)
     update_values = [
-        [age, duration, accessibility] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
+        [age, duration, accessibility]
+        + list(preferences.values())
+        + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
     sheet.update(f"C{row_num}:P{row_num}", update_values)
