@@ -21,73 +21,41 @@ unique_id = st.session_state.get("unique_id", "Unknown")
 
 def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
-    
+
+# ✅ Format the tour plan into clean bullet list
+def format_tour_plan_for_html(tour_plan):
+    lines = tour_plan.splitlines()
+    html_lines = "<ul>"
+    for line in lines:
+        clean_line = remove_emojis(line).strip()
+        if clean_line:  # avoid empty lines
+            html_lines += f"<li>{clean_line}</li>"
+    html_lines += "</ul>"
+    return html_lines
+
 # ✅ Generate dynamic PDF from HTML
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
+    formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
+
     html_content = f"""
-    <html>
-    <head>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                font-size: 11pt;
-                margin: 40px;
-            }}
-            h1 {{
-                text-align: center;
-                font-size: 16pt;
-            }}
-            .section-title {{
-                margin-top: 20px;
-                font-size: 14pt;
-                font-weight: bold;
-            }}
-            .info-table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 10px;
-            }}
-            .info-table td {{
-                padding: 6px;
-                vertical-align: top;
-            }}
-            .label {{
-                font-weight: bold;
-                width: 120px;
-            }}
-            .value {{
-                width: auto;
-            }}
-            pre {{
-                font-family: Arial, sans-serif;
-                font-size: 10pt;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>Participant Summary Information</h1>
+    <h1 style="text-align: center;">Participant Summary Information</h1>
+    <p><b>Name:</b> {name}</p>
+    <p><b>Signature:</b> {signature}</p>
+    <p><b>Date:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
 
-        <table class="info-table">
-            <tr><td class="label">Name:</td><td class="value">{name}</td></tr>
-            <tr><td class="label">Signature:</td><td class="value">{signature}</td></tr>
-            <tr><td class="label">Date:</td><td class="value">{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
-        </table>
+    <h2>Personalized Tour Plan</h2>
+    {formatted_tour_plan_html}
 
-        <div class="section-title">Personalized Tour Plan</div>
-        <pre>{tour_plan}</pre>
-
-        <div class="section-title">Tour Plan Feedback</div>
-        <p><b>Rating:</b> {rating}/10</p>
-        <p><b>Comments:</b> {feedback}</p>
-    </body>
-    </html>
+    <h2>Tour Plan Feedback</h2>
+    <p><b>Rating:</b> {rating}/10</p>
+    <p><b>Comments:</b> {remove_emojis(feedback)}</p>
     """
+
     result_buffer = io.BytesIO()
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
     return result_buffer
+
 
 # ✅ Merge master file with dynamic PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
@@ -105,8 +73,7 @@ def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
 
 # ✅ Generate Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    tour_plan_clean = remove_emojis(tour_plan)
-    dynamic_pdf = generate_dynamic_pdf_html(name, signature, tour_plan_clean, rating, feedback)
+    dynamic_pdf = generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback)
     merged_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
     st.download_button(
