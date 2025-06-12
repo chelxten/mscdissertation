@@ -57,22 +57,14 @@ with st.form("questionnaire_form"):
     st.markdown("""
     ---
     By clicking the **‘Submit’** button below, you are consenting to participate in this study, as it is described in the Participant Information Sheet.
-    If you have not yet downloaded a copy for your records, you may download it here:
+
+    If you have not yet downloaded a copy for your records, you may download it [**here (Participant Information Sheet)**](PISPCF.pdf).
     """)
 
     # ✅ Download button outside form (below)
     st.form_submit_button("📩 Submit")
 
-# ✅ Download button AFTER form
-with open("PISPCF.pdf", "rb") as f:
-    pis_data = f.read()
 
-st.download_button(
-    label="📄 Download Participant Information Sheet",
-    data=pis_data,
-    file_name="PISPCF.pdf",
-    mime="application/pdf"
-)
 
 # ✅ Handle submission after form
 if st.session_state.get("questionnaire_form"):
