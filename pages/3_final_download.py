@@ -57,7 +57,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <head>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 40px; }}
-        h1 {{ text-align: center; color: #990033; }}
+        h1 {{ text-align: center; color: #990033; font-size: 12pt;}}
         h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
         table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 20px; }}
         td {{ padding: 6px; vertical-align: top; }}
