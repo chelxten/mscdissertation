@@ -20,13 +20,12 @@ feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
 def remove_emojis(text):
-    # Regex pattern to match most common emojis
     emoji_pattern = re.compile(
         "["
-        "\U0001F600-\U0001F64F"  # Emoticons
-        "\U0001F300-\U0001F5FF"  # Symbols & pictographs
-        "\U0001F680-\U0001F6FF"  # Transport & map symbols
-        "\U0001F1E0-\U0001F1FF"  # Flags
+        "\U0001F600-\U0001F64F"
+        "\U0001F300-\U0001F5FF"
+        "\U0001F680-\U0001F6FF"
+        "\U0001F1E0-\U0001F1FF"
         "\U00002702-\U000027B0"
         "\U000024C2-\U0001F251"
         "]+",
@@ -117,7 +116,8 @@ def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
 
 # ✅ Generate Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    dynamic_pdf = generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback)
+    tour_plan_clean = remove_emojis(tour_plan)
+    dynamic_pdf = generate_dynamic_pdf_html(name, signature, tour_plan_clean, rating, feedback)
     merged_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
     st.download_button(
