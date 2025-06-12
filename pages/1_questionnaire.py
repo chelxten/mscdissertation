@@ -5,7 +5,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 import time
 from streamlit_sortables import sort_items
 
-
 st.set_page_config(page_title="Visitor Questionnaire")
 
 # 🚫 Block access if consent not given
@@ -34,16 +33,14 @@ def load_pis_file():
 
 pis_data = load_pis_file()
 
-
 # ✅ Questionnaire form
 with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
-    # ✅ Replace this part inside your form:
-    st.markdown("### Please rank your preferences from 1 (most important) to 7 (least important). Drag to reorder.")
-
+    st.markdown("### Please rank your preferences from 1 (most important) to 7 (least important).")
+    
     preference_items = [
         "Thrill rides",
         "Family rides",
@@ -53,8 +50,7 @@ with st.form("questionnaire_form"):
         "Shopping",
         "Relaxation areas"
     ]
-
-    # Use streamlit-sortables for ranking
+    
     sorted_preferences = sort_items(preference_items, direction="vertical", item_height=40)
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
@@ -72,14 +68,12 @@ with st.form("questionnaire_form"):
     st.markdown("""
     ---
     By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-    as it is described in the Participant Information Sheet. If you did not yet download and keep a copy of this document
-    for your records, we recommend you do that now. You may download it at the bottom of this page.
+    as described in the Participant Information Sheet. If you did not yet download and keep a copy for your records, you may download it now (button below).
     """)
 
     submit = st.form_submit_button("📩 Submit")
 
-# ✅ Show download button (outside of form, still visually above submit)
-
+# ✅ Download button OUTSIDE form
 st.download_button(
     label="📄 Download Participant Information Sheet (PDF)",
     data=pis_data,
@@ -113,6 +107,7 @@ if submit:
     cell = sheet.find(unique_id, in_column=2)
     row_num = cell.row
 
+    # ✅ Prepare update row: columns C-P
     update_values = [
         [age, duration, accessibility]
         + [
