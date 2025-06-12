@@ -19,18 +19,32 @@ rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
-# ✅ Safe multicell function
-def safe_multicell(pdf, text, width=100, chunk_size=80):
-    text = text or ""
-    text = ''.join(ch for ch in text if not unicodedata.category(ch).startswith("C"))
-    text = text.encode('ascii', 'ignore').decode('ascii')
+# ✅ Full sanitize function
+def sanitize_and_wrap(text, width=100, chunk_size=50):
+    if not text:
+        return [""]
+
+    # Remove invisible control characters
+    text = ''.join(ch for ch in text if unicodedata.category(ch)[0] != "C")
     
+    # Strip emojis and non-ascii characters
+    text = text.encode("ascii", "ignore").decode("ascii")
+
+    # Break very long words without spaces
     def break_long_words(s):
         return ' '.join([s[i:i+chunk_size] for i in range(0, len(s), chunk_size)])
+
+    wrapped_lines = []
+    for line in text.splitlines():
+        safe_line = break_long_words(line)
+        wrapped_lines.extend(textwrap.wrap(safe_line, width))
     
-    for line in text.split('\n'):
-        line = break_long_words(line)
-        wrapped = textwrap.fill(line, width)
+    return wrapped_lines
+
+# ✅ FPDF-safe multi_cell wrapper
+def safe_multicell(pdf, text):
+    wrapped_lines = sanitize_and_wrap(text)
+    for wrapped in wrapped_lines:
         if wrapped.strip() == "":
             pdf.ln(2)
         else:
@@ -72,18 +86,21 @@ def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     buffer.seek(0)
     return buffer
 
-# ✅ Merge the master PDF file with dynamic PDF
+# ✅ Merge master PDF with dynamic PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     merger = PyPDF2.PdfMerger()
+    
     with open(master_pdf_path, "rb") as master_file:
         merger.append(master_file)
+
     merger.append(dynamic_pdf_buffer)
+
     final_buffer = io.BytesIO()
     merger.write(final_buffer)
     final_buffer.seek(0)
     return final_buffer
 
-# ✅ Generate download button
+# ✅ Download button logic
 if st.button("📄 Generate & Download Final PDF"):
     dynamic_pdf = generate_dynamic_pdf(name, signature, tour_plan, rating, feedback)
     merged_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
