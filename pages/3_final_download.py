@@ -109,6 +109,8 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback, agre
         <tr><td><b>Consent Agreed:</b></td><td>{'Yes' if agreed else 'No'}</td></tr>
     </table>
 
+    {consent_html} 
+
     <h2>Personalized Tour Plan</h2>
     {formatted_tour_plan_html}
 
