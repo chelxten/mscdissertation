@@ -273,5 +273,4 @@ if st.button("Submit Feedback"):
     if uid:
         update_rating_feedback_sheet2(uid, rating, feedback)
 
-    time.sleep(1.5)
     st.switch_page("pages/3_final_download.py")
