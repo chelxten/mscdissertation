@@ -39,7 +39,12 @@ def format_tour_plan_for_html(tour_plan):
 
         if recording:
             if line.strip():
-                route_lines.append(line.strip())
+                # ✅ Remove the leading '- ' if exists
+                clean_line = line.strip()
+                if clean_line.startswith('- '):
+                    clean_line = clean_line[2:]  # remove the dash and space
+                route_lines.append(clean_line)
+
 
     html = """
     <ul style="line-height: 1.2; margin-top: 0; padding-left: 20px; font-size: 12pt;">
