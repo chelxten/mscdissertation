@@ -19,18 +19,6 @@ def get_consent_worksheet():
     sheet = client.open("Survey Responses").worksheet("Sheet2")
     return sheet
 
-# Test credentials load from Streamlit secrets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_dict = st.secrets["gcp_service_account"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-client = gspread.authorize(creds)
-
-try:
-    # Try to open the Google Sheet (replace if your filename is different)
-    sheet = client.open("Survey Responses")
-    st.success("✅ SUCCESS: Service account can access the Google Sheet!")
-except Exception as e:
-    st.error(f"❌ ERROR: {e}")
 st.set_page_config(page_title="Consent Form")
 
 st.image("Sheffield-Hallam-University.png", width=250)
