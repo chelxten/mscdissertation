@@ -8,3 +8,4 @@ xhtml2pdf
 reportlab
 PyPDF2
 FPDF
+streamlit-sortables
