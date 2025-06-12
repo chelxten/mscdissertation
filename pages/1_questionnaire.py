@@ -23,7 +23,7 @@ def get_questionnaire_worksheet():
     client = gspread.authorize(creds)
     sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
-    
+
 # 📝 Questionnaire form
 with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
@@ -75,17 +75,16 @@ if submit:
         "break": break_time,
     }
 
+    # ✅ Get timestamp & unique ID from session (already created at consent page)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    unique_id = st.session_state.get("unique_id", "unknown")
 
-    # Prepare row for Google Sheet (with unique ID)
+    # ✅ Prepare full row for Google Sheet (matching your column structure!)
     row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        st.session_state.get("unique_id", "unknown"),  # ✅ Insert Unique ID
-        age,
-        duration,
-        accessibility
-    ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
+        timestamp, unique_id, age, duration, accessibility
+    ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time] + ["", ""]  # leave Rating & Feedback blank for now
 
-    # Save to Google Sheet
+    # ✅ Save to Google Sheet
     get_questionnaire_worksheet().append_row(row)
 
     st.success("✅ Submitted! Redirecting to your personalized tour plan...")
