@@ -55,10 +55,8 @@ with st.form("questionnaire_form"):
         preference_items,
         direction="vertical",
         custom_css={
-            "background-color": "#ffffff",
-            "border": "1px solid #dddddd",
-            "border-radius": "8px",
-            "padding": "8px",
+            "background-color": "#f0f2f6",   # light grey-blue like Streamlit default
+            "border-color": "#cccccc",
             "color": "#000000"
         }
     )
