@@ -15,9 +15,10 @@ def get_questionnaire_worksheet():
     sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
 
+# ✅ Generate unique ID
 def generate_unique_id():
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    random_part = uuid.uuid4().hex[:6]  # 6 hex characters → 16 million combinations
+    random_part = uuid.uuid4().hex[:6]  # 6 hex characters → ~16 million combinations
     return f"{timestamp}_{random_part}"
 
 st.set_page_config(page_title="Participant Information & Consent")
@@ -72,13 +73,13 @@ If you have any questions, please contact **Cherry San** at:
 # ✅ Consent via Start Button
 if st.button("I Consent to Participate — Start Questionnaire"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    unique_id = f"{timestamp}_{random.randint(1000, 9999)}"  # ✅ Unique ID
+    unique_id = generate_unique_id()
 
     st.session_state["consent_submitted"] = True
     st.session_state["unique_id"] = unique_id
 
     # ✅ Save timestamp & ID into Google Sheet as first row
-    row = [timestamp, unique_id] + [""] * 16  # total columns = 18
-    get_worksheet().append_row(row)
+    row = [timestamp, unique_id] + [""] * 16  # 18 columns total (2 filled + 16 empty)
+    get_questionnaire_worksheet().append_row(row)
 
     st.switch_page("pages/1_questionnaire.py")
