@@ -1,6 +1,19 @@
 import streamlit as st
 import uuid
 from datetime import datetime
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import time
+
+# ✅ Google Sheets setup
+@st.cache_resource
+def get_questionnaire_worksheet():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("Survey Responses").worksheet("Sheet1")
+    return sheet
 
 def generate_unique_id():
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
