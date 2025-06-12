@@ -1,6 +1,8 @@
 import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
+import io
+import PyPDF2
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -13,10 +15,9 @@ signature = st.session_state.get("participant_signature", "Signature")
 tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
-unique_id = st.session_state.get("unique_id", "Unknown")  # we still use this for filename only
+unique_id = st.session_state.get("unique_id", "Unknown")
 
-
-# ✅ Generate personalized dynamic PDF part (without showing Unique ID)
+# ✅ Generate personalized dynamic PDF part
 def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
@@ -47,6 +48,7 @@ def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     pdf.multi_cell(0, 7, f"Rating: {rating}/10 ⭐")
     pdf.multi_cell(0, 7, f"Comments: {feedback}")
 
+    # ✅ Save to BytesIO buffer instead of file
     buffer = io.BytesIO()
     pdf.output(buffer)
     buffer.seek(0)
@@ -55,8 +57,14 @@ def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
 # ✅ Merge pre-uploaded master PDF with dynamic generated PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     merger = PyPDF2.PdfMerger()
-    merger.append(master_pdf_path)
+    
+    # Read master file
+    with open(master_pdf_path, "rb") as master_file:
+        merger.append(master_file)
+
+    # Read dynamic PDF from buffer
     merger.append(dynamic_pdf_buffer)
+
     final_buffer = io.BytesIO()
     merger.write(final_buffer)
     final_buffer.seek(0)
@@ -70,6 +78,6 @@ if st.button("📄 Generate & Download Final PDF"):
     st.download_button(
         label="⬇️ Download Complete File",
         data=merged_pdf,
-        file_name=f"{unique_id}_FinalDocument.pdf",  # UID only used in filename, not inside the file
+        file_name=f"{unique_id}_FinalDocument.pdf",
         mime="application/pdf"
     )
