@@ -63,8 +63,8 @@ with st.form("questionnaire_form"):
     st.markdown("""
     ---
     By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-    as it is described in the Participant Information Sheet. If you have not yet downloaded a copy for your records,
-    you may download it below.
+    as it is described in the Participant Information Sheet. If you did not yet download and keep a copy of this document
+    for your records, we recommend you do that now. You may download it at the bottom of this page.
     """)
 
     submit = st.form_submit_button("📩 Submit")
