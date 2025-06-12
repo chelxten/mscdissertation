@@ -32,9 +32,13 @@ def format_tour_plan_for_html(tour_plan):
             recording = True
             continue
 
-        if "Estimated Time Used" in line or "Leftover Time" in line:
-            route_lines.append(line.strip())
+        if "Estimated Time Used" in line:
+            estimated_time = line.strip()
             recording = False
+            continue
+
+        if "Leftover Time" in line:
+            leftover_time = line.strip()
             continue
 
         if recording:
