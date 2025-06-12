@@ -5,6 +5,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 import time
 from streamlit_sortables import sort_items
 
+
+
+st.set_page_config(page_title="Visitor Questionnaire")
+
 st.markdown("""
     <style>
     .sortable-item {
@@ -16,8 +20,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-st.set_page_config(page_title="Visitor Questionnaire")
 
 # 🚫 Block access if consent not given
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
