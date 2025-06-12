@@ -239,15 +239,14 @@ plan_text += f"Leftover Time: {leftover} minutes\n"
 st.session_state.tour_plan = plan_text
 
 def update_rating_feedback_sheet(uid, rating, feedback):
-    sheet = get_questionnaire_worksheet()  # Sheet1 ✅
+    sheet = get_consent_worksheet()  # ✅ Correct function
+
     try:
-        # UID is in column B (2nd column)
-        cell = sheet.find(uid, in_column=2)
+        cell = sheet.find(uid, in_column=2)  # UID in column B
         row_num = cell.row
 
-        # Rating is column 17, Feedback is column 18 (after all previous columns)
-        sheet.update_cell(row_num, 17, str(rating))      
-        sheet.update_cell(row_num, 18, feedback)         
+        sheet.update_cell(row_num, 17, str(rating))  # Column Q
+        sheet.update_cell(row_num, 18, feedback)     # Column R
         st.success("✅ Feedback saved to Google Sheet!")
     except Exception as e:
         st.error(f"❌ Error updating feedback: {e}")
