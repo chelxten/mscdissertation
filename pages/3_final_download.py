@@ -3,8 +3,6 @@ from datetime import datetime
 import io
 from xhtml2pdf import pisa
 import PyPDF2
-import re
-
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -19,19 +17,43 @@ rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
+# ✅ Emoji remover (ascii only)
 def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
 
-# ✅ Format the tour plan into clean bullet list
+# ✅ Format nicely for PDF
 def format_tour_plan_for_html(tour_plan):
     lines = tour_plan.splitlines()
-    html_lines = "<ul>"
+
+    general_info = []
+    route_info = []
+    capture_route = False
+
     for line in lines:
         clean_line = remove_emojis(line).strip()
-        if clean_line:  # avoid empty lines
-            html_lines += f"<li>{clean_line}</li>"
-    html_lines += "</ul>"
-    return html_lines
+
+        if "Planned Route" in clean_line:
+            general_info.append("<p><b>Planned Route:</b></p>")
+            capture_route = True
+            continue
+
+        if capture_route:
+            if clean_line.startswith("- "):
+                route_info.append(f"<li>{clean_line[2:]}</li>")  # Remove the dash
+            else:
+                capture_route = False
+                if clean_line:  # extra line after route list
+                    general_info.append(f"<p>{clean_line}</p>")
+        else:
+            if clean_line:
+                general_info.append(f"<p>{clean_line}</p>")
+
+    # Build final HTML
+    html = "".join(general_info)
+    if route_info:
+        html += "<ul>" + "".join(route_info) + "</ul>"
+
+    return html
 
 # ✅ Generate dynamic PDF from HTML
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
@@ -55,7 +77,6 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
     return result_buffer
-
 
 # ✅ Merge master file with dynamic PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
