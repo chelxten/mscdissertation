@@ -3,6 +3,7 @@ from datetime import datetime
 import io
 from xhtml2pdf import pisa
 import PyPDF2
+import re
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -21,77 +22,59 @@ unique_id = st.session_state.get("unique_id", "Unknown")
 def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
 
-# ✅ Format nicely for PDF
+# ✅ Clean tour plan formatter
 def format_tour_plan_for_html(tour_plan):
-    lines = tour_plan.splitlines()
+    route_lines = []
+    recording = False
 
-    general_info = []
-    route_info = []
-    capture_route = False
-
-    for line in lines:
-        clean_line = remove_emojis(line).strip()
-
-        if "Planned Route" in clean_line:
-            general_info.append("<p><b>Planned Route:</b></p>")
-            capture_route = True
+    for line in tour_plan.split('\n'):
+        if "Planned Route:" in line:
+            recording = True
             continue
 
-        if capture_route:
-            if clean_line.startswith("- "):
-                route_info.append(f"<li>{clean_line[2:]}</li>")  # Remove the dash
-            else:
-                capture_route = False
-                if clean_line:  # extra line after route list
-                    general_info.append(f"<p>{clean_line}</p>")
-        else:
-            if clean_line:
-                general_info.append(f"<p>{clean_line}</p>")
+        if "Estimated Time Used" in line or "Leftover Time" in line:
+            route_lines.append(line.strip())
+            recording = False
+            continue
 
-    # Build final HTML
-    html = "".join(general_info)
-    if route_info:
-        html += "<ul>" + "".join(route_info) + "</ul>"
+        if recording:
+            if line.strip():
+                route_lines.append(line.strip())
 
+    html = "<ul>"
+    for l in route_lines:
+        l = remove_emojis(l)
+        html += f"<li>{l}</li>"
+    html += "</ul>"
     return html
 
-# ✅ Generate dynamic PDF from HTML
+# ✅ The full PDF generator function
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
 
     html_content = f"""
-    <html>
-    <head>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            h1 {{ text-align: center; color: #800000; }}
-            h2 {{ color: #333333; border-bottom: 1px solid #cccccc; padding-bottom: 5px; }}
-            p {{ font-size: 12pt; line-height: 1.5; }}
-            .info-table {{ width: 100%; margin-bottom: 20px; }}
-            .info-table td {{ padding: 5px; font-size: 12pt; }}
-            .label {{ font-weight: bold; width: 150px; }}
-            ul {{ padding-left: 20px; }}
-        </style>
-    </head>
-    <body>
-        <h1>Participant Summary Information</h1>
+    <h1 style="text-align: center;">Participant Summary Information</h1>
 
-        <table class="info-table">
-            <tr><td class="label">Name:</td><td>{name}</td></tr>
-            <tr><td class="label">Signature:</td><td>{signature}</td></tr>
-            <tr><td class="label">Date:</td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
-        </table>
+    <table style="width: 100%; font-size: 12pt;">
+        <tr>
+            <td><b>Name:</b></td><td>{name}</td>
+        </tr>
+        <tr>
+            <td><b>Signature:</b></td><td>{signature}</td>
+        </tr>
+        <tr>
+            <td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td>
+        </tr>
+    </table>
 
-        <h2>Personalized Tour Plan</h2>
-        {formatted_tour_plan_html}
+    <h2>Personalized Tour Plan</h2>
+    {formatted_tour_plan_html}
 
-        <h2>Tour Plan Feedback</h2>
-        <p><span class="label">Rating:</span> {rating}/10</p>
-        <p><span class="label">Comments:</span> {remove_emojis(feedback)}</p>
-
-    </body>
-    </html>
+    <h2>Tour Plan Feedback</h2>
+    <p><b>Rating:</b> {rating}/10</p>
+    <p><b>Comments:</b> {feedback}</p>
     """
+
     result_buffer = io.BytesIO()
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
