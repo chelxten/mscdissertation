@@ -60,19 +60,38 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
 
     html_content = f"""
-    <h1 style="text-align: center;">Participant Summary Information</h1>
-    <p><b>Name:</b> {name}</p>
-    <p><b>Signature:</b> {signature}</p>
-    <p><b>Date:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            h1 {{ text-align: center; color: #800000; }}
+            h2 {{ color: #333333; border-bottom: 1px solid #cccccc; padding-bottom: 5px; }}
+            p {{ font-size: 12pt; line-height: 1.5; }}
+            .info-table {{ width: 100%; margin-bottom: 20px; }}
+            .info-table td {{ padding: 5px; font-size: 12pt; }}
+            .label {{ font-weight: bold; width: 150px; }}
+            ul {{ padding-left: 20px; }}
+        </style>
+    </head>
+    <body>
+        <h1>Participant Summary Information</h1>
 
-    <h2>Personalized Tour Plan</h2>
-    {formatted_tour_plan_html}
+        <table class="info-table">
+            <tr><td class="label">Name:</td><td>{name}</td></tr>
+            <tr><td class="label">Signature:</td><td>{signature}</td></tr>
+            <tr><td class="label">Date:</td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
+        </table>
 
-    <h2>Tour Plan Feedback</h2>
-    <p><b>Rating:</b> {rating}/10</p>
-    <p><b>Comments:</b> {remove_emojis(feedback)}</p>
+        <h2>Personalized Tour Plan</h2>
+        {formatted_tour_plan_html}
+
+        <h2>Tour Plan Feedback</h2>
+        <p><span class="label">Rating:</span> {rating}/10</p>
+        <p><span class="label">Comments:</span> {remove_emojis(feedback)}</p>
+
+    </body>
+    </html>
     """
-
     result_buffer = io.BytesIO()
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
