@@ -50,7 +50,7 @@ def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
 
     # ✅ Save to BytesIO buffer instead of file
     buffer = io.BytesIO()
-    pdf.output(buffer)
+    pdf.output(buffer, dest='F')
     buffer.seek(0)
     return buffer
 
