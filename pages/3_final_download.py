@@ -19,6 +19,10 @@ feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 agreed = st.session_state.get("consent_agreed", False)
 
+
+# 🔧 Debug output
+st.write("Consent agreed?", agreed)
+
 # ✅ Emoji remover (ascii only)
 def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
