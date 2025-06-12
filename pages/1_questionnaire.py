@@ -38,15 +38,24 @@ with st.form("questionnaire_form"):
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
-    preferences = {
-        "thrill": st.slider("Thrill rides", 1, 10, 5),
-        "family": st.slider("Family rides", 1, 10, 5),
-        "water": st.slider("Water rides", 1, 10, 5),
-        "entertainment": st.slider("Live shows", 1, 10, 5),
-        "food": st.slider("Food & Dining", 1, 10, 5),
-        "shopping": st.slider("Shopping", 1, 10, 5),
-        "relaxation": st.slider("Relaxation areas", 1, 10, 5),
-    }
+    st.markdown("### Please rank your preferences from 1 (most important) to 7 (least important). Each rank can only be used once.")
+
+    # Define categories
+    preference_categories = ["Thrill rides", "Family rides", "Water rides", "Live shows", "Food & Dining", "Shopping", "Relaxation areas"]
+
+    # Build ranking inputs dynamically
+    preference_ranks = {}
+    used_ranks = set()
+
+    for category in preference_categories:
+        # Calculate available ranks for this field
+        available_ranks = [str(i) for i in range(1, 8) if i not in used_ranks]
+    
+        selected_rank = st.selectbox(f"{category} rank:", options=available_ranks, key=category)
+        selected_rank_int = int(selected_rank)
+    
+        preference_ranks[category.lower().replace(" ", "_")] = selected_rank_int
+        used_ranks.add(selected_rank_int)
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
@@ -84,13 +93,13 @@ if submit:
         "age": age,
         "duration": duration,
         "accessibility": accessibility,
-        "thrill": preferences["thrill"],
-        "family": preferences["family"],
-        "water": preferences["water"],
-        "entertainment": preferences["entertainment"],
-        "food": preferences["food"],
-        "shopping": preferences["shopping"],
-        "relaxation": preferences["relaxation"],
+        "thrill": preference_ranks["thrill_rides"],
+        "family": preference_ranks["family_rides"],
+         "water": preference_ranks["water_rides"],
+        "entertainment": preference_ranks["live_shows"],
+        "food": preference_ranks["food_&_dining"],
+        "shopping": preference_ranks["shopping"],
+        "relaxation": preference_ranks["relaxation_areas"],
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
