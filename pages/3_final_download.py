@@ -53,18 +53,26 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
 
     html_content = f"""
-    <h1 style="text-align: center;">Participant Summary Information</h1>
+    <html>
+    <head>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 40px; }}
+        h1 {{ text-align: center; color: #990033; }}
+        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
+        table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 20px; }}
+        td {{ padding: 6px; vertical-align: top; }}
+        ul {{ font-size: 12pt; }}
+        p {{ font-size: 12pt; }}
+    </style>
+    </head>
+    <body>
 
-    <table style="width: 100%; font-size: 12pt;">
-        <tr>
-            <td><b>Name:</b></td><td>{name}</td>
-        </tr>
-        <tr>
-            <td><b>Signature:</b></td><td>{signature}</td>
-        </tr>
-        <tr>
-            <td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td>
-        </tr>
+    <h1>Participant Summary Information</h1>
+
+    <table>
+        <tr><td><b>Name:</b></td><td>{name}</td></tr>
+        <tr><td><b>Signature:</b></td><td>{signature}</td></tr>
+        <tr><td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
     </table>
 
     <h2>Personalized Tour Plan</h2>
@@ -73,6 +81,9 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <h2>Tour Plan Feedback</h2>
     <p><b>Rating:</b> {rating}/10</p>
     <p><b>Comments:</b> {feedback}</p>
+
+    </body>
+    </html>
     """
 
     result_buffer = io.BytesIO()
