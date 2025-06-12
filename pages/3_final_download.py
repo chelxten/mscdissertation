@@ -72,7 +72,7 @@ def format_tour_plan_for_html(tour_plan):
     return html
 
 # ✅ The full PDF generator function
-def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
+def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback, agreed):
     formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
 
     
@@ -106,6 +106,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
         <tr><td><b>Name:</b></td><td>{name}</td></tr>
         <tr><td><b>Signature:</b></td><td>{signature}</td></tr>
         <tr><td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
+        <tr><td><b>Consent Agreed:</b></td><td>{'Yes' if agreed else 'No'}</td></tr>
     </table>
 
     <h2>Personalized Tour Plan</h2>
