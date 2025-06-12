@@ -3,7 +3,9 @@ from datetime import datetime
 import io
 from xhtml2pdf import pisa
 import PyPDF2
+import re
 
+    
 st.set_page_config(page_title="Final Download", layout="centered")
 
 st.image("Sheffield-Hallam-University.png", width=250)
@@ -17,6 +19,18 @@ rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
+def remove_emojis(text):
+    emoji_pattern = re.compile(
+        "["  
+        "\U0001F600-\U0001F64F"
+        "\U0001F300-\U0001F5FF"
+        "\U0001F680-\U0001F6FF"
+        "\U0001F1E0-\U0001F1FF"
+        "\U00002702-\U000027B0"
+        "\U000024C2-\U0001F251"
+        "]+", flags=re.UNICODE)
+    return emoji_pattern.sub(r'', text)
+    
 # ✅ Generate dynamic PDF from HTML
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     html_content = f"""
