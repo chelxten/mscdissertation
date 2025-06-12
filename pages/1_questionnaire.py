@@ -51,7 +51,7 @@ with st.form("questionnaire_form"):
         "Relaxation areas"
     ]
     
-    sorted_preferences = sort_items(preference_items, direction="vertical", item_height=40)
+    sorted_preferences = sort_items(preference_items, direction="vertical")
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
