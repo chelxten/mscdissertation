@@ -3,9 +3,8 @@ from fpdf import FPDF
 from datetime import datetime
 import io
 import PyPDF2
-import textwrapimport unicodedata
-
-
+import textwrap
+import unicodedata
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -20,17 +19,12 @@ rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
-
+# ✅ Safe multicell function
 def safe_multicell(pdf, text, width=100, chunk_size=80):
     text = text or ""
-    
-    # Strip invisible unicode characters
     text = ''.join(ch for ch in text if not unicodedata.category(ch).startswith("C"))
-
-    # Replace emojis and other multi-byte with safe ascii fallback
     text = text.encode('ascii', 'ignore').decode('ascii')
     
-    # Break long unbreakable strings (no spaces)
     def break_long_words(s):
         return ' '.join([s[i:i+chunk_size] for i in range(0, len(s), chunk_size)])
     
@@ -41,7 +35,8 @@ def safe_multicell(pdf, text, width=100, chunk_size=80):
             pdf.ln(2)
         else:
             pdf.multi_cell(0, 7, wrapped)
-            
+
+# ✅ Generate dynamic PDF content
 def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
@@ -72,23 +67,17 @@ def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     safe_multicell(pdf, f"Rating: {rating}/10 ⭐")
     safe_multicell(pdf, f"Comments: {feedback}")
 
-    # ✅ Save to BytesIO buffer instead of file
     buffer = io.BytesIO()
     pdf.output(buffer)
     buffer.seek(0)
     return buffer
 
-# ✅ Merge pre-uploaded master PDF with dynamic generated PDF
+# ✅ Merge the master PDF file with dynamic PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     merger = PyPDF2.PdfMerger()
-    
-    # Read master file
     with open(master_pdf_path, "rb") as master_file:
         merger.append(master_file)
-
-    # Read dynamic PDF from buffer
     merger.append(dynamic_pdf_buffer)
-
     final_buffer = io.BytesIO()
     merger.write(final_buffer)
     final_buffer.seek(0)
