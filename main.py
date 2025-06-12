@@ -27,7 +27,7 @@ client = gspread.authorize(creds)
 
 try:
     # Try to open the Google Sheet (replace if your filename is different)
-    sheet = client.open("Amusement Park Survey Responses")
+    sheet = client.open("Survey Responses")
     st.success("✅ SUCCESS: Service account can access the Google Sheet!")
 except Exception as e:
     st.error(f"❌ ERROR: {e}")
