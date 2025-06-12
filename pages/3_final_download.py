@@ -101,7 +101,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     """
 
     result_buffer = io.BytesIO()
-    pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
+    pisa.CreatePDF(html_content, dest=result_buffer)
     result_buffer.seek(0)
     return result_buffer
     
