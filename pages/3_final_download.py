@@ -99,6 +99,8 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback, agre
     </head>
     <body>
 
+    {consent_html} 
+
     <h2>Participant Summary Information</h2>
     
 
@@ -106,10 +108,10 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback, agre
         <tr><td><b>Name:</b></td><td>{name}</td></tr>
         <tr><td><b>Signature:</b></td><td>{signature}</td></tr>
         <tr><td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
-        <tr><td><b>Consent Agreed:</b></td><td>{'Yes' if agreed else 'No'}</td></tr>
+        
     </table>
 
-    {consent_html} 
+    
 
     <h2>Personalized Tour Plan</h2>
     {formatted_tour_plan_html}
