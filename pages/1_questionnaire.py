@@ -24,28 +24,9 @@ def get_questionnaire_worksheet():
     sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
 
-# ✅ Show consent & download BEFORE form
-st.markdown("""
----
-
-By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-as it is described in the Participant Information Sheet.
-
-If you have not yet downloaded a copy for your records, you may download it here:
-""")
-
-with open("PISPCF.pdf", "rb") as f:
-    pis_data = f.read()
-
-st.download_button(
-    label="📄 Download Participant Information Sheet",
-    data=pis_data,
-    file_name="PISPCF.pdf",
-    mime="application/pdf"
-)
-
-# ✅ Start the questionnaire form
+# ✅ Questionnaire Form
 with st.form("questionnaire_form"):
+    # All your questions here
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
@@ -72,11 +53,30 @@ with st.form("questionnaire_form"):
     walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
     break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
 
-    # ✅ Submit button is at the bottom of form (below consent text visually)
-    submit = st.form_submit_button("📩 Submit")
+    # ✅ Consent statement inside the form (SHU style)
+    st.markdown("""
+    ---
+    By clicking the **‘Submit’** button below, you are consenting to participate in this study, as it is described in the Participant Information Sheet.
+    If you have not yet downloaded a copy for your records, you may download it here:
+    """)
 
-# ✅ Handle submission
-if submit:
+    # ✅ Download button outside form (below)
+    st.form_submit_button("📩 Submit")
+
+# ✅ Download button AFTER form
+with open("PISPCF.pdf", "rb") as f:
+    pis_data = f.read()
+
+st.download_button(
+    label="📄 Download Participant Information Sheet",
+    data=pis_data,
+    file_name="PISPCF.pdf",
+    mime="application/pdf"
+)
+
+# ✅ Handle submission after form
+if st.session_state.get("questionnaire_form"):
+    # store session
     st.session_state["questionnaire"] = {
         "age": age,
         "duration": duration,
@@ -94,19 +94,15 @@ if submit:
         "break": break_time,
     }
 
-    # ✅ Get timestamp & unique ID from session (already created at consent page)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     unique_id = st.session_state.get("unique_id", "unknown")
 
-    # ✅ Find row by UID and update Sheet1
     sheet = get_questionnaire_worksheet()
-    cell = sheet.find(unique_id, in_column=2)  # UID column B
+    cell = sheet.find(unique_id, in_column=2)
     row_num = cell.row
 
     update_values = [
-        [age, duration, accessibility]
-        + list(preferences.values())
-        + [", ".join(top_priorities), wait_time, walking, break_time]
+        [age, duration, accessibility] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
     sheet.update(f"C{row_num}:P{row_num}", update_values)
