@@ -44,7 +44,7 @@ def format_tour_plan_for_html(tour_plan):
     html = "<ul>"
     for l in route_lines:
         l = remove_emojis(l)
-        html += f"<li>{l}</li>"
+        html += f"{l}"
     html += "</ul>"
     return html
 
@@ -57,12 +57,12 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <head>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 40px; }}
-        h1 {{ text-align: center; color: #990033; font-size: 12pt;}}
-        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
+        h1 {{ text-align: center; color: #990033; font-size: 14pt;}}
+        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 14pt;}}
         table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 20px; }}
         td {{ padding: 6px; vertical-align: top; }}
-        ul {{ font-size: 12pt; }}
-        p {{ font-size: 12pt; }}
+        ul {{ font-size: 10pt; }}
+        p {{ font-size: 10pt; }}
     </style>
     </head>
     <body>
