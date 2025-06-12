@@ -17,6 +17,7 @@ tour_plan = st.session_state.get("tour_plan", "No tour plan generated.")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
+agreed = st.session_state.get("consent_agreed", False)
 
 # ✅ Emoji remover (ascii only)
 def remove_emojis(text):
@@ -70,6 +71,15 @@ def format_tour_plan_for_html(tour_plan):
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
 
+    
+    # ✅ Consent statement if agreed
+    consent_html = ""
+    if agreed:
+        consent_html = """
+        <h2>Consent Statement</h2>
+        <p>I confirm that I have read the Participant Information Sheet and agreed to participate in this study.</p>
+        """
+
     html_content = f"""
     <html>
     <head>
@@ -86,6 +96,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <body>
 
     <h2>Participant Summary Information</h2>
+    
 
     <table>
         <tr><td><b>Name:</b></td><td>{name}</td></tr>
