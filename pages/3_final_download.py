@@ -20,19 +20,7 @@ feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
 def remove_emojis(text):
-    emoji_pattern = re.compile(
-        "["
-        "\U0001F600-\U0001F64F"  # Emoticons
-        "\U0001F300-\U0001F5FF"  # Symbols & pictographs
-        "\U0001F680-\U0001F6FF"  # Transport & map symbols
-        "\U0001F1E0-\U0001F1FF"  # Flags
-        "\U00002702-\U000027B0"
-        "\U000024C2-\U0001F251"
-        "\U000025A0-\U000025FF"  # Geometric Shapes (black squares, boxes)
-        "]+",
-        flags=re.UNICODE
-    )
-    return emoji_pattern.sub(r'', text)
+    return ''.join(c for c in text if 32 <= ord(c) <= 126)
     
 # ✅ Generate dynamic PDF from HTML
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
