@@ -141,7 +141,7 @@ def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
 
 # ✅ Generate Download Button
 if st.button("📄 Generate & Download Final PDF"):
-    dynamic_pdf = generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback)
+    dynamic_pdf = generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback, agreed)
     merged_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
     st.download_button(
