@@ -36,47 +36,66 @@ def remove_emojis(text):
     
 # ✅ Generate dynamic PDF from HTML
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
-    tour_plan_clean = remove_emojis(tour_plan)
-    feedback_clean = remove_emojis(feedback)
-
     html_content = f"""
     <html>
     <head>
         <style>
-            body {{ font-family: Arial, sans-serif; font-size: 12pt; }}
-            h1 {{ text-align: center; font-size: 20pt; margin-bottom: 20px; }}
-            h2 {{ font-size: 16pt; margin-top: 20px; }}
-            table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
-            td {{ padding: 8px; }}
-            pre {{ font-family: Arial, sans-serif; white-space: pre-wrap; word-wrap: break-word; }}
-            .section {{ margin-bottom: 25px; }}
+            body {{
+                font-family: Arial, sans-serif;
+                font-size: 11pt;
+                margin: 40px;
+            }}
+            h1 {{
+                text-align: center;
+                font-size: 16pt;
+            }}
+            .section-title {{
+                margin-top: 20px;
+                font-size: 14pt;
+                font-weight: bold;
+            }}
+            .info-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }}
+            .info-table td {{
+                padding: 6px;
+                vertical-align: top;
+            }}
+            .label {{
+                font-weight: bold;
+                width: 120px;
+            }}
+            .value {{
+                width: auto;
+            }}
+            pre {{
+                font-family: Arial, sans-serif;
+                font-size: 10pt;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }}
         </style>
     </head>
     <body>
+        <h1>Participant Summary Information</h1>
 
-    <h1>Participant Summary Information</h1>
+        <table class="info-table">
+            <tr><td class="label">Name:</td><td class="value">{name}</td></tr>
+            <tr><td class="label">Signature:</td><td class="value">{signature}</td></tr>
+            <tr><td class="label">Date:</td><td class="value">{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
+        </table>
 
-    <table border="0">
-        <tr><td><b>Name:</b></td><td>{name}</td></tr>
-        <tr><td><b>Signature:</b></td><td>{signature}</td></tr>
-        <tr><td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
-    </table>
+        <div class="section-title">Personalized Tour Plan</div>
+        <pre>{tour_plan}</pre>
 
-    <div class="section">
-        <h2>Personalized Tour Plan</h2>
-        <pre>{tour_plan_clean}</pre>
-    </div>
-
-    <div class="section">
-        <h2>Tour Plan Feedback</h2>
+        <div class="section-title">Tour Plan Feedback</div>
         <p><b>Rating:</b> {rating}/10</p>
-        <p><b>Comments:</b> {feedback_clean}</p>
-    </div>
-
+        <p><b>Comments:</b> {feedback}</p>
     </body>
     </html>
     """
-
     result_buffer = io.BytesIO()
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
