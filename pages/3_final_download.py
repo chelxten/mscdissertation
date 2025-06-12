@@ -51,15 +51,15 @@ def format_tour_plan_for_html(tour_plan):
     """
 
     for l in route_lines:
-        l_clean = remove_emojis(l)
-
-        # Bold Estimated/Leftover lines
-        if l_clean.startswith("Estimated Time Used") or l_clean.startswith("Leftover Time"):
-            html += f"<li><b>{l_clean}</b></li>"
-        else:
-            html += f"<li>{l_clean}</li>"
-
+        l = remove_emojis(l)
+        html += f"<li>{l}</li>"
     html += "</ul>"
+
+    
+    # ✅ Add summary info separately in bold
+    html += f"<p><b>{estimated_time}</b></p>"
+    html += f"<p><b>{leftover_time}</b></p>"
+    
     return html
 
 # ✅ The full PDF generator function
