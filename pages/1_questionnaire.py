@@ -63,13 +63,14 @@ with st.form("questionnaire_form"):
     st.markdown("""
     ---
     By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-    as it is described in the Participant Information Sheet.
+    as it is described in the Participant Information Sheet. If you have not yet downloaded a copy for your records,
+    you may download it below.
     """)
 
     submit = st.form_submit_button("📩 Submit")
 
 # ✅ Show download button (outside of form, still visually above submit)
-st.markdown("If you have not yet downloaded a copy for your records, you may download it here:")
+
 st.download_button(
     label="📄 Download Participant Information Sheet (PDF)",
     data=pis_data,
