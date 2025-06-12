@@ -271,6 +271,6 @@ if st.button("Submit Feedback"):
 
     uid = st.session_state.get("unique_id")
     if uid:
-        update_rating_feedback_sheet2(uid, rating, feedback)
+        update_rating_feedback_sheet(uid, rating, feedback)
 
     st.switch_page("pages/3_final_download.py")
