@@ -16,14 +16,14 @@ st.title("🎡 Visitor Questionnaire")
 
 # ✅ Google Sheets setup
 @st.cache_resource
-def get_worksheet():
+def get_questionnaire_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    sheet = client.open("Amusement Park Survey Responses").sheet1
+    sheet = client.open("Amusement Park Survey Responses").worksheet("Sheet1")
     return sheet
-
+    
 # 📝 Questionnaire form
 with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
@@ -86,7 +86,7 @@ if submit:
     ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time]
 
     # Save to Google Sheet
-    get_worksheet().append_row(row)
+    get_questionnaire_worksheet().append_row(row)
 
     st.success("✅ Submitted! Redirecting to your personalized tour plan...")
     time.sleep(1.5)
