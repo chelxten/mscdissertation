@@ -9,17 +9,6 @@ from streamlit_sortables import sort_items
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
-st.markdown("""
-    <style>
-    .sortable-item {
-        background-color: #ffffff !important;
-        border: 1px solid #dddddd !important;
-        border-radius: 8px !important;
-        padding: 8px !important;
-        color: #000000 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 # 🚫 Block access if consent not given
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
