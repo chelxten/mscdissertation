@@ -55,14 +55,24 @@ with st.form("questionnaire_form"):
     break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
 
     st.markdown("""
-    ---  
+    ---
     By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-    as it is described in the participant information sheet, which you can download here:
+    as it is described in the participant information sheet.
 
-    📄 [Download Participant Information Sheet](PISPCF.pdf)
-
-    If you did not yet download and keep a copy of this document for your records, we recommend you do that now.
+    If you have not yet downloaded a copy of the participant information sheet for your records, you may download it now:
     """)
+
+    with open("PISPCF.pdf", "rb") as f:
+        pis_data = f.read()
+
+    st.download_button(
+        label="📄 Download Participant Information Sheet",
+        data=pis_data,
+        file_name="PISPCF.pdf",
+        mime="application/pdf"
+    )
+
+    
     submit = st.form_submit_button("📩 Submit")
 
 # ✅ Handle form submission
