@@ -94,16 +94,16 @@ if submit:
         "break": break_time,
     }
 
-    # ✅ Get timestamp & unique ID from session (already created at consent page)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    unique_id = st.session_state.get("unique_id", "unknown")
-
-    # ✅ Find row by UID
+    unique_id = st.session_state["unique_id"]
     sheet = get_questionnaire_worksheet()
-    cell = sheet.find(unique_id, in_column=2)  # column B
-    row_num = cell.row
 
-    # ✅ Update columns C-P (columns 3-16)
+    try:
+        cell = sheet.find(unique_id, in_column=2)
+        row_num = cell.row
+    except gspread.exceptions.CellNotFound:
+        st.error("❌ Unique ID not found in the spreadsheet.")
+        st.stop()
+
     update_values = [
         [age, duration, accessibility]
         + list(preferences.values())
