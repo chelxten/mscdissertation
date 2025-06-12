@@ -21,8 +21,21 @@ def get_questionnaire_worksheet():
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    sheet = client.open("Survey Responses").worksheet("Sheet1")
-    return sheet
+
+    retries = 5
+    for attempt in range(retries):
+        try:
+            sheet = client.open("Survey Responses").worksheet("Sheet1")
+            return sheet
+        except APIError as e:
+            if "Visibility check was unavailable" in str(e):
+                st.warning(f"Google API 503 error, retrying... ({attempt+1}/{retries})")
+                time.sleep(3)
+            else:
+                raise e
+
+    st.error("Failed after multiple retries.")
+    st.stop()
 
 # ✅ Load PIS file for download
 @st.cache_resource
