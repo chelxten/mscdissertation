@@ -16,7 +16,7 @@ def get_consent_worksheet():
     creds = ServiceAccountCredentials.from_json_keyfile_dict(dict(creds_dict), scope)
 
     client = gspread.authorize(creds)
-    sheet = client.open("Amusement Park Survey Responses").worksheet("Sheet2")
+    sheet = client.open("Survey Responses").worksheet("Sheet2")
     return sheet
 
 st.set_page_config(page_title="Consent Form")
