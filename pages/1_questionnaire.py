@@ -21,7 +21,7 @@ def get_questionnaire_worksheet():
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    sheet = client.open("Amusement Park Survey Responses").worksheet("Sheet1")
+    sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
     
 # 📝 Questionnaire form
