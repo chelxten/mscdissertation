@@ -55,6 +55,7 @@ if st.button("Submit Consent"):
         st.session_state.participant_name = name.strip()
         st.session_state.participant_signature = signature.strip()
         st.session_state.consent_submitted = True
+        st.session_state.consent_agreed = True  
 
         # ✅ Write to Google Sheet (Sheet2)
         sheet = get_consent_worksheet()
