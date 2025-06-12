@@ -4,7 +4,10 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
-
+# Try a simple list of spreadsheets
+sheet_list = client.openall()
+for sh in sheet_list:
+    print(sh.title)
 # ✅ Google Sheets setup
 @st.cache_resource
 def get_questionnaire_worksheet():
