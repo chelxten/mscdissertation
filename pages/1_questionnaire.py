@@ -3,12 +3,8 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
-from streamlit_sortables import sort_items
-
-
 
 st.set_page_config(page_title="Visitor Questionnaire")
-
 
 # 🚫 Block access if consent not given
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
@@ -42,21 +38,16 @@ with st.form("questionnaire_form"):
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
-    
-    preference_items = [
-        "Thrill rides",
-        "Family rides",
-        "Water rides",
-        "Live shows",
-        "Food & Dining",
-        "Shopping",
-        "Relaxation areas"
-    ]
-    
-    
-    st.markdown("### Please rank your preferences:")
-
-    sorted_preferences = sort_items(preference_items, direction="vertical")
+    # Preferences (1–10 scale, back to original style)
+    preferences = {
+        "thrill": st.slider("Thrill rides", 1, 10, 5),
+        "family": st.slider("Family rides", 1, 10, 5),
+        "water": st.slider("Water rides", 1, 10, 5),
+        "entertainment": st.slider("Live shows", 1, 10, 5),
+        "food": st.slider("Food & Dining", 1, 10, 5),
+        "shopping": st.slider("Shopping", 1, 10, 5),
+        "relaxation": st.slider("Relaxation areas", 1, 10, 5),
+    }
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
@@ -92,13 +83,13 @@ if submit:
         "age": age,
         "duration": duration,
         "accessibility": accessibility,
-        "thrill": sorted_preferences.index("Thrill rides") + 1,
-        "family": sorted_preferences.index("Family rides") + 1,
-        "water": sorted_preferences.index("Water rides") + 1,
-        "entertainment": sorted_preferences.index("Live shows") + 1,
-        "food": sorted_preferences.index("Food & Dining") + 1,
-        "shopping": sorted_preferences.index("Shopping") + 1,
-        "relaxation": sorted_preferences.index("Relaxation areas") + 1,
+        "thrill": preferences["thrill"],
+        "family": preferences["family"],
+        "water": preferences["water"],
+        "entertainment": preferences["entertainment"],
+        "food": preferences["food"],
+        "shopping": preferences["shopping"],
+        "relaxation": preferences["relaxation"],
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
@@ -115,15 +106,7 @@ if submit:
     # ✅ Prepare update row: columns C-P
     update_values = [
         [age, duration, accessibility]
-        + [
-            sorted_preferences.index("Thrill rides") + 1,
-            sorted_preferences.index("Family rides") + 1,
-            sorted_preferences.index("Water rides") + 1,
-            sorted_preferences.index("Live shows") + 1,
-            sorted_preferences.index("Food & Dining") + 1,
-            sorted_preferences.index("Shopping") + 1,
-            sorted_preferences.index("Relaxation areas") + 1,
-        ]
+        + list(preferences.values())
         + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
