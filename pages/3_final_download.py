@@ -41,10 +41,19 @@ def format_tour_plan_for_html(tour_plan):
             if line.strip():
                 route_lines.append(line.strip())
 
-    html = "<ul>"
+    html = """
+    <ul style="line-height: 1.2; margin-top: 0; padding-left: 20px; font-size: 12pt;">
+    """
+
     for l in route_lines:
-        l = remove_emojis(l)
-        html += f"<li>{l}</li>"
+        l_clean = remove_emojis(l)
+
+        # Bold Estimated/Leftover lines
+        if l_clean.startswith("Estimated Time Used") or l_clean.startswith("Leftover Time"):
+            html += f"<li><b>{l_clean}</b></li>"
+        else:
+            html += f"<li>{l_clean}</li>"
+
     html += "</ul>"
     return html
 
