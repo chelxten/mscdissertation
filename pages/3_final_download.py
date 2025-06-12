@@ -51,7 +51,7 @@ def format_tour_plan_for_html(tour_plan):
 
 
     html = """
-    <ul style="line-height: 1.2; margin-top: 0; margin-bottom: 0; padding-left: 20px; font-size: 12pt;">
+    <ul style="line-height: 1.2; margin-top: 0; margin-bottom: 10px; padding-left: 20px; font-size: 12pt;">
     """
 
     for l in route_lines:
