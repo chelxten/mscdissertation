@@ -241,11 +241,11 @@ st.session_state.tour_plan = plan_text
 def update_rating_feedback_sheet2(uid, rating, feedback):
     sheet = get_consent_worksheet()  # Sheet2
     try:
-        # 🔍 Find the row with the unique ID (assumed in column A)
-        cell = sheet.find(uid)
+        # 🔍 Find UID in column B
+        cell = sheet.find(uid, in_column=2)
         row_num = cell.row
 
-        # ✅ Update rating in column F (6), feedback in column G (7)
+        # ✅ Update rating (F=6), feedback (G=7)
         sheet.update_cell(row_num, 6, str(rating))      
         sheet.update_cell(row_num, 7, feedback)         
         st.success("✅ Feedback saved to Google Sheet!")
