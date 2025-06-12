@@ -11,7 +11,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 def get_consent_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_dict = st.secrets["gcp_service_account"]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+
+    # Small improvement: force nested dict to dict()
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(dict(creds_dict), scope)
+
     client = gspread.authorize(creds)
     sheet = client.open("Amusement Park Survey Responses").worksheet("Sheet2")
     return sheet
