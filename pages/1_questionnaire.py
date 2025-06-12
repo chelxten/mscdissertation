@@ -5,6 +5,18 @@ from oauth2client.service_account import ServiceAccountCredentials
 import time
 from streamlit_sortables import sort_items
 
+st.markdown("""
+    <style>
+    .sortable-item {
+        background-color: #ffffff !important;
+        border: 1px solid #dddddd !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+        color: #000000 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.set_page_config(page_title="Visitor Questionnaire")
 
 # 🚫 Block access if consent not given
