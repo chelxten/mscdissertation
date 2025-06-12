@@ -3,6 +3,7 @@ from fpdf import FPDF
 from datetime import datetime
 import io
 import PyPDF2
+import textwrap
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -17,7 +18,11 @@ rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
-# ✅ Generate personalized dynamic PDF part
+
+def safe_multicell(pdf, text, width=100):
+    for line in text.split('\n'):
+        wrapped = textwrap.fill(line, width)
+        pdf.multi_cell(0, 7, wrapped)
 def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
@@ -31,26 +36,26 @@ def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     pdf.ln(5)
 
     pdf.set_font("DejaVu", "", 11)
-    pdf.multi_cell(0, 7, f"Name: {name}")
-    pdf.multi_cell(0, 7, f"Signature: {signature}")
-    pdf.multi_cell(0, 7, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    safe_multicell(pdf, f"Name: {name}")
+    safe_multicell(pdf, f"Signature: {signature}")
+    safe_multicell(pdf, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     pdf.ln(10)
 
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Personalized Tour Plan", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    pdf.multi_cell(0, 7, tour_plan)
+    safe_multicell(pdf, tour_plan)
     pdf.ln(5)
 
     pdf.set_font("DejaVu", "B", 12)
     pdf.cell(0, 10, "Tour Plan Feedback", ln=True)
     pdf.set_font("DejaVu", "", 10)
-    pdf.multi_cell(0, 7, f"Rating: {rating}/10 ⭐")
-    pdf.multi_cell(0, 7, f"Comments: {feedback}")
+    safe_multicell(pdf, f"Rating: {rating}/10 ⭐")
+    safe_multicell(pdf, f"Comments: {feedback}")
 
     # ✅ Save to BytesIO buffer instead of file
     buffer = io.BytesIO()
-    pdf.output(buffer, dest='F')
+    pdf.output(buffer)
     buffer.seek(0)
     return buffer
 
