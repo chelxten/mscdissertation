@@ -39,7 +39,7 @@ signature = st.text_input("Signature")
 # ✅ Submit button
 if st.button("Submit Consent"):
     if agreed and name.strip() and signature.strip():
-        # Generate safer unique ID (only first & last character of name)
+        # ✅ Create unique ID using first and last letter
         clean_name = name.strip().replace(" ", "")
         if len(clean_name) >= 2:
             name_code = f"{clean_name[0]}{clean_name[-1]}"
@@ -50,18 +50,25 @@ if st.button("Submit Consent"):
 
         unique_id = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{name_code}"
 
-        # ✅ Store in session state
+        # ✅ Store in session state for later use
         st.session_state.unique_id = unique_id
         st.session_state.participant_name = name.strip()
         st.session_state.participant_signature = signature.strip()
         st.session_state.consent_submitted = True
 
-        # ✅ Also store to Google Sheet Sheet2 immediately
+        # ✅ Write to Google Sheet (Sheet2)
         sheet = get_consent_worksheet()
-        row = [unique_id, name.strip(), signature.strip(), datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+        row = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            unique_id,
+            name.strip(),
+            signature.strip(),
+            "", "", ""  # placeholders for Tour Plan, Rating, Feedback
+        ]
         sheet.append_row(row)
 
         st.success("✅ Consent submitted. Redirecting to your personalized tour plan...")
+        
         st.switch_page("pages/1_questionnaire.py")
 
     else:
