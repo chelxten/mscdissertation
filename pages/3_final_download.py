@@ -20,9 +20,18 @@ unique_id = st.session_state.get("unique_id", "Unknown")
 
 
 def safe_multicell(pdf, text, width=100):
+    # Sanitize empty fields & remove problematic characters
+    text = text or ""
+    text = text.encode('ascii', 'ignore').decode('ascii')  # remove non-ascii
+    text = text.replace('\u200b', '')  # remove invisible zero-width chars
+
     for line in text.split('\n'):
         wrapped = textwrap.fill(line, width)
-        pdf.multi_cell(0, 7, wrapped)
+        if wrapped.strip() == "":
+            pdf.ln(2)
+        else:
+            pdf.multi_cell(0, 7, wrapped)
+            
 def generate_dynamic_pdf(name, signature, tour_plan, rating, feedback):
     pdf = FPDF()
     pdf.add_page()
