@@ -24,25 +24,7 @@ def get_questionnaire_worksheet():
     sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
 
-# ✅ Reminder about consent statement (SHU compliance)
-st.markdown("""
----
 
-By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-as it is described in the Participant Information Sheet.
-
-If you have not yet downloaded a copy for your records, you may download it here:
-""")
-
-with open("PISPCF.pdf", "rb") as f:
-    pis_data = f.read()
-
-st.download_button(
-    label="📄 Download Participant Information Sheet",
-    data=pis_data,
-    file_name="PISPCF.pdf",
-    mime="application/pdf"
-)
 
 # 📝 Questionnaire form begins (strictly only form content inside form)
 with st.form("questionnaire_form"):
@@ -71,8 +53,29 @@ with st.form("questionnaire_form"):
     wait_time = st.selectbox("What is the maximum wait time you are okay with?", ["<10 min", "10–20 min", "20–30 min", "30+ min"])
     walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
     break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
+    
 
     submit = st.form_submit_button("📩 Submit")
+
+# ✅ Reminder about consent statement (SHU compliance)
+st.markdown("""
+---
+
+By clicking the **‘Submit’** button below, you are consenting to participate in this study,
+as it is described in the Participant Information Sheet.
+
+If you have not yet downloaded a copy for your records, you may download it here:
+""")
+
+with open("PISPCF.pdf", "rb") as f:
+    pis_data = f.read()
+
+st.download_button(
+    label="📄 Download Participant Information Sheet",
+    data=pis_data,
+    file_name="PISPCF.pdf",
+    mime="application/pdf"
+)
 
 # ✅ Handle form submission
 if submit:
