@@ -67,7 +67,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     </head>
     <body>
 
-    <h1>Participant Summary Information</h1>
+    <h2>Participant Summary Information</h2>
 
     <table>
         <tr><td><b>Name:</b></td><td>{name}</td></tr>
