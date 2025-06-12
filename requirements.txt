@@ -6,3 +6,4 @@ PyMuPDF
 streamlit-extras
 fpdf2
 PyPDF2
+weasyprint
