@@ -24,29 +24,10 @@ def remove_emojis(text):
 
 # ✅ Clean tour plan formatter
 def format_tour_plan_for_html(tour_plan):
-    route_lines = []
-    recording = False
-
-    for line in tour_plan.split('\n'):
-        if "Planned Route:" in line:
-            recording = True
-            continue
-
-        if "Estimated Time Used" in line or "Leftover Time" in line:
-            route_lines.append(line.strip())
-            recording = False
-            continue
-
-        if recording:
-            if line.strip():
-                route_lines.append(line.strip())
-
-    html = "<ul>"
-    for l in route_lines:
-        l = remove_emojis(l)
-        html += f"<li>{l}</li>"
-    html += "</ul>"
-    return html
+    tour_plan = remove_emojis(tour_plan)
+    lines = tour_plan.strip().split('\n')
+    formatted_lines = "".join(f"<li>{line}</li>" for line in lines if line.strip())
+    return f"<ul>{formatted_lines}</ul>"
 
 # ✅ The full PDF generator function
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
@@ -64,11 +45,11 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
             }}
         }}
         body {{ font-family: Arial, sans-serif; margin: 0; padding: 50px; }}
-        h1 {{ text-align: center; color: #990033; }}
-        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
+        h1 {{ text-align: center; color: #990033; font-size: 20pt; }}
+        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16pt; margin-top: 30px; }}
         table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 20px; }}
         td {{ padding: 6px; vertical-align: top; }}
-        ul {{ font-size: 12pt; }}
+        ul {{ font-size: 12pt; list-style-position: outside; padding-left: 20px; }}
         p {{ font-size: 12pt; }}
 
         div.footer {{
@@ -86,6 +67,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
         div.footer-table {{
             display: flex;
             justify-content: space-between;
+            font-size: 9pt;
         }}
     </style>
     </head>
@@ -122,6 +104,7 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
     return result_buffer
+    
 # ✅ Merge master file with dynamic PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     merger = PyPDF2.PdfMerger()
