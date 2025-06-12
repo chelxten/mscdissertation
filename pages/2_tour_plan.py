@@ -9,7 +9,7 @@ def get_consent_worksheet():
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    sheet = client.open("Survey Responses").worksheet("Sheet2")
+    sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
     
 st.set_page_config(page_title="Personalized Tour Plan")
@@ -238,16 +238,16 @@ plan_text += f"Leftover Time: {leftover} minutes\n"
 # ✅ Store in session_state for download
 st.session_state.tour_plan = plan_text
 
-def update_rating_feedback_sheet2(uid, rating, feedback):
-    sheet = get_consent_worksheet()  # Sheet2
+def update_rating_feedback_sheet(uid, rating, feedback):
+    sheet = get_questionnaire_worksheet()  # Sheet1 ✅
     try:
-        # 🔍 Find UID in column B
+        # UID is in column B (2nd column)
         cell = sheet.find(uid, in_column=2)
         row_num = cell.row
 
-        # ✅ Update rating (F=6), feedback (G=7)
-        sheet.update_cell(row_num, 6, str(rating))      
-        sheet.update_cell(row_num, 7, feedback)         
+        # Rating is column 17, Feedback is column 18 (after all previous columns)
+        sheet.update_cell(row_num, 17, str(rating))      
+        sheet.update_cell(row_num, 18, feedback)         
         st.success("✅ Feedback saved to Google Sheet!")
     except Exception as e:
         st.error(f"❌ Error updating feedback: {e}")
