@@ -56,13 +56,37 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <html>
     <head>
     <style>
-        body {{ font-family: Arial, sans-serif; margin: 40px; }}
+        @page {{
+            size: A4;
+            margin: 50px;
+            @bottom-center {{
+                content: element(footer);
+            }}
+        }}
+        body {{ font-family: Arial, sans-serif; margin: 0; padding: 50px; }}
         h1 {{ text-align: center; color: #990033; }}
         h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
         table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 20px; }}
         td {{ padding: 6px; vertical-align: top; }}
         ul {{ font-size: 12pt; }}
         p {{ font-size: 12pt; }}
+
+        div.footer {{
+            position: running(footer);
+            width: 100%;
+            font-size: 10pt;
+            color: #666;
+            margin-top: 20px;
+        }}
+        div.bar {{
+            height: 5px;
+            background: linear-gradient(to right, #B21E4B 50%, #660033 50%);
+            margin-bottom: 4px;
+        }}
+        div.footer-table {{
+            display: flex;
+            justify-content: space-between;
+        }}
     </style>
     </head>
     <body>
@@ -82,6 +106,14 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <p><b>Rating:</b> {rating}/10</p>
     <p><b>Comments:</b> {feedback}</p>
 
+    <div class="footer">
+        <div class="bar"></div>
+        <div class="footer-table">
+            <div>PARTICIPANT SUMMARY INFORMATION</div>
+            <div>Page <span class="pageNumber"></span></div>
+        </div>
+    </div>
+
     </body>
     </html>
     """
@@ -90,7 +122,6 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
     return result_buffer
-
 # ✅ Merge master file with dynamic PDF
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     merger = PyPDF2.PdfMerger()
