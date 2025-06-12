@@ -4,6 +4,5 @@ oauth2client
 pandas
 PyMuPDF
 streamlit-extras
-fpdf2
-PyPDF2
-weasyprint
+xhtml2pdf
+reportlab
