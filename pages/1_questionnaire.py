@@ -64,10 +64,10 @@ with st.form("questionnaire_form"):
         "Relaxation areas"
     ]
     
-    with st.container():
-        st.markdown("### Please rank your preferences:")
+    
+    st.markdown("### Please rank your preferences:")
 
-        sorted_preferences = sort_items(preference_items, direction="vertical")
+    sorted_preferences = sort_items(preference_items, direction="vertical")
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
