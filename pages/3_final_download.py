@@ -35,24 +35,46 @@ def remove_emojis(text):
     return emoji_pattern.sub(r'', text)
     
 # ✅ Generate dynamic PDF from HTML
-# ✅ Generate dynamic PDF from HTML
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
-    # ✅ Clean emoji
     tour_plan_clean = remove_emojis(tour_plan)
     feedback_clean = remove_emojis(feedback)
 
     html_content = f"""
-    <h1 style="text-align: center;">Participant Summary Information</h1>
-    <p><b>Name:</b> {name}</p>
-    <p><b>Signature:</b> {signature}</p>
-    <p><b>Date:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; font-size: 12pt; }}
+            h1 {{ text-align: center; font-size: 20pt; margin-bottom: 20px; }}
+            h2 {{ font-size: 16pt; margin-top: 20px; }}
+            table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+            td {{ padding: 8px; }}
+            pre {{ font-family: Arial, sans-serif; white-space: pre-wrap; word-wrap: break-word; }}
+            .section {{ margin-bottom: 25px; }}
+        </style>
+    </head>
+    <body>
 
-    <h2>Personalized Tour Plan</h2>
-    <pre style="font-family: Arial, sans-serif;">{tour_plan_clean}</pre>
+    <h1>Participant Summary Information</h1>
 
-    <h2>Tour Plan Feedback</h2>
-    <p><b>Rating:</b> {rating}/10</p>
-    <p><b>Comments:</b> {feedback_clean}</p>
+    <table border="0">
+        <tr><td><b>Name:</b></td><td>{name}</td></tr>
+        <tr><td><b>Signature:</b></td><td>{signature}</td></tr>
+        <tr><td><b>Date:</b></td><td>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td></tr>
+    </table>
+
+    <div class="section">
+        <h2>Personalized Tour Plan</h2>
+        <pre>{tour_plan_clean}</pre>
+    </div>
+
+    <div class="section">
+        <h2>Tour Plan Feedback</h2>
+        <p><b>Rating:</b> {rating}/10</p>
+        <p><b>Comments:</b> {feedback_clean}</p>
+    </div>
+
+    </body>
+    </html>
     """
 
     result_buffer = io.BytesIO()
