@@ -79,13 +79,19 @@ if submit:
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     unique_id = st.session_state.get("unique_id", "unknown")
 
-    # ✅ Prepare full row for Google Sheet (matching your column structure!)
-    row = [
-        timestamp, unique_id, age, duration, accessibility
-    ] + list(preferences.values()) + [", ".join(top_priorities), wait_time, walking, break_time] + ["", ""]  # leave Rating & Feedback blank for now
+    # ✅ Find row by UID
+    sheet = get_questionnaire_worksheet()
+    cell = sheet.find(unique_id, in_column=2)  # column B
+    row_num = cell.row
 
-    # ✅ Save to Google Sheet
-    get_questionnaire_worksheet().append_row(row)
+    # ✅ Update columns C-P (columns 3-16)
+    update_values = [
+        [age, duration, accessibility]
+        + list(preferences.values())
+        + [", ".join(top_priorities), wait_time, walking, break_time]
+    ]
+
+    sheet.update(f"C{row_num}:P{row_num}", update_values)
 
     st.success("✅ Submitted! Redirecting to your personalized tour plan...")
     time.sleep(1.5)
