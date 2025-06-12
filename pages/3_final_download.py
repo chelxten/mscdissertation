@@ -24,10 +24,29 @@ def remove_emojis(text):
 
 # ✅ Clean tour plan formatter
 def format_tour_plan_for_html(tour_plan):
-    tour_plan = remove_emojis(tour_plan)
-    lines = tour_plan.strip().split('\n')
-    formatted_lines = "".join(f"<li>{line}</li>" for line in lines if line.strip())
-    return f"<ul>{formatted_lines}</ul>"
+    route_lines = []
+    recording = False
+
+    for line in tour_plan.split('\n'):
+        if "Planned Route:" in line:
+            recording = True
+            continue
+
+        if "Estimated Time Used" in line or "Leftover Time" in line:
+            route_lines.append(line.strip())
+            recording = False
+            continue
+
+        if recording:
+            if line.strip():
+                route_lines.append(line.strip())
+
+    html = "<ul>"
+    for l in route_lines:
+        l = remove_emojis(l)
+        html += f"<li>{l}</li>"
+    html += "</ul>"
+    return html
 
 # ✅ The full PDF generator function
 def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
@@ -37,38 +56,13 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <html>
     <head>
     <style>
-        @page {{
-            size: A4;
-            margin: 50px;
-            @bottom-center {{
-                content: element(footer);
-            }}
-        }}
-        body {{ font-family: Arial, sans-serif; margin: 0; padding: 50px; }}
-        h1 {{ text-align: center; color: #990033; font-size: 20pt; }}
-        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16pt; margin-top: 30px; }}
+        body {{ font-family: Arial, sans-serif; margin: 40px; }}
+        h1 {{ text-align: center; color: #990033; }}
+        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
         table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 20px; }}
         td {{ padding: 6px; vertical-align: top; }}
-        ul {{ font-size: 12pt; list-style-position: outside; padding-left: 20px; }}
+        ul {{ font-size: 12pt; }}
         p {{ font-size: 12pt; }}
-
-        div.footer {{
-            position: running(footer);
-            width: 100%;
-            font-size: 10pt;
-            color: #666;
-            margin-top: 20px;
-        }}
-        div.bar {{
-            height: 5px;
-            background: linear-gradient(to right, #B21E4B 50%, #660033 50%);
-            margin-bottom: 4px;
-        }}
-        div.footer-table {{
-            display: flex;
-            justify-content: space-between;
-            font-size: 9pt;
-        }}
     </style>
     </head>
     <body>
@@ -88,20 +82,12 @@ def generate_dynamic_pdf_html(name, signature, tour_plan, rating, feedback):
     <p><b>Rating:</b> {rating}/10</p>
     <p><b>Comments:</b> {feedback}</p>
 
-    <div class="footer">
-        <div class="bar"></div>
-        <div class="footer-table">
-            <div>PARTICIPANT SUMMARY INFORMATION</div>
-            <div>Page <span class="pageNumber"></span></div>
-        </div>
-    </div>
-
     </body>
     </html>
     """
 
     result_buffer = io.BytesIO()
-    pisa.CreatePDF(html_content, dest=result_buffer)
+    pisa.CreatePDF(io.StringIO(html_content), dest=result_buffer)
     result_buffer.seek(0)
     return result_buffer
     
