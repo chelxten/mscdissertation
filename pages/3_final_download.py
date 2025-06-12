@@ -3,7 +3,9 @@ from fpdf import FPDF
 from datetime import datetime
 import io
 import PyPDF2
-import textwrap
+import textwrapimport unicodedata
+
+
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -19,13 +21,21 @@ feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 
 
-def safe_multicell(pdf, text, width=100):
-    # Sanitize empty fields & remove problematic characters
+def safe_multicell(pdf, text, width=100, chunk_size=80):
     text = text or ""
-    text = text.encode('ascii', 'ignore').decode('ascii')  # remove non-ascii
-    text = text.replace('\u200b', '')  # remove invisible zero-width chars
+    
+    # Strip invisible unicode characters
+    text = ''.join(ch for ch in text if not unicodedata.category(ch).startswith("C"))
 
+    # Replace emojis and other multi-byte with safe ascii fallback
+    text = text.encode('ascii', 'ignore').decode('ascii')
+    
+    # Break long unbreakable strings (no spaces)
+    def break_long_words(s):
+        return ' '.join([s[i:i+chunk_size] for i in range(0, len(s), chunk_size)])
+    
     for line in text.split('\n'):
+        line = break_long_words(line)
         wrapped = textwrap.fill(line, width)
         if wrapped.strip() == "":
             pdf.ln(2)
