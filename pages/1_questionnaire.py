@@ -24,13 +24,32 @@ def get_questionnaire_worksheet():
     sheet = client.open("Survey Responses").worksheet("Sheet1")
     return sheet
 
-# 📝 Questionnaire form
+# ✅ Reminder about consent statement (SHU compliance)
+st.markdown("""
+---
+
+By clicking the **‘Submit’** button below, you are consenting to participate in this study,
+as it is described in the Participant Information Sheet.
+
+If you have not yet downloaded a copy for your records, you may download it here:
+""")
+
+with open("PISPCF.pdf", "rb") as f:
+    pis_data = f.read()
+
+st.download_button(
+    label="📄 Download Participant Information Sheet",
+    data=pis_data,
+    file_name="PISPCF.pdf",
+    mime="application/pdf"
+)
+
+# 📝 Questionnaire form begins (strictly only form content inside form)
 with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     accessibility = st.selectbox("Do you have any accessibility needs?", ["No", "Yes – Physical", "Yes – Sensory", "Yes – Cognitive", "Prefer not to say"])
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
-    # Preferences (1–10 scale)
     preferences = {
         "thrill": st.slider("Thrill rides", 1, 10, 5),
         "family": st.slider("Family rides", 1, 10, 5),
@@ -41,7 +60,6 @@ with st.form("questionnaire_form"):
         "relaxation": st.slider("Relaxation areas", 1, 10, 5),
     }
 
-    # Priorities
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
         "Visiting family-friendly attractions together",
@@ -54,25 +72,6 @@ with st.form("questionnaire_form"):
     walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
     break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
 
-    st.markdown("""
-    ---
-    By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-    as it is described in the participant information sheet.
-
-    If you have not yet downloaded a copy of the participant information sheet for your records, you may download it now:
-    """)
-
-    with open("PISPCF.pdf", "rb") as f:
-        pis_data = f.read()
-
-    st.download_button(
-        label="📄 Download Participant Information Sheet",
-        data=pis_data,
-        file_name="PISPCF.pdf",
-        mime="application/pdf"
-    )
-
-    
     submit = st.form_submit_button("📩 Submit")
 
 # ✅ Handle form submission
@@ -94,15 +93,14 @@ if submit:
         "break": break_time,
     }
 
-    unique_id = st.session_state["unique_id"]
-    sheet = get_questionnaire_worksheet()
+    # ✅ Get timestamp & unique ID from session (already created at consent page)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    unique_id = st.session_state.get("unique_id", "unknown")
 
-    try:
-        cell = sheet.find(unique_id, in_column=2)
-        row_num = cell.row
-    except gspread.exceptions.CellNotFound:
-        st.error("❌ Unique ID not found in the spreadsheet.")
-        st.stop()
+    # ✅ Find row by UID and update Sheet1
+    sheet = get_questionnaire_worksheet()
+    cell = sheet.find(unique_id, in_column=2)  # UID column B
+    row_num = cell.row
 
     update_values = [
         [age, duration, accessibility]
