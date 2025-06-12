@@ -9,7 +9,7 @@ def get_consent_worksheet():
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    sheet = client.open("Amusement Park Survey Responses").worksheet("Sheet2")
+    sheet = client.open("Survey Responses").worksheet("Sheet2")
     return sheet
     
 st.set_page_config(page_title="Personalized Tour Plan")
