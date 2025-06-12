@@ -58,7 +58,7 @@ with st.form("questionnaire_form"):
     ---
     By clicking the **‘Submit’** button below, you are consenting to participate in this study, as it is described in the Participant Information Sheet.
 
-    If you have not yet downloaded a copy for your records, you may download it [**here (Participant Information Sheet)**](PISPCF.pdf).
+    If you have not yet downloaded a copy for your records, you may download it [**here (Participant Information Sheet)**](/static/PISPCF.pdf).
     """)
 
     # ✅ Download button outside form (below)
