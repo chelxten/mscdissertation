@@ -22,7 +22,7 @@ def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
 
 # ✅ Parse fuzzy logic tour plan for HTML rendering
-ddef format_tour_plan_for_html(tour_plan):
+def format_tour_plan_for_html(tour_plan):
     route_lines = []
     estimated_time = ""
     leftover_time = ""
