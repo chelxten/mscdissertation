@@ -73,7 +73,8 @@ preference_ranks = {
     "shopping": data["shopping"],
     "relaxation": data["relaxation"]
 }
-preferences = {k: 8 - v for k, v in preference_ranks.items()}  # Convert rank into weight
+
+preferences = {k: 8 - v for k, v in preference_ranks.items()}
 
 priorities = data["priorities"]
 walking_pref = data["walking"]
@@ -167,13 +168,6 @@ def insert_breaks(route, break_preference):
 
     return updated_route
 
-if "questionnaire" not in st.session_state:
-    st.warning("❗ Please complete the questionnaire first.")
-    st.stop()
-
-data = st.session_state["questionnaire"]
-
-st.write("Thanks for your input! Here’s a preview of how we’ll personalize your visit:")
 
 preferences = {
     "thrill": data["thrill"],
