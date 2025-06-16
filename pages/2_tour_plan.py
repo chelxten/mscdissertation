@@ -106,9 +106,9 @@ attraction_wait_times = {  # minutes of wait
 # ------------------------------------------
 
 def calculate_distance(a, b):
-    x1, y1 = attraction_coordinates[a]
-    x2, y2 = attraction_coordinates[b]
-    return math.hypot(x2 - x1, y2 - y1)
+    if isinstance(a, str): a = attraction_coordinates[a]
+    if isinstance(b, str): b = attraction_coordinates[b]
+    return ((a[0] - b[0])**2 + (a[1] - b[1])**2) ** 0.5
 
 # ------------------------------------------
 # 6. Fuzzy Allocation Engine (Master Formula)
@@ -158,21 +158,40 @@ for attraction in all_candidates:
 # 8. Break Planner (simplified, smart version)
 # ------------------------------------------
 
+# 8. Smarter Break Planner
 def insert_breaks(route):
     updated = []
-    elapsed = 0
-    for idx, stop in enumerate(route):
-        updated.append(stop)
-        elapsed += attraction_durations[stop] + attraction_wait_times[stop]
+    elapsed_time = 0
+    walked_distance = 0
+    prev = (0, 0)
 
-        if break_pref == "After 1 hour" and elapsed >= 60:
+    for stop in route:
+        updated.append(stop)
+
+        attraction_coord = attraction_coordinates[stop]
+        walk_distance = calculate_distance(prev, attraction_coord)
+        walked_distance += walk_distance
+
+        ride_time = attraction_durations[stop]
+        wait_time = attraction_wait_times[stop]
+        total_time = ride_time + wait_time
+        elapsed_time += total_time
+
+        # Insert breaks (time-based + distance-based fatigue)
+        if break_pref == "After 1 hour" and elapsed_time >= 60:
             updated.append("Break")
-            elapsed = 0
-        elif break_pref == "After 2 hours" and elapsed >= 120:
+            elapsed_time = 0
+            walked_distance = 0
+        elif break_pref == "After 2 hours" and elapsed_time >= 120:
             updated.append("Break")
-            elapsed = 0
-        elif break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"]:
+            elapsed_time = 0
+            walked_distance = 0
+        elif walked_distance >= 700:
             updated.append("Break")
+            elapsed_time = 0
+            walked_distance = 0
+
+        prev = attraction_coord
 
     return updated
 
@@ -180,8 +199,20 @@ def insert_breaks(route):
 # 9. Weighted A* Route (simple zone approximation for now)
 # ------------------------------------------
 
-# Sort by zone proximity (minimize jump between zones roughly)
-final_route = sorted(initial_attractions, key=lambda x: sum(attraction_coordinates[x]))
+def greedy_route(attractions):
+    route = []
+    current = (0, 0)  # Entrance at (0,0)
+    pool = attractions.copy()
+
+    while pool:
+        next_attraction = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
+        route.append(next_attraction)
+        current = attraction_coordinates[next_attraction]
+        pool.remove(next_attraction)
+    return route
+
+final_route = greedy_route(initial_attractions)
+
 final_plan = insert_breaks(final_route)
 
 # ------------------------------------------
