@@ -2,7 +2,7 @@ import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
-import random
+import math
 
 # ✅ Google Sheets function for feedback update
 @st.cache_resource
@@ -18,11 +18,9 @@ st.set_page_config(page_title="Personalized Tour Plan")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("🎢 Your Personalized Tour Plan")
 
-
 # ------------------------------------------
 # 1. Load Data from Session
 # ------------------------------------------
-
 if "questionnaire" not in st.session_state:
     st.warning("❗ Please complete the questionnaire first.")
     st.stop()
@@ -35,17 +33,17 @@ preference_ranks = {
     "entertainment": data["entertainment"], "food": data["food"],
     "shopping": data["shopping"], "relaxation": data["relaxation"]
 }
-preferences = {k: 8 - v for k, v in preference_ranks.items()}  # Convert ranks to weights
+preferences = {k: 8 - v for k, v in preference_ranks.items()}
 priorities = data["priorities"]
 walking_pref = data["walking"]
 break_pref = data["break"]
 
 duration_map = {"<2 hrs": 90, "2–4 hrs": 180, "4–6 hrs": 300, "All day": 420}
 visit_duration = duration_map.get(data["duration"], 180)
+
 # ------------------------------------------
 # 2. Zones, Attractions & Coordinates Setup
 # ------------------------------------------
-
 zones = {
     "thrill": ["Roller Coaster", "Drop Tower", "Haunted Mine Train", "Spinning Vortex", "Freefall Cannon"],
     "water": ["Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"],
@@ -64,24 +62,19 @@ zone_coordinates = {
 attraction_coordinates = {}
 for zone, attractions in zones.items():
     for idx, attraction in enumerate(attractions):
-        offset = idx * 5  # slight offset per attraction
+        offset = idx * 5
         zone_x, zone_y = zone_coordinates[zone]
         attraction_coordinates[attraction] = (zone_x + offset, zone_y + offset)
 
 # ------------------------------------------
-# 3. Accessibility Constraints
+# 3. Accessibility, Duration & Wait Times
 # ------------------------------------------
-
 accessibility_factors = {
     "thrill": 0.7, "water": 0.8, "family": 1.0,
     "entertainment": 0.9, "food": 1.0, "shopping": 1.0, "relaxation": 1.0
 }
 
-# ------------------------------------------
-# 4. Ride Durations & Wait Times
-# ------------------------------------------
-
-attraction_durations = {   # minutes per ride
+attraction_durations = {
     "Roller Coaster": 25, "Drop Tower": 20, "Haunted Mine Train": 20, "Spinning Vortex": 15, "Freefall Cannon": 20,
     "Water Slide": 20, "Lazy River": 25, "Log Flume": 20, "Splash Battle": 15, "Wave Pool": 30,
     "Bumper Cars": 10, "Mini Ferris Wheel": 10, "Animal Safari Ride": 15, "Ball Pit Dome": 15, "Train Adventure": 20,
@@ -91,7 +84,7 @@ attraction_durations = {   # minutes per ride
     "Relaxation Garden": 20, "Shaded Benches": 10, "Quiet Lake View": 15, "Zen Courtyard": 15, "Sky Deck": 20
 }
 
-attraction_wait_times = {  # minutes of wait
+attraction_wait_times = {
     "Roller Coaster": 20, "Drop Tower": 15, "Water Slide": 10, "Lazy River": 12, "Log Flume": 18,
     "Haunted Mine Train": 14, "Spinning Vortex": 8, "Freefall Cannon": 10, "Splash Battle": 7, "Wave Pool": 12,
     "Bumper Cars": 5, "Mini Ferris Wheel": 3, "Animal Safari Ride": 6, "Ball Pit Dome": 5, "Train Adventure": 8,
@@ -102,38 +95,28 @@ attraction_wait_times = {  # minutes of wait
 }
 
 # ------------------------------------------
-# 5. Distance Calculator
+# 4. Weighted Allocation System (Fuzzy Logic)
 # ------------------------------------------
-
-def calculate_distance(a, b):
-    if isinstance(a, str): a = attraction_coordinates[a]
-    if isinstance(b, str): b = attraction_coordinates[b]
-    return ((a[0] - b[0])**2 + (a[1] - b[1])**2) ** 0.5
-
-# ------------------------------------------
-# 6. Fuzzy Allocation Engine (Master Formula)
-# ------------------------------------------
-
 def fuzzy_zone_weight(zone):
-    score = preferences[zone] * accessibility_factors[zone]
+    base = preferences[zone] * accessibility_factors[zone]
     if "Visiting family-friendly attractions together" in priorities and zone == "family":
-        score *= 1.2
+        base *= 1.2
     if "Staying comfortable throughout the visit" in priorities and zone == "relaxation":
-        score *= 1.3
+        base *= 1.3
     if "Having regular food and rest breaks" in priorities and zone == "food":
-        score *= 1.2
-    return score
+        base *= 1.2
+    return base
 
-zone_weights = {z: fuzzy_zone_weight(z) for z in zones}
+zone_weights = {zone: fuzzy_zone_weight(zone) for zone in zones}
 total_weight = sum(zone_weights.values())
-normalized = {z: w / total_weight for z, w in zone_weights.items()}
-sorted_zones = sorted(normalized, key=normalized.get, reverse=True)
+normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
 
 # ------------------------------------------
-# 7. Attraction Allocation with Time Budget
+# 5. Initial Attraction Allocation
 # ------------------------------------------
-
+sorted_zones = sorted(normalized_weights, key=lambda z: normalized_weights[z], reverse=True)
 initial_attractions = []
+
 for zone in sorted_zones[:4]:
     initial_attractions.append(zones[zone][0])
 
@@ -141,44 +124,45 @@ remaining_time = visit_duration - sum([
     attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
 ])
 
-# fill remaining based on fuzzy ranking
-all_candidates = [a for z in sorted_zones for a in zones[z] if a not in initial_attractions]
-for a in all_candidates:
-    time_needed = attraction_durations[a] + attraction_wait_times[a]
+all_candidates = [a for zone in sorted_zones for a in zones[zone] if a not in initial_attractions]
+
+for attraction in all_candidates:
+    time_needed = attraction_durations[attraction] + attraction_wait_times[attraction]
     if remaining_time >= time_needed:
-        initial_attractions.append(a)
+        initial_attractions.append(attraction)
         remaining_time -= time_needed
 
 # ------------------------------------------
-# 8. Greedy Route Planner (real attraction coordinates)
+# 6. Greedy Route Optimization
 # ------------------------------------------
-
 def calculate_distance(a, b):
     x1, y1 = attraction_coordinates[a]
     x2, y2 = attraction_coordinates[b]
     return math.hypot(x2 - x1, y2 - y1)
 
 def greedy_route(attractions):
-    route, pool = [], attractions.copy()
-    current = (0, 0)
+    route = []
+    current = (0, 0)  # Entrance
+    pool = attractions.copy()
     while pool:
-        next_stop = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
-        route.append(next_stop)
-        current = attraction_coordinates[next_stop]
-        pool.remove(next_stop)
+        next_attraction = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
+        route.append(next_attraction)
+        current = attraction_coordinates[next_attraction]
+        pool.remove(next_attraction)
     return route
 
 final_route = greedy_route(initial_attractions)
 
 # ------------------------------------------
-# 9. Insert Breaks
+# 7. Break Insertion
 # ------------------------------------------
-
 def insert_breaks(route):
-    updated, elapsed = [], 0
+    updated = []
+    elapsed = 0
     for stop in route:
         updated.append(stop)
         elapsed += attraction_durations[stop] + attraction_wait_times[stop]
+
         if break_pref == "After 1 hour" and elapsed >= 60:
             updated.append("Break")
             elapsed = 0
@@ -192,70 +176,60 @@ def insert_breaks(route):
 final_plan = insert_breaks(final_route)
 
 # ------------------------------------------
-# 10. Display Plan
+# 8. Display & Time Calculation with Walks
 # ------------------------------------------
-
 zone_emojis = {
     "thrill": "🎢", "water": "💦", "family": "👨‍👩‍👧‍👦",
     "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
 }
 
-st.success(f"👤 Age: {data['age']} | Visit Duration: {visit_duration} min")
+walking_speed = 67  # meters/min
+total_time_used = 0
+previous_location = (0, 0)
 
-with st.expander("🗺️ Route", expanded=True):
-    total_time_used, previous_location = 0, (0, 0)
+plan_text_lines = []
+with st.expander("🗺️ Your Route", expanded=True):
     for stop in final_plan:
         if stop == "Break":
-            st.markdown("🛑 Break (15 mins)")
             total_time_used += 15
+            plan_text_lines.append("Break — 15 mins")
+            st.markdown("🛑 **Break — 15 mins**")
             continue
 
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis[zone]
-        ride, wait = attraction_durations[stop], attraction_wait_times[stop]
-        walk_distance = calculate_distance(previous_location, attraction_coordinates[stop])
-        walk_time = walk_distance / 67
-        total = ride + wait + walk_time
+        ride_time = attraction_durations[stop]
+        wait_time = attraction_wait_times[stop]
+        attraction_loc = attraction_coordinates[stop]
+        walk_dist = calculate_distance(previous_location, attraction_loc)
+        walk_time = walk_dist / walking_speed
+
+        total = ride_time + wait_time + walk_time
         total_time_used += total
 
-        st.markdown(f"{emoji} **{stop}** — {int(total)} mins (incl. ride, wait & walk)")
-        previous_location = attraction_coordinates[stop]
+        display_text = f"{emoji} **{stop}** — {int(total)} mins total"
+        full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {int(walk_time)}m walk = {int(total)}m"
+        plan_text_lines.append(full_text)
+        st.markdown(display_text)
 
-leftover = int(visit_duration - total_time_used)
-st.info(f"Total Time Used: {int(total_time_used)} mins | Leftover: {leftover} mins")
+        previous_location = attraction_loc
 
-# ------------------------------------------
+leftover_time = visit_duration - total_time_used
+st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
-# ------------------------------------------
+# ✅ Store clean plan into both session and Google Sheet:
+final_clean_plan = "\n".join(plan_text_lines)
+st.session_state.tour_plan = final_clean_plan
 
-# ✅ Final plan text generation (same as before)
-plan_text = "\n".join([f"{stop}" for stop in final_plan])
-st.session_state.tour_plan = plan_text
-
-# ✅ Clean version for storage
-def clean_tour_plan_for_storage(plan_text):
-    cleaned_lines = []
-    for line in plan_text.split('\n'):
-        clean_line = ''.join(c for c in line if ord(c) < 128)
-        if clean_line.strip().startswith("- "):
-            clean_line = clean_line.strip()[2:]
-        cleaned_lines.append(clean_line.strip())
-    return "\n".join(cleaned_lines)
-
-formatted_plan_for_storage = clean_tour_plan_for_storage(plan_text)
-
-# ✅ Save both plan & get worksheet only once here
 uid = st.session_state.get("unique_id")
 sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
 row_num = cell.row
-
-sheet.update_cell(row_num, 19, formatted_plan_for_storage)
+sheet.update_cell(row_num, 19, final_clean_plan)
 
 # ------------------------------------------
-# 11. Feedback & Rating (Unified, Cleaned)
+# 9. Feedback & Rating
 # ------------------------------------------
-
 st.subheader("⭐ Feedback")
 rating = st.slider("Rate your plan:", 1, 10, 8)
 feedback = st.text_area("Comments?")
@@ -264,16 +238,10 @@ if st.button("Submit Feedback"):
     try:
         sheet.update_cell(row_num, 17, str(rating))
         sheet.update_cell(row_num, 18, feedback)
-
-        # ✅ Store in session state
         st.session_state.tour_rating = rating
         st.session_state.tour_feedback = feedback
-
-        st.success("✅ Feedback saved successfully!")
-
-        # ✅ Switch directly to final download page
+        st.success("✅ Feedback saved!")
         time.sleep(1)
         st.switch_page("pages/3_final_download.py")
-
     except Exception as e:
         st.error(f"Error saving feedback: {e}")
