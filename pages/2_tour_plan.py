@@ -52,7 +52,41 @@ popularity_scores = {
 }
 
 # --------------------------
-# 2. TIME ALLOCATION FUNCTION
+# 2. GET DATA + RANKING-BASED PREFERENCES (This is updated)
+# --------------------------
+
+if "questionnaire" not in st.session_state:
+    st.warning("❗ Please complete the questionnaire first.")
+    st.stop()
+
+data = st.session_state["questionnaire"]
+
+st.write("Thanks for your input! Here’s a preview of how we’ll personalize your visit:")
+
+# ✅ REBUILD preferences based on ranking position (Rank 1 → Weight 7, Rank 7 → Weight 1)
+preference_ranks = {
+    "thrill": data["thrill"],
+    "family": data["family"],
+    "water": data["water"],
+    "entertainment": data["entertainment"],
+    "food": data["food"],
+    "shopping": data["shopping"],
+    "relaxation": data["relaxation"]
+}
+preferences = {k: 8 - v for k, v in preference_ranks.items()}  # Convert rank into weight
+
+priorities = data["priorities"]
+walking_pref = data["walking"]
+break_pref = data["break"]
+
+duration_map = {
+    "<2 hrs": 90, "2–4 hrs": 180, "4–6 hrs": 300, "All day": 420
+}
+visit_duration = duration_map.get(data["duration"], 180)
+
+
+# --------------------------
+# 3. TIME ALLOCATION FUNCTION
 # --------------------------
 
 def allocate_park_time(total_time, preferences, priorities, walking_pref):
@@ -108,7 +142,7 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref):
     return attraction_times, remaining_time
 
 # --------------------------
-# 3. GENERATE ROUTE + BREAKS
+# 4. GENERATE ROUTE + BREAKS
 # --------------------------
 
 def generate_navigation_order(attraction_times):
