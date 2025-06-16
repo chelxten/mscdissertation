@@ -22,37 +22,40 @@ def remove_emojis(text):
 
 # ✅ Tour Plan Parser (robust version)
 def format_tour_plan_for_html(tour_plan):
+    lines = tour_plan.split('\n')
     route_lines = []
     estimated_time = ""
     leftover_time = ""
     recording = False
 
-    for line in tour_plan.split('\n'):
+    for line in lines:
         line = line.strip()
 
         if "Planned Route" in line:
             recording = True
             continue
 
-        if line.startswith("Estimated Time Used"):
+        if "Estimated Time Used" in line:
             estimated_time = line
             recording = False
             continue
 
-        if line.startswith("Leftover Time"):
+        if "Leftover Time" in line:
             leftover_time = line
             continue
 
-        if recording:
-            if line.startswith("- "):
-                clean_line = line[2:]
-                route_lines.append(remove_emojis(clean_line))
+        if recording and line.startswith("- "):
+            clean_line = line[2:].strip()
+            clean_line = remove_emojis(clean_line)
+            route_lines.append(clean_line)
 
-    html = "<ul style='line-height: 1.5; font-size: 12pt;'>"
-    for l in route_lines:
-        html += f"<li>{l}</li>"
+    # Build HTML output
+    html = "<ul style='font-size: 12pt; line-height: 1.5;'>"
+    for item in route_lines:
+        html += f"<li>{item}</li>"
     html += "</ul>"
 
+    # Add summary times
     html += f"<p><b>{estimated_time}</b></p>"
     html += f"<p><b>{leftover_time}</b></p>"
 
