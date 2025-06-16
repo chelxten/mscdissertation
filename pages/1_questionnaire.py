@@ -127,7 +127,7 @@ if submit:
     st.session_state["questionnaire"] = {
         "age": age,
         "duration": duration,
-        "accessibility": accessibility,
+        "accessibility": accessibility_cleaned,
         "thrill": preferences["thrill"],
         "family": preferences["family"],
         "water": preferences["water"],
