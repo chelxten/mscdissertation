@@ -185,13 +185,21 @@ final_route = sorted(initial_attractions, key=lambda x: sum(attraction_coordinat
 final_plan = insert_breaks(final_route)
 
 # ------------------------------------------
-# 10. Display Plan
+# 10. Display Plan (Rewritten with total time calculation)
 # ------------------------------------------
 
 zone_emojis = {
     "thrill": "🎢", "water": "💦", "family": "👨‍👩‍👧‍👦",
     "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
 }
+
+def calculate_distance(coord1, coord2):
+    dx = coord1[0] - coord2[0]
+    dy = coord1[1] - coord2[1]
+    return (dx**2 + dy**2) ** 0.5
+
+# Walking speed constant (meters per minute)
+walking_speed = 67  # ~4 km/h
 
 st.success(f"""
 👤 **Age**: {data['age']}  
@@ -202,18 +210,42 @@ st.success(f"""
 
 with st.expander("🗺️ Your Route", expanded=True):
     total_time_used = 0
+    cumulative_time = 0
+    previous_location = (0, 0)  # Entrance assumed to be (0,0)
+
     for stop in final_plan:
         if stop == "Break":
-            st.markdown("🛑 **Break**")
-        else:
-            zone = next((z for z, a in zones.items() if stop in a), "")
-            emoji = zone_emojis[zone]
-            duration = attraction_durations[stop]
-            wait = attraction_wait_times[stop]
-            total_time_used += duration + wait
-            st.markdown(f"{emoji} **{stop}** — {duration} mins ride + {wait} mins wait")
+            st.markdown("🛑 **Break — 15 mins rest**")
+            total_time_used += 15
+            cumulative_time += 15
+            previous_location = previous_location  # Stay at same place
+            continue
 
-st.info(f"Total Time Used: {total_time_used} mins | Leftover: {visit_duration - total_time_used} mins")
+        # Lookup info
+        zone = next((z for z, a in zones.items() if stop in a), "")
+        emoji = zone_emojis[zone]
+        ride_duration = attraction_durations[stop]
+        wait_time = attraction_wait_times[stop]
+        attraction_coord = attraction_coordinates[stop]
+
+        # Calculate walking time
+        walk_distance = calculate_distance(previous_location, attraction_coord)
+        walk_time = walk_distance / walking_speed
+
+        # Total time for this stop
+        total_attraction_time = ride_duration + wait_time + walk_time
+        total_time_used += total_attraction_time
+        cumulative_time += total_attraction_time
+
+        st.markdown(f"{emoji} **{stop}** — Total: {int(total_attraction_time)} mins (incl. ride, wait & walk)")
+
+        previous_location = attraction_coord
+
+st.info(f"Total Time Used: {int(total_time_used)} mins | Leftover: {int(visit_duration - total_time_used)} mins")
+
+# ------------------------------------------
+
+# ------------------------------------------
 
 # ✅ Final plan text generation (same as before)
 plan_text = "\n".join([f"{stop}" for stop in final_plan])
