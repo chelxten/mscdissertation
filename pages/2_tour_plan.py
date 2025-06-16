@@ -1,8 +1,9 @@
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import time
 
-# ✅ Google Sheets function for feedback update (kept for completeness)
+# ✅ Google Sheets function for feedback update
 @st.cache_resource
 def get_consent_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -40,7 +41,7 @@ attraction_durations = {
 }
 
 # ------------------------------------------
-# 2. Get Data & Convert Rankings to Weights
+# 2. Load Data from Session
 # ------------------------------------------
 if "questionnaire" not in st.session_state:
     st.warning("❗ Please complete the questionnaire first.")
@@ -48,39 +49,31 @@ if "questionnaire" not in st.session_state:
 
 data = st.session_state["questionnaire"]
 
-# ✅ Convert ranks to weights → Rank 1 = weight 7; Rank 7 = weight 1
+# ✅ Convert ranking into weights
 preference_ranks = {
-    "thrill": data["thrill"],
-    "family": data["family"],
-    "water": data["water"],
-    "entertainment": data["entertainment"],
-    "food": data["food"],
-    "shopping": data["shopping"],
-    "relaxation": data["relaxation"]
+    "thrill": data["thrill"], "family": data["family"], "water": data["water"],
+    "entertainment": data["entertainment"], "food": data["food"],
+    "shopping": data["shopping"], "relaxation": data["relaxation"]
 }
-preferences = {k: 8 - v for k, v in preference_ranks.items()}
+preferences = {k: 8 - v for k, v in preference_ranks.items()}  # Rank 1 -> weight 7
 
 priorities = data["priorities"]
 walking_pref = data["walking"]
 break_pref = data["break"]
 
-duration_map = {
-    "<2 hrs": 90, "2–4 hrs": 180, "4–6 hrs": 300, "All day": 420
-}
+duration_map = {"<2 hrs": 90, "2–4 hrs": 180, "4–6 hrs": 300, "All day": 420}
 visit_duration = duration_map.get(data["duration"], 180)
 
 # ------------------------------------------
-# 3. Fuzzy Logic Allocation Function
+# 3. Fuzzy Logic Allocation
 # ------------------------------------------
 def allocate_park_time(total_time, preferences, priorities, walking_pref):
     attraction_times = {}
     remaining_time = total_time
 
     zone_penalty = {}
-    if walking_pref == "Very short distances":
-        zone_penalty = {"water": 0.6, "relaxation": 0.8}
-    elif walking_pref == "Moderate walking":
-        zone_penalty = {"water": 0.8}
+    if walking_pref == "Very short distances": zone_penalty = {"water": 0.6, "relaxation": 0.8}
+    elif walking_pref == "Moderate walking": zone_penalty = {"water": 0.8}
 
     total_weight = sum(preferences.values())
     weights = {zone: preferences[zone] / total_weight * zone_penalty.get(zone, 1) for zone in zones}
@@ -88,17 +81,14 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref):
     if "Enjoying high-intensity rides" in priorities: weights["thrill"] *= 1.2
     if "Visiting family-friendly attractions together" in priorities: weights["family"] *= 1.2
     if "Staying comfortable throughout the visit" in priorities:
-        weights["relaxation"] *= 1.3
-        weights["entertainment"] *= 1.1
+        weights["relaxation"] *= 1.3; weights["entertainment"] *= 1.1
     if "Having regular food and rest breaks" in priorities:
-        weights["food"] *= 1.2
-        weights["relaxation"] *= 1.1
+        weights["food"] *= 1.2; weights["relaxation"] *= 1.1
 
     QUICK_MODE = "Seeing as many attractions as possible" in priorities
 
     total_weight = sum(weights.values())
     weights = {k: v / total_weight for k, v in weights.items()}
-
     sorted_zones = sorted(weights.items(), key=lambda x: x[1], reverse=True)
 
     for zone, zone_weight in sorted_zones:
@@ -116,21 +106,19 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref):
             addition = min(5, remaining_time)
             attraction_times[attraction] += addition
             remaining_time -= addition
-            if remaining_time < 5:
-                break
+            if remaining_time < 5: break
 
     return attraction_times, remaining_time
 
 # ------------------------------------------
-# 4. Generate Navigation Order & Breaks
+# 4. Generate Route & Breaks
 # ------------------------------------------
 def generate_navigation_order(attraction_times):
     sorted_attractions = sorted(attraction_times.items(), key=lambda x: x[1], reverse=True)
     return ["Entrance"] + [a[0] for a in sorted_attractions]
 
 def insert_breaks(route, break_preference):
-    updated_route = []
-    time_counter = 0
+    updated_route, time_counter = [], 0
 
     for stop in route:
         updated_route.append(stop)
@@ -146,25 +134,23 @@ def insert_breaks(route, break_preference):
 
     return updated_route
 
-# ✅ Compute entire pipeline
+# ✅ Full allocation pipeline
 attraction_times, leftover = allocate_park_time(visit_duration, preferences, priorities, walking_pref)
 route = generate_navigation_order(attraction_times)
 final_plan = insert_breaks(route, break_pref)
 
 # ------------------------------------------
-# 5. Display Output
+# 5. Display Route Plan
 # ------------------------------------------
 zone_emojis = {
     "thrill": "🎢", "water": "💦", "family": "👨‍👩‍👧‍👦",
     "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
 }
 
-st.success(f"""
-👤 **Age**: {data['age']}  
+st.success(f"""👤 **Age**: {data['age']}  
 ⏳ **Visit Duration**: {visit_duration} minutes  
 🚶‍♂️ **Walking Preference**: {walking_pref}  
-🛑 **Break Preference**: {break_pref}  
-""")
+🛑 **Break Preference**: {break_pref}""")
 
 with st.expander("🗺️ Route Plan", expanded=True):
     st.subheader("Your Personalized Route")
@@ -184,13 +170,41 @@ with st.expander("🗺️ Route Plan", expanded=True):
 with st.expander("🕒 Leftover Time"):
     st.info(f"Leftover Time: **{leftover} minutes** to revisit or relax.")
 
-# ✅ Save plan for download
-plan_text = "Your Personalized Amusement Park Tour Plan\n\n"
-plan_text += f"Visit Duration: {visit_duration} minutes\nWalking Preference: {walking_pref}\nBreak Preference: {break_pref}\n\n"
-plan_text += "Planned Route:\n"
+# ✅ Save plan to session_state
+plan_text = f"Your Personalized Amusement Park Tour Plan\n\nVisit Duration: {visit_duration} minutes\nWalking Preference: {walking_pref}\nBreak Preference: {break_pref}\n\nPlanned Route:\n"
 for stop in final_plan:
     if stop == "Break": plan_text += "- Break\n"
     elif stop == "Entrance": plan_text += "- Entrance\n"
     else: plan_text += f"- {stop} ({attraction_durations[stop]} mins)\n"
 plan_text += f"\nEstimated Time Used: {sum(attraction_times.values())} minutes\nLeftover Time: {leftover} minutes\n"
 st.session_state.tour_plan = plan_text
+
+# ------------------------------------------
+# 6. Feedback Section (Fully restored ✅)
+# ------------------------------------------
+def update_rating_feedback_sheet(uid, rating, feedback):
+    sheet = get_consent_worksheet()
+    try:
+        cell = sheet.find(uid, in_column=2)
+        row_num = cell.row
+        sheet.update_cell(row_num, 17, str(rating))
+        sheet.update_cell(row_num, 18, feedback)
+        st.success("✅ Feedback saved to Google Sheet!")
+    except Exception as e:
+        st.error(f"❌ Error updating feedback: {e}")
+
+st.subheader("⭐ Rate and Feedback")
+st.markdown("Please rate your personalized tour plan and share your thoughts:")
+rating = st.slider("How satisfied are you with the plan?", 1, 10, 8, format="%d ⭐")
+feedback = st.text_area("Any comments, suggestions, or things you liked/disliked?", placeholder="Your feedback here...")
+
+if st.button("Submit Feedback"):
+    st.success("✅ Thank you! Redirecting to the download page...")
+    st.session_state.tour_rating = rating
+    st.session_state.tour_feedback = feedback
+
+    uid = st.session_state.get("unique_id")
+    if uid:
+        update_rating_feedback_sheet(uid, rating, feedback)
+
+    st.switch_page("pages/3_final_download.py")
