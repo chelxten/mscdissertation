@@ -1,9 +1,9 @@
 import streamlit as st
-import pandas as pd
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
+from streamlit_sortables import sort_items
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
@@ -28,14 +28,10 @@ def get_questionnaire_worksheet():
         try:
             sheet = client.open("Survey Responses").worksheet("Sheet1")
             return sheet
-        except gspread.exceptions.APIError as e:
-            if "Visibility check was unavailable" in str(e):
-                st.warning(f"Google API 503 error, retrying... ({attempt+1}/{retries})")
-                time.sleep(3)
-            else:
-                raise e
-
-    st.error("Failed after multiple retries.")
+        except Exception as e:
+            st.warning(f"Google API error: retrying ({attempt+1}/5)...")
+            time.sleep(3)
+    st.error("Failed to connect after multiple retries.")
     st.stop()
 
 # ✅ Load PIS file for download
@@ -51,7 +47,6 @@ with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
 
     st.markdown("Do you have any accessibility needs? (Select all that apply)")
-
     physical = st.checkbox("Physical")
     sensory = st.checkbox("Sensory")
     cognitive = st.checkbox("Cognitive")
@@ -62,32 +57,33 @@ with st.form("questionnaire_form"):
         st.warning("You cannot select 'No Accessibility Needs' together with other options.")
 
     accessibility_selected = []
-    if physical: accessibility_selected.append("Physical")
-    if sensory: accessibility_selected.append("Sensory")
-    if cognitive: accessibility_selected.append("Cognitive")
-    if prefer_not: accessibility_selected.append("Prefer not to say")
-    if no_accessibility: accessibility_selected.append("No Accessibility Needs")
-    if not accessibility_selected: accessibility_selected = ["Not specified"]
-
+    if physical:
+        accessibility_selected.append("Physical")
+    if sensory:
+        accessibility_selected.append("Sensory")
+    if cognitive:
+        accessibility_selected.append("Cognitive")
+    if prefer_not:
+        accessibility_selected.append("Prefer not to say")
+    if no_accessibility:
+        accessibility_selected.append("No Accessibility Needs")
+    if not accessibility_selected:
+        accessibility_selected = ["Not specified"]
     accessibility_cleaned = ", ".join(accessibility_selected)
 
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
 
-    # Preferences ranking via data_editor
-    st.markdown("### Please rank your preferences by dragging rows (top = most important)")
-    ranking_data = pd.DataFrame({
-        "Preferences": [
-            "Thrill rides",
-            "Family rides",
-            "Water rides",
-            "Live shows",
-            "Food & Dining",
-            "Shopping",
-            "Relaxation areas"
-        ]
-    })
-    ranking_df = st.data_editor(ranking_data, num_rows="fixed")
-    sorted_preferences = ranking_df["Preferences"].tolist()
+    st.markdown("### Rank your preferences (Drag & Drop)")
+    initial_preferences = [
+        "Thrill rides",
+        "Family rides",
+        "Water rides",
+        "Live shows",
+        "Food & Dining",
+        "Shopping",
+        "Relaxation areas"
+    ]
+    sorted_preferences = sort_items(initial_preferences, direction="vertical", key="preferences_sort")
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
@@ -109,7 +105,7 @@ with st.form("questionnaire_form"):
 
     submit = st.form_submit_button("📩 Submit")
 
-# ✅ Download button OUTSIDE form
+# ✅ Download button outside form
 st.download_button(
     label="📄 Download Participant Information Sheet (PDF)",
     data=pis_data,
@@ -119,8 +115,10 @@ st.download_button(
 
 # ✅ Handle form submission
 if submit:
-    # Create ranking values as 1-7
-    preference_ranks = {
+    st.session_state["questionnaire"] = {
+        "age": age,
+        "duration": duration,
+        "accessibility": accessibility_cleaned,
         "thrill": sorted_preferences.index("Thrill rides") + 1,
         "family": sorted_preferences.index("Family rides") + 1,
         "water": sorted_preferences.index("Water rides") + 1,
@@ -128,13 +126,6 @@ if submit:
         "food": sorted_preferences.index("Food & Dining") + 1,
         "shopping": sorted_preferences.index("Shopping") + 1,
         "relaxation": sorted_preferences.index("Relaxation areas") + 1,
-    }
-
-    st.session_state["questionnaire"] = {
-        "age": age,
-        "duration": duration,
-        "accessibility": accessibility_cleaned,
-        **preference_ranks,
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
@@ -150,7 +141,15 @@ if submit:
 
     update_values = [
         [age, duration, accessibility_cleaned]
-        + list(preference_ranks.values())
+        + [
+            sorted_preferences.index("Thrill rides") + 1,
+            sorted_preferences.index("Family rides") + 1,
+            sorted_preferences.index("Water rides") + 1,
+            sorted_preferences.index("Live shows") + 1,
+            sorted_preferences.index("Food & Dining") + 1,
+            sorted_preferences.index("Shopping") + 1,
+            sorted_preferences.index("Relaxation areas") + 1,
+        ]
         + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
