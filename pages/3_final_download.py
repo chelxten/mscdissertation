@@ -3,7 +3,6 @@ from datetime import datetime
 import io
 from xhtml2pdf import pisa
 import PyPDF2
-import re
 
 st.set_page_config(page_title="Final Download", layout="centered")
 
@@ -17,11 +16,11 @@ feedback = st.session_state.get("tour_feedback", "No comments.")
 unique_id = st.session_state.get("unique_id", "Unknown")
 agreed = st.session_state.get("consent_agreed", False)
 
-# ✅ Clean out emojis to ensure PDF renders cleanly
+# ✅ Remove emojis (clean for PDF)
 def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
 
-# ✅ Parse fuzzy logic tour plan for HTML rendering
+# ✅ Tour Plan Parser (robust version)
 def format_tour_plan_for_html(tour_plan):
     route_lines = []
     estimated_time = ""
@@ -59,7 +58,7 @@ def format_tour_plan_for_html(tour_plan):
 
     return html
 
-# ✅ PDF generator function
+# ✅ Full PDF generator
 def generate_dynamic_pdf_html(tour_plan, rating, feedback, agreed):
     formatted_tour_plan_html = format_tour_plan_for_html(tour_plan)
 
@@ -75,27 +74,24 @@ def generate_dynamic_pdf_html(tour_plan, rating, feedback, agreed):
     <head>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 40px; }}
-        h1 {{ text-align: center; color: #990033; font-size: 14pt;}}
-        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 14pt;}}
-        table {{ width: 100%; font-size: 12pt; border-collapse: collapse; margin-bottom: 10px; }}
-        td {{ padding: 6px; vertical-align: top; }}
-        ul {{ font-size: 12pt; }}
+        h1 {{ text-align: center; color: #990033; font-size: 14pt; }}
+        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 14pt; }}
         p {{ font-size: 12pt; }}
+        ul {{ font-size: 12pt; }}
     </style>
     </head>
     <body>
 
     {consent_html} 
 
-    <h2>Generated On:</h2>
-    <p>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-
-    <h2>Personalized Tour Plan</h2>
+    <h2>Generated Tour Plan</h2>
     {formatted_tour_plan_html}
 
     <h2>Tour Plan Feedback</h2>
     <p><b>Rating:</b> {rating}/10</p>
     <p><b>Comments:</b> {feedback}</p>
+
+    <p><b>Generated On:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
 
     </body>
     </html>
@@ -106,7 +102,7 @@ def generate_dynamic_pdf_html(tour_plan, rating, feedback, agreed):
     result_buffer.seek(0)
     return result_buffer
 
-# ✅ Merge master file with dynamic PDF
+# ✅ Merge master PDF with generated content
 def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     merger = PyPDF2.PdfMerger()
 
@@ -120,7 +116,7 @@ def merge_pdfs(master_pdf_path, dynamic_pdf_buffer):
     final_buffer.seek(0)
     return final_buffer
 
-# ✅ Download Button
+# ✅ Download generation trigger
 if st.button("📄 Generate & Download Final PDF"):
     dynamic_pdf = generate_dynamic_pdf_html(tour_plan, rating, feedback, agreed)
     merged_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
