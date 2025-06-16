@@ -22,7 +22,7 @@ def remove_emojis(text):
     return ''.join(c for c in text if 32 <= ord(c) <= 126)
 
 # ✅ Parse fuzzy logic tour plan for HTML rendering
-def format_tour_plan_for_html(tour_plan):
+ddef format_tour_plan_for_html(tour_plan):
     route_lines = []
     estimated_time = ""
     leftover_time = ""
@@ -31,11 +31,8 @@ def format_tour_plan_for_html(tour_plan):
     for line in tour_plan.split('\n'):
         line = line.strip()
 
-        if "Planned Route:" in line:
+        if "Planned Route" in line:
             recording = True
-            continue
-
-        if recording and not line:
             continue
 
         if line.startswith("Estimated Time Used"):
@@ -52,7 +49,7 @@ def format_tour_plan_for_html(tour_plan):
                 clean_line = line[2:]
                 route_lines.append(remove_emojis(clean_line))
 
-    html = "<ul style='line-height: 1.2; font-size: 12pt;'>"
+    html = "<ul style='line-height: 1.5; font-size: 12pt;'>"
     for l in route_lines:
         html += f"<li>{l}</li>"
     html += "</ul>"
