@@ -135,9 +135,15 @@ for attraction in all_candidates:
 # ------------------------------------------
 # 6. Greedy Route Optimization
 # ------------------------------------------
-def calculate_distance(a, b):
-    x1, y1 = attraction_coordinates[a]
-    x2, y2 = attraction_coordinates[b]
+def calculate_distance(point_a, point_b):
+    # point_a or point_b can be either attraction name or coordinates
+    if isinstance(point_a, str):
+        point_a = attraction_coordinates[point_a]
+    if isinstance(point_b, str):
+        point_b = attraction_coordinates[point_b]
+
+    x1, y1 = point_a
+    x2, y2 = point_b
     return math.hypot(x2 - x1, y2 - y1)
 
 def greedy_route(attractions):
