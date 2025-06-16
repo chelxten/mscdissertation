@@ -150,7 +150,7 @@ if submit:
 
     # ✅ Prepare update row: columns C-P
     update_values = [
-        [age, duration, accessibility]
+        [age, duration, accessibility_cleaned]
         + list(preferences.values())
         + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
