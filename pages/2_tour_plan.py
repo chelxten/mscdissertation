@@ -240,4 +240,8 @@ if st.button("Submit Feedback"):
         except Exception as e:
             st.error(f"Error: {e}")
 
-    st.success("✅ Thank you!")
+    # ✅ After feedback submission — switch to final download page
+    st.session_state.tour_rating = rating
+    st.session_state.tour_feedback = feedback
+    time.sleep(1)
+    st.switch_page("pages/3_final_download.py")
