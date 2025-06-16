@@ -50,36 +50,36 @@ with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
     st.markdown("Do you have any accessibility needs? (Select all that apply)")
 
-# Checkbox group
-physical = st.checkbox("Physical")
-sensory = st.checkbox("Sensory")
-cognitive = st.checkbox("Cognitive")
-prefer_not = st.checkbox("Prefer not to say")
-no_accessibility = st.checkbox("No Accessibility Needs")
+    # Checkbox group
+    physical = st.checkbox("Physical")
+    sensory = st.checkbox("Sensory")
+    cognitive = st.checkbox("Cognitive")
+    prefer_not = st.checkbox("Prefer not to say")
+    no_accessibility = st.checkbox("No Accessibility Needs")
 
-# ✅ Clean logic: prevent conflicting answers
-if no_accessibility and (physical or sensory or cognitive or prefer_not):
-    st.warning("You cannot select 'No Accessibility Needs' together with other options.")
+    # ✅ Clean logic: prevent conflicting answers
+    if no_accessibility and (physical or sensory or cognitive or prefer_not):
+        st.warning("You cannot select 'No Accessibility Needs' together with other options.")
 
-# ✅ Convert to list for storage
-accessibility_selected = []
-if physical:
-    accessibility_selected.append("Physical")
-if sensory:
-    accessibility_selected.append("Sensory")
-if cognitive:
-    accessibility_selected.append("Cognitive")
-if prefer_not:
-    accessibility_selected.append("Prefer not to say")
-if no_accessibility:
-    accessibility_selected.append("No Accessibility Needs")
+    # ✅ Convert to list for storage
+    accessibility_selected = []
+    if physical:
+        accessibility_selected.append("Physical")
+    if sensory:
+        accessibility_selected.append("Sensory")
+    if cognitive:
+        accessibility_selected.append("Cognitive")
+    if prefer_not:
+        accessibility_selected.append("Prefer not to say")
+    if no_accessibility:
+        accessibility_selected.append("No Accessibility Needs")
 
-# ✅ Fallback if nothing selected
-if not accessibility_selected:
-    accessibility_selected = ["Not specified"]
+    # ✅ Fallback if nothing selected
+    if not accessibility_selected:
+        accessibility_selected = ["Not specified"]
 
-# ✅ Final string for database
-accessibility_cleaned = ", ".join(accessibility_selected)
+    # ✅ Final string for database
+    accessibility_cleaned = ", ".join(accessibility_selected)
 
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
