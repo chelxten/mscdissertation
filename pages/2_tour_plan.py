@@ -215,12 +215,32 @@ with st.expander("🗺️ Your Route", expanded=True):
 
 st.info(f"Total Time Used: {total_time_used} mins | Leftover: {visit_duration - total_time_used} mins")
 
-# ✅ Save plan to session for download page
+# ✅ Final plan text generation (same as before)
 plan_text = "\n".join([f"{stop}" for stop in final_plan])
 st.session_state.tour_plan = plan_text
 
+# ✅ Clean version for storage
+def clean_tour_plan_for_storage(plan_text):
+    cleaned_lines = []
+    for line in plan_text.split('\n'):
+        clean_line = ''.join(c for c in line if ord(c) < 128)
+        if clean_line.strip().startswith("- "):
+            clean_line = clean_line.strip()[2:]
+        cleaned_lines.append(clean_line.strip())
+    return "\n".join(cleaned_lines)
+
+formatted_plan_for_storage = clean_tour_plan_for_storage(plan_text)
+
+# ✅ Save both plan & get worksheet only once here
+uid = st.session_state.get("unique_id")
+sheet = get_consent_worksheet()
+cell = sheet.find(uid, in_column=2)
+row_num = cell.row
+
+sheet.update_cell(row_num, 19, formatted_plan_for_storage)
+
 # ------------------------------------------
-# 11. Feedback & Rating (still included!)
+# 11. Feedback & Rating (Unified, Cleaned)
 # ------------------------------------------
 
 st.subheader("⭐ Feedback")
@@ -228,20 +248,19 @@ rating = st.slider("Rate your plan:", 1, 10, 8)
 feedback = st.text_area("Comments?")
 
 if st.button("Submit Feedback"):
-    uid = st.session_state.get("unique_id")
-    if uid:
-        try:
-            sheet = get_consent_worksheet()
-            cell = sheet.find(uid, in_column=2)
-            row_num = cell.row
-            sheet.update_cell(row_num, 17, str(rating))
-            sheet.update_cell(row_num, 18, feedback)
-            st.success("✅ Feedback saved!")
-        except Exception as e:
-            st.error(f"Error: {e}")
+    try:
+        sheet.update_cell(row_num, 17, str(rating))
+        sheet.update_cell(row_num, 18, feedback)
 
-    # ✅ After feedback submission — switch to final download page
-    st.session_state.tour_rating = rating
-    st.session_state.tour_feedback = feedback
-    time.sleep(1)
-    st.switch_page("pages/3_final_download.py")
+        # ✅ Store in session state
+        st.session_state.tour_rating = rating
+        st.session_state.tour_feedback = feedback
+
+        st.success("✅ Feedback saved successfully!")
+
+        # ✅ Switch directly to final download page
+        time.sleep(1)
+        st.switch_page("pages/3_final_download.py")
+
+    except Exception as e:
+        st.error(f"Error saving feedback: {e}")
