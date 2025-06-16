@@ -2,6 +2,7 @@ import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+# ✅ Google Sheets function for feedback update (kept for completeness)
 @st.cache_resource
 def get_consent_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -28,7 +29,7 @@ zones = {
     "relaxation": ["Relaxation Garden", "Shaded Benches", "Quiet Lake View", "Zen Courtyard", "Sky Deck"]
 }
 
-attraction_durations = { # keep as your original
+attraction_durations = {
     "Roller Coaster": 25, "Drop Tower": 20, "Haunted Mine Train": 20, "Spinning Vortex": 15, "Freefall Cannon": 20,
     "Water Slide": 20, "Lazy River": 25, "Log Flume": 20, "Splash Battle": 15, "Wave Pool": 30,
     "Bumper Cars": 10, "Mini Ferris Wheel": 10, "Animal Safari Ride": 15, "Ball Pit Dome": 15, "Train Adventure": 20,
@@ -47,7 +48,7 @@ if "questionnaire" not in st.session_state:
 
 data = st.session_state["questionnaire"]
 
-# ✅ Ranks (from questionnaire stored data)
+# ✅ Convert ranks to weights → Rank 1 = weight 7; Rank 7 = weight 1
 preference_ranks = {
     "thrill": data["thrill"],
     "family": data["family"],
@@ -57,8 +58,6 @@ preference_ranks = {
     "shopping": data["shopping"],
     "relaxation": data["relaxation"]
 }
-
-# ✅ Convert ranks to weights → Rank 1 = weight 7; Rank 7 = weight 1
 preferences = {k: 8 - v for k, v in preference_ranks.items()}
 
 priorities = data["priorities"]
@@ -71,10 +70,11 @@ duration_map = {
 visit_duration = duration_map.get(data["duration"], 180)
 
 # ------------------------------------------
-# 3. Allocate Time (Main Algorithm)
+# 3. Fuzzy Logic Allocation Function
 # ------------------------------------------
 def allocate_park_time(total_time, preferences, priorities, walking_pref):
-    attraction_times, remaining_time = {}, total_time
+    attraction_times = {}
+    remaining_time = total_time
 
     zone_penalty = {}
     if walking_pref == "Very short distances":
@@ -83,54 +83,71 @@ def allocate_park_time(total_time, preferences, priorities, walking_pref):
         zone_penalty = {"water": 0.8}
 
     total_weight = sum(preferences.values())
-    weights = {
-        zone: preferences[zone] / total_weight * zone_penalty.get(zone, 1)
-        for zone in zones
-    }
+    weights = {zone: preferences[zone] / total_weight * zone_penalty.get(zone, 1) for zone in zones}
 
-    # ✅ Apply fuzzy modifiers based on user priorities
     if "Enjoying high-intensity rides" in priorities: weights["thrill"] *= 1.2
     if "Visiting family-friendly attractions together" in priorities: weights["family"] *= 1.2
-    if "Staying comfortable throughout the visit" in priorities: weights["relaxation"] *= 1.3; weights["entertainment"] *= 1.1
-    if "Having regular food and rest breaks" in priorities: weights["food"] *= 1.2; weights["relaxation"] *= 1.1
+    if "Staying comfortable throughout the visit" in priorities:
+        weights["relaxation"] *= 1.3
+        weights["entertainment"] *= 1.1
+    if "Having regular food and rest breaks" in priorities:
+        weights["food"] *= 1.2
+        weights["relaxation"] *= 1.1
 
-    # Normalize again
+    QUICK_MODE = "Seeing as many attractions as possible" in priorities
+
     total_weight = sum(weights.values())
     weights = {k: v / total_weight for k, v in weights.items()}
 
-    # Time allocation loop
-    for zone, attractions in zones.items():
-        zone_time = weights[zone] * total_time
-        for attraction in attractions:
+    sorted_zones = sorted(weights.items(), key=lambda x: x[1], reverse=True)
+
+    for zone, zone_weight in sorted_zones:
+        zone_time = zone_weight * total_time
+        for attraction in zones[zone]:
             duration = attraction_durations[attraction]
-            if remaining_time >= duration:
-                attraction_times[attraction] = duration
-                remaining_time -= duration
+            time_spent = min(duration, 15) if QUICK_MODE else duration
+
+            if remaining_time >= time_spent:
+                attraction_times[attraction] = time_spent
+                remaining_time -= time_spent
+
+    while remaining_time >= 5:
+        for attraction in attraction_times:
+            addition = min(5, remaining_time)
+            attraction_times[attraction] += addition
+            remaining_time -= addition
+            if remaining_time < 5:
+                break
 
     return attraction_times, remaining_time
 
 # ------------------------------------------
-# 4. Generate Tour Plan
+# 4. Generate Navigation Order & Breaks
 # ------------------------------------------
-attraction_times, leftover = allocate_park_time(visit_duration, preferences, priorities, walking_pref)
-
 def generate_navigation_order(attraction_times):
-    return ["Entrance"] + list(attraction_times.keys())
+    sorted_attractions = sorted(attraction_times.items(), key=lambda x: x[1], reverse=True)
+    return ["Entrance"] + [a[0] for a in sorted_attractions]
 
-def insert_breaks(route, break_pref):
-    updated, counter = [], 0
+def insert_breaks(route, break_preference):
+    updated_route = []
+    time_counter = 0
+
     for stop in route:
-        updated.append(stop)
-        counter += attraction_durations.get(stop, 10)
-        if break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"]:
-            updated.append("Break")
-        elif break_pref in ["After 1 hour", "After 2 hours"]:
-            limit = 60 if break_pref == "After 1 hour" else 120
-            if counter >= limit:
-                updated.append("Break")
-                counter = 0
-    return updated
+        updated_route.append(stop)
+        time_counter += attraction_durations.get(stop, 10)
 
+        if break_preference == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"]:
+            updated_route.append("Break")
+        elif break_preference in ["After 1 hour", "After 2 hours"]:
+            limit = 60 if break_preference == "After 1 hour" else 120
+            if time_counter >= limit:
+                updated_route.append("Break")
+                time_counter = 0
+
+    return updated_route
+
+# ✅ Compute entire pipeline
+attraction_times, leftover = allocate_park_time(visit_duration, preferences, priorities, walking_pref)
 route = generate_navigation_order(attraction_times)
 final_plan = insert_breaks(route, break_pref)
 
