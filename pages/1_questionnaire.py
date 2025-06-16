@@ -101,7 +101,7 @@ with st.form("questionnaire_form"):
         "Rank (1-7)": [1, 2, 3, 4, 5, 6, 7]  # default starting values
     }
 
-    ranking_df = st.experimental_data_editor(ranking_data, num_rows="fixed")
+    ranking_df = st.data_editor(ranking_data, num_rows="fixed")
 
     # ✅ After form submit: Validate rankings
     # (check that values are unique and 1-7)
