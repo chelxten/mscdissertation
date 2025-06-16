@@ -3,6 +3,7 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
+from streamlit_sortables import sort_items
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
@@ -83,16 +84,50 @@ with st.form("questionnaire_form"):
 
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
     
-    # Preferences (1–10 scale, back to original style)
-    preferences = {
-        "thrill": st.slider("Thrill rides", 1, 10, 5),
-        "family": st.slider("Family rides", 1, 10, 5),
-        "water": st.slider("Water rides", 1, 10, 5),
-        "entertainment": st.slider("Live shows", 1, 10, 5),
-        "food": st.slider("Food & Dining", 1, 10, 5),
-        "shopping": st.slider("Shopping", 1, 10, 5),
-        "relaxation": st.slider("Relaxation areas", 1, 10, 5),
+    # Instead of the previous preferences sliders
+    st.markdown("### Please rank the following experiences (1 = most important, 7 = least important)")
+
+    # Build editable ranking table
+    ranking_data = {
+        "Experience": [
+            "Thrill rides",
+            "Family rides",
+            "Water rides",
+            "Live shows",
+            "Food & Dining",
+            "Shopping",
+            "Relaxation areas"
+        ],
+        "Rank (1-7)": [1, 2, 3, 4, 5, 6, 7]  # default starting values
     }
+
+    ranking_df = st.experimental_data_editor(ranking_data, num_rows="fixed")
+
+    # ✅ After form submit: Validate rankings
+    # (check that values are unique and 1-7)
+
+    if len(set(ranking_df["Rank (1-7)"])) != 7 or not all(1 <= int(r) <= 7 for r in ranking_df["Rank (1-7)"]):
+        st.error("❗ Please make sure all ranks are unique and between 1 and 7.")
+        st.stop()
+
+    # ✅ Store preferences as dictionary for further processing
+    preferences = {
+        row["Experience"]: int(row["Rank (1-7)"])
+        for idx, row in ranking_df.iterrows()
+    }
+
+    preference_mapping = {
+            "Thrill rides": "thrill",
+            "Family rides": "family",
+            "Water rides": "water",
+            "Live shows": "entertainment",
+            "Food & Dining": "food",
+            "Shopping": "shopping",
+            "Relaxation areas": "relaxation"
+        }
+
+    preferences_mapped = {preference_mapping[k]: v for k, v in preferences.items()}
+
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
@@ -128,13 +163,7 @@ if submit:
         "age": age,
         "duration": duration,
         "accessibility": accessibility_cleaned,
-        "thrill": preferences["thrill"],
-        "family": preferences["family"],
-        "water": preferences["water"],
-        "entertainment": preferences["entertainment"],
-        "food": preferences["food"],
-        "shopping": preferences["shopping"],
-        "relaxation": preferences["relaxation"],
+        **preferences_mapped,
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
@@ -151,7 +180,7 @@ if submit:
     # ✅ Prepare update row: columns C-P
     update_values = [
         [age, duration, accessibility_cleaned]
-        + list(preferences.values())
+        + list(preferences_mapped.values())
         + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
