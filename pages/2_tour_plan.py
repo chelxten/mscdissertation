@@ -115,108 +115,84 @@ def calculate_distance(a, b):
 # ------------------------------------------
 
 def fuzzy_zone_weight(zone):
-    base = preferences[zone]
-    base *= accessibility_factors[zone]
+    score = preferences[zone] * accessibility_factors[zone]
     if "Visiting family-friendly attractions together" in priorities and zone == "family":
-        base *= 1.2
+        score *= 1.2
     if "Staying comfortable throughout the visit" in priorities and zone == "relaxation":
-        base *= 1.3
+        score *= 1.3
     if "Having regular food and rest breaks" in priorities and zone == "food":
-        base *= 1.2
-    return base
+        score *= 1.2
+    return score
 
-zone_weights = {zone: fuzzy_zone_weight(zone) for zone in zones}
+zone_weights = {z: fuzzy_zone_weight(z) for z in zones}
 total_weight = sum(zone_weights.values())
-normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
+normalized = {z: w / total_weight for z, w in zone_weights.items()}
+sorted_zones = sorted(normalized, key=normalized.get, reverse=True)
 
 # ------------------------------------------
-# 7. Allocation Logic: Start from top zones
+# 7. Attraction Allocation with Time Budget
 # ------------------------------------------
 
-# Allocate attractions: Start by assigning one attraction from top 4 zones
-sorted_zones = sorted(normalized_weights, key=lambda z: normalized_weights[z], reverse=True)
-
-# Build initial list:
 initial_attractions = []
 for zone in sorted_zones[:4]:
-    initial_attractions.append(zones[zone][0])  # always take first ride as placeholder
+    initial_attractions.append(zones[zone][0])
 
 remaining_time = visit_duration - sum([
     attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
 ])
 
-# Fill additional attractions based on remaining time:
-all_candidates = [a for zone in sorted_zones for a in zones[zone] if a not in initial_attractions]
-
-for attraction in all_candidates:
-    time_needed = attraction_durations[attraction] + attraction_wait_times[attraction]
+# fill remaining based on fuzzy ranking
+all_candidates = [a for z in sorted_zones for a in zones[z] if a not in initial_attractions]
+for a in all_candidates:
+    time_needed = attraction_durations[a] + attraction_wait_times[a]
     if remaining_time >= time_needed:
-        initial_attractions.append(attraction)
+        initial_attractions.append(a)
         remaining_time -= time_needed
 
 # ------------------------------------------
-# 8. Break Planner (simplified, smart version)
+# 8. Greedy Route Planner (real attraction coordinates)
 # ------------------------------------------
 
-# 8. Smarter Break Planner
-def insert_breaks(route):
-    updated = []
-    elapsed_time = 0
-    walked_distance = 0
-    prev = (0, 0)
-
-    for stop in route:
-        updated.append(stop)
-
-        attraction_coord = attraction_coordinates[stop]
-        walk_distance = calculate_distance(prev, attraction_coord)
-        walked_distance += walk_distance
-
-        ride_time = attraction_durations[stop]
-        wait_time = attraction_wait_times[stop]
-        total_time = ride_time + wait_time
-        elapsed_time += total_time
-
-        # Insert breaks (time-based + distance-based fatigue)
-        if break_pref == "After 1 hour" and elapsed_time >= 60:
-            updated.append("Break")
-            elapsed_time = 0
-            walked_distance = 0
-        elif break_pref == "After 2 hours" and elapsed_time >= 120:
-            updated.append("Break")
-            elapsed_time = 0
-            walked_distance = 0
-        elif walked_distance >= 700:
-            updated.append("Break")
-            elapsed_time = 0
-            walked_distance = 0
-
-        prev = attraction_coord
-
-    return updated
-
-# ------------------------------------------
-# 9. Weighted A* Route (simple zone approximation for now)
-# ------------------------------------------
+def calculate_distance(a, b):
+    x1, y1 = attraction_coordinates[a]
+    x2, y2 = attraction_coordinates[b]
+    return math.hypot(x2 - x1, y2 - y1)
 
 def greedy_route(attractions):
-    route = []
-    current = (0, 0)  # Entrance at (0,0)
-    pool = attractions.copy()
-
+    route, pool = [], attractions.copy()
+    current = (0, 0)
     while pool:
-        next_attraction = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
-        route.append(next_attraction)
-        current = attraction_coordinates[next_attraction]
-        pool.remove(next_attraction)
+        next_stop = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
+        route.append(next_stop)
+        current = attraction_coordinates[next_stop]
+        pool.remove(next_stop)
     return route
 
 final_route = greedy_route(initial_attractions)
 
+# ------------------------------------------
+# 9. Insert Breaks
+# ------------------------------------------
+
+def insert_breaks(route):
+    updated, elapsed = [], 0
+    for stop in route:
+        updated.append(stop)
+        elapsed += attraction_durations[stop] + attraction_wait_times[stop]
+        if break_pref == "After 1 hour" and elapsed >= 60:
+            updated.append("Break")
+            elapsed = 0
+        elif break_pref == "After 2 hours" and elapsed >= 120:
+            updated.append("Break")
+            elapsed = 0
+        elif break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"]:
+            updated.append("Break")
+    return updated
+
 final_plan = insert_breaks(final_route)
 
 # ------------------------------------------
-# 10. Display Plan (Rewritten with total time calculation)
+# 10. Display Plan
 # ------------------------------------------
 
 zone_emojis = {
@@ -224,55 +200,29 @@ zone_emojis = {
     "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
 }
 
-def calculate_distance(coord1, coord2):
-    dx = coord1[0] - coord2[0]
-    dy = coord1[1] - coord2[1]
-    return (dx**2 + dy**2) ** 0.5
+st.success(f"👤 Age: {data['age']} | Visit Duration: {visit_duration} min")
 
-# Walking speed constant (meters per minute)
-walking_speed = 67  # ~4 km/h
-
-st.success(f"""
-👤 **Age**: {data['age']}  
-⏳ **Visit Duration**: {visit_duration} minutes  
-🚶‍♂️ **Walking Preference**: {walking_pref}  
-🛑 **Break Preference**: {break_pref}  
-""")
-
-with st.expander("🗺️ Your Route", expanded=True):
-    total_time_used = 0
-    cumulative_time = 0
-    previous_location = (0, 0)  # Entrance assumed to be (0,0)
-
+with st.expander("🗺️ Route", expanded=True):
+    total_time_used, previous_location = 0, (0, 0)
     for stop in final_plan:
         if stop == "Break":
-            st.markdown("🛑 **Break — 15 mins rest**")
+            st.markdown("🛑 Break (15 mins)")
             total_time_used += 15
-            cumulative_time += 15
-            previous_location = previous_location  # Stay at same place
             continue
 
-        # Lookup info
-        zone = next((z for z, a in zones.items() if stop in a), "")
+        zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis[zone]
-        ride_duration = attraction_durations[stop]
-        wait_time = attraction_wait_times[stop]
-        attraction_coord = attraction_coordinates[stop]
+        ride, wait = attraction_durations[stop], attraction_wait_times[stop]
+        walk_distance = calculate_distance(previous_location, attraction_coordinates[stop])
+        walk_time = walk_distance / 67
+        total = ride + wait + walk_time
+        total_time_used += total
 
-        # Calculate walking time
-        walk_distance = calculate_distance(previous_location, attraction_coord)
-        walk_time = walk_distance / walking_speed
+        st.markdown(f"{emoji} **{stop}** — {int(total)} mins (incl. ride, wait & walk)")
+        previous_location = attraction_coordinates[stop]
 
-        # Total time for this stop
-        total_attraction_time = ride_duration + wait_time + walk_time
-        total_time_used += total_attraction_time
-        cumulative_time += total_attraction_time
-
-        st.markdown(f"{emoji} **{stop}** — Total: {int(total_attraction_time)} mins (incl. ride, wait & walk)")
-
-        previous_location = attraction_coord
-
-st.info(f"Total Time Used: {int(total_time_used)} mins | Leftover: {int(visit_duration - total_time_used)} mins")
+leftover = int(visit_duration - total_time_used)
+st.info(f"Total Time Used: {int(total_time_used)} mins | Leftover: {leftover} mins")
 
 # ------------------------------------------
 
