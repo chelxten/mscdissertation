@@ -90,48 +90,38 @@ visit_duration = duration_map.get(data["duration"], 180)
 # 3. TIME ALLOCATION FUNCTION
 # --------------------------
 
-def allocate_park_time(total_time, preferences, priorities, walking_pref):
+def allocate_park_time(total_time, preferences, walking_pref):
     attraction_times = {}
     remaining_time = total_time
 
+    # Apply walking penalties if needed
     zone_penalty = {}
     if walking_pref == "Very short distances":
         zone_penalty = {"water": 0.6, "relaxation": 0.8}
     elif walking_pref == "Moderate walking":
         zone_penalty = {"water": 0.8}
 
+    # Apply base weights from preferences (sortable ranking)
     total_weight = sum(preferences.values())
     weights = {
-        zone: preferences[zone] / total_weight * zone_penalty.get(zone, 1)
+        zone: (preferences[zone] / total_weight) * zone_penalty.get(zone, 1)
         for zone in zones
     }
 
-    if "Enjoying high-intensity rides" in priorities:
-        weights["thrill"] *= 1.2
-    if "Visiting family-friendly attractions together" in priorities:
-        weights["family"] *= 1.2
-    if "Staying comfortable throughout the visit" in priorities:
-        weights["relaxation"] *= 1.3
-        weights["entertainment"] *= 1.1
-    if "Having regular food and rest breaks" in priorities:
-        weights["food"] *= 1.2
-        weights["relaxation"] *= 1.1
-
-    QUICK_MODE = "Seeing as many attractions as possible" in priorities
-
+    # Normalize weights again
     total_weight = sum(weights.values())
     weights = {k: v / total_weight for k, v in weights.items()}
 
+    # Allocate time across zones based on weights
     for zone, attractions in zones.items():
         zone_time = weights[zone] * total_time
         for attraction in attractions:
             duration = attraction_durations[attraction]
-            time_spent = min(duration, 15) if QUICK_MODE else duration
+            if remaining_time >= duration:
+                attraction_times[attraction] = duration
+                remaining_time -= duration
 
-            if remaining_time >= time_spent:
-                attraction_times[attraction] = time_spent
-                remaining_time -= time_spent
-
+    # Use leftover time to top-up
     while remaining_time >= 5:
         for attraction in attraction_times:
             addition = min(5, remaining_time)
@@ -192,7 +182,7 @@ duration_map = {
 visit_duration = duration_map.get(data["duration"], 180)
 
 attraction_times, leftover = allocate_park_time(
-    visit_duration, preferences, priorities, walking_pref
+    visit_duration, preferences, walking_pref
 )
 route = generate_navigation_order(attraction_times)
 final_plan = insert_breaks(route, break_pref)
