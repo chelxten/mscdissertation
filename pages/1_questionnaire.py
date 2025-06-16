@@ -1,9 +1,9 @@
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
-from streamlit_sortables import sort_items
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
@@ -28,7 +28,7 @@ def get_questionnaire_worksheet():
         try:
             sheet = client.open("Survey Responses").worksheet("Sheet1")
             return sheet
-        except APIError as e:
+        except gspread.exceptions.APIError as e:
             if "Visibility check was unavailable" in str(e):
                 st.warning(f"Google API 503 error, retrying... ({attempt+1}/{retries})")
                 time.sleep(3)
@@ -49,47 +49,34 @@ pis_data = load_pis_file()
 # ✅ Questionnaire form
 with st.form("questionnaire_form"):
     age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
+
     st.markdown("Do you have any accessibility needs? (Select all that apply)")
 
-    # Checkbox group
     physical = st.checkbox("Physical")
     sensory = st.checkbox("Sensory")
     cognitive = st.checkbox("Cognitive")
     prefer_not = st.checkbox("Prefer not to say")
     no_accessibility = st.checkbox("No Accessibility Needs")
 
-    # ✅ Clean logic: prevent conflicting answers
     if no_accessibility and (physical or sensory or cognitive or prefer_not):
         st.warning("You cannot select 'No Accessibility Needs' together with other options.")
 
-    # ✅ Convert to list for storage
     accessibility_selected = []
-    if physical:
-        accessibility_selected.append("Physical")
-    if sensory:
-        accessibility_selected.append("Sensory")
-    if cognitive:
-        accessibility_selected.append("Cognitive")
-    if prefer_not:
-        accessibility_selected.append("Prefer not to say")
-    if no_accessibility:
-        accessibility_selected.append("No Accessibility Needs")
+    if physical: accessibility_selected.append("Physical")
+    if sensory: accessibility_selected.append("Sensory")
+    if cognitive: accessibility_selected.append("Cognitive")
+    if prefer_not: accessibility_selected.append("Prefer not to say")
+    if no_accessibility: accessibility_selected.append("No Accessibility Needs")
+    if not accessibility_selected: accessibility_selected = ["Not specified"]
 
-    # ✅ Fallback if nothing selected
-    if not accessibility_selected:
-        accessibility_selected = ["Not specified"]
-
-    # ✅ Final string for database
     accessibility_cleaned = ", ".join(accessibility_selected)
 
     duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
-    
-    # Instead of the previous preferences sliders
-    st.markdown("### Please rank the following experiences (1 = most important, 7 = least important)")
 
-    # Build editable ranking table
-    ranking_data = {
-        "Experience": [
+    # Preferences ranking via data_editor
+    st.markdown("### Please rank your preferences by dragging rows (top = most important)")
+    ranking_data = pd.DataFrame({
+        "Preferences": [
             "Thrill rides",
             "Family rides",
             "Water rides",
@@ -97,37 +84,10 @@ with st.form("questionnaire_form"):
             "Food & Dining",
             "Shopping",
             "Relaxation areas"
-        ],
-        "Rank (1-7)": [1, 2, 3, 4, 5, 6, 7]  # default starting values
-    }
-
+        ]
+    })
     ranking_df = st.data_editor(ranking_data, num_rows="fixed")
-
-    # ✅ After form submit: Validate rankings
-    # (check that values are unique and 1-7)
-
-    if len(set(ranking_df["Rank (1-7)"])) != 7 or not all(1 <= int(r) <= 7 for r in ranking_df["Rank (1-7)"]):
-        st.error("❗ Please make sure all ranks are unique and between 1 and 7.")
-        st.stop()
-
-    # ✅ Store preferences as dictionary for further processing
-    preferences = {
-        row["Experience"]: int(row["Rank (1-7)"])
-        for idx, row in ranking_df.iterrows()
-    }
-
-    preference_mapping = {
-            "Thrill rides": "thrill",
-            "Family rides": "family",
-            "Water rides": "water",
-            "Live shows": "entertainment",
-            "Food & Dining": "food",
-            "Shopping": "shopping",
-            "Relaxation areas": "relaxation"
-        }
-
-    preferences_mapped = {preference_mapping[k]: v for k, v in preferences.items()}
-
+    sorted_preferences = ranking_df["Preferences"].tolist()
 
     top_priorities = st.multiselect("What are your top visit priorities?", [
         "Enjoying high-intensity rides",
@@ -159,11 +119,22 @@ st.download_button(
 
 # ✅ Handle form submission
 if submit:
+    # Create ranking values as 1-7
+    preference_ranks = {
+        "thrill": sorted_preferences.index("Thrill rides") + 1,
+        "family": sorted_preferences.index("Family rides") + 1,
+        "water": sorted_preferences.index("Water rides") + 1,
+        "entertainment": sorted_preferences.index("Live shows") + 1,
+        "food": sorted_preferences.index("Food & Dining") + 1,
+        "shopping": sorted_preferences.index("Shopping") + 1,
+        "relaxation": sorted_preferences.index("Relaxation areas") + 1,
+    }
+
     st.session_state["questionnaire"] = {
         "age": age,
         "duration": duration,
         "accessibility": accessibility_cleaned,
-        **preferences_mapped,
+        **preference_ranks,
         "priorities": top_priorities.copy(),
         "wait_time": wait_time,
         "walking": walking,
@@ -177,10 +148,9 @@ if submit:
     cell = sheet.find(unique_id, in_column=2)
     row_num = cell.row
 
-    # ✅ Prepare update row: columns C-P
     update_values = [
         [age, duration, accessibility_cleaned]
-        + list(preferences_mapped.values())
+        + list(preference_ranks.values())
         + [", ".join(top_priorities), wait_time, walking, break_time]
     ]
 
