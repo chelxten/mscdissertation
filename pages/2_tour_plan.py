@@ -223,6 +223,9 @@ with st.expander("🗺️ Your Route", expanded=True):
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
+sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
+sheet.update_cell(row_num, 21, str(int(visit_duration - total_time_used)))  # Column U
+
 # ✅ Store clean plan into both session and Google Sheet:
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
