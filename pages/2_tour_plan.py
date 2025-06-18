@@ -347,7 +347,7 @@ with st.expander("🗺️ Your Route", expanded=True):
             attraction_loc = attraction_coordinates[stop]
             walk_dist = calculate_distance(previous_location, attraction_loc)
             walk_time = walk_dist / walking_speed
-            display_walk = max(1, int(walk_time))  # Ensure minimum walk display
+            display_walk = max(1, int(walk_time))
             added_time = ride_time + wait_time + walk_time
             total = ride_time + wait_time + display_walk
 
