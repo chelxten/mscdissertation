@@ -347,27 +347,28 @@ with st.expander("🗺️ Your Route", expanded=True):
             attraction_loc = attraction_coordinates[stop]
             walk_dist = calculate_distance(previous_location, attraction_loc)
             walk_time = walk_dist / walking_speed
+            display_walk = max(1, int(walk_time))  # Ensure minimum walk display
             added_time = ride_time + wait_time + walk_time
 
-        if total_time_used + added_time > visit_duration:
-            break  # ⛔ stop here to avoid overflow
+        if total_time_used + added_time > visit_duration + 15:
+            break
 
-        # ✅ Only add if fits
         if stop == "Break":
             plan_text_lines.append("Break — 15 mins")
             st.markdown("🛑 **Break — 15 mins**")
         else:
             zone = next(z for z, a in zones.items() if stop in a)
             emoji = zone_emojis[zone]
-            total = ride_time + wait_time + walk_time
+            total = ride_time + wait_time + display_walk
             display_text = f"{emoji} **{stop}** — {int(total)} mins total"
-            full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {int(walk_time) if walk_time >= 1 else 1}m walk = {int(total)}m"
+            full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m"
             plan_text_lines.append(full_text)
             st.markdown(display_text)
             previous_location = attraction_loc
 
         total_time_used += added_time
         leftover_time = visit_duration - total_time_used
+        
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
 
