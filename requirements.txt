@@ -12,3 +12,4 @@ streamlit-sortables
 scikit-fuzzy
 scipy
 numpy
+networkx
