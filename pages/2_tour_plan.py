@@ -261,10 +261,16 @@ all_candidates = [a for zone in sorted_zones for a in zones[zone] if a not in in
 
 for attraction in all_candidates:
     time_needed = attraction_durations[attraction] + attraction_wait_times[attraction]
-    if remaining_time >= time_needed:
-        initial_attractions.append(attraction)
-        remaining_time -= time_needed
+    projected_time = sum(
+        attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
+    ) + time_needed
 
+    # Allow up to +15 mins overflow
+    if projected_time <= visit_duration + 15:
+        initial_attractions.append(attraction)
+    else:
+        break
+        
 # ------------------------------------------
 # 6. Greedy Route Optimization
 # ------------------------------------------
