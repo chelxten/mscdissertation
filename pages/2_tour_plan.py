@@ -273,7 +273,17 @@ for attraction in all_candidates:
         initial_attractions.append(attraction)
     else:
         break
-        
+
+# ------------------------------------------
+# Nearest Relaxation Spot for Break Time 
+# ------------------------------------------
+def nearest_relaxation_spot(from_attraction):
+    last_loc = attraction_coordinates[from_attraction]
+    return min(
+        zones["relaxation"],
+        key=lambda spot: calculate_distance(last_loc, attraction_coordinates[spot])
+    )
+
 # ------------------------------------------
 # 6. Greedy Route Optimization
 # ------------------------------------------
@@ -307,18 +317,21 @@ final_route = greedy_route(initial_attractions)
 def insert_breaks(route):
     updated = []
     elapsed = 0
-    for stop in route:
+    for i, stop in enumerate(route):
         updated.append(stop)
         elapsed += attraction_durations[stop] + attraction_wait_times[stop]
 
-        if break_pref == "After 1 hour" and elapsed >= 60:
-            updated.append("Break")
-            elapsed = 0
-        elif break_pref == "After 2 hours" and elapsed >= 120:
-            updated.append("Break")
-            elapsed = 0
-        elif break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"]:
-            updated.append("Break")
+        needs_break = (
+            (break_pref == "After 1 hour" and elapsed >= 60) or
+            (break_pref == "After 2 hours" and elapsed >= 120) or
+            (break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"])
+        )
+
+        if needs_break:
+            relax_spot = nearest_relaxation_spot(stop)
+            updated.append(relax_spot)
+            elapsed = 0  # reset counter after break
+
     return updated
 
 final_plan = insert_breaks(final_route)
@@ -366,6 +379,12 @@ with st.expander("🗺️ Your Route", expanded=True):
         # Display
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis[zone]
+        
+        # 👇 Identify relaxation-based break
+        is_break_spot = zone == "relaxation" and break_pref != "None"
+        title_note = " — Rest Stop" if is_break_spot else ""
+        
+        total = int(ride_time + wait_time + display_walk)
         full_text = f"• {formatted_time} — {stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(ride_time + wait_time + display_walk)}m"
         plan_text_lines.append(full_text)
         st.markdown(f"{emoji} **{formatted_time} — {stop}** — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk")
