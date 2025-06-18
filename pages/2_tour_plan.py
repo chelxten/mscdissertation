@@ -250,26 +250,33 @@ if data["age"] == "Under 12":
 # ------------------------------------------
 # 5. Initial Attraction Allocation
 # ------------------------------------------
+# Sort zones by normalized fuzzy weights
 sorted_zones = sorted(normalized_weights, key=lambda z: normalized_weights[z], reverse=True)
 
-# Guarantee top preference zone is included
+# Get the top user preference zone (e.g., "thrill")
 top_pref_zone = max(preferences, key=preferences.get)
-initial_attractions = []
 
-if top_pref_zone in zones:
+# Guarantee its inclusion in the initial attractions
+initial_attractions = []
+if top_pref_zone in zones and zones[top_pref_zone]:
     initial_attractions.append(zones[top_pref_zone][0])
 
-# Fill remaining from top weighted zones (excluding one already added)
+# Now fill remaining attractions from top-weighted zones (excluding already included one)
 for zone in sorted_zones:
-    if zone != top_pref_zone and zones[zone][0] not in initial_attractions:
-        initial_attractions.append(zones[zone][0])
+    if zone != top_pref_zone:
+        for attraction in zones[zone]:
+            if attraction not in initial_attractions:
+                initial_attractions.append(attraction)
+                break  # Only one from each zone
     if len(initial_attractions) >= 4:
         break
 
+# Calculate remaining time
 remaining_time = visit_duration - sum([
     attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
 ])
 
+# Add more attractions if time allows (respects fuzzy ranking)
 all_candidates = [a for zone in sorted_zones for a in zones[zone] if a not in initial_attractions]
 
 for attraction in all_candidates:
