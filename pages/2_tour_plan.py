@@ -3,6 +3,9 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
 import math
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
 
 # ✅ Google Sheets function for feedback update
 @st.cache_resource
@@ -97,17 +100,48 @@ attraction_wait_times = {
 # ------------------------------------------
 # 4. Weighted Allocation System (Fuzzy Logic)
 # ------------------------------------------
-def fuzzy_zone_weight(zone):
-    base = preferences[zone] * accessibility_factors[zone]
-    if "Visiting family-friendly attractions together" in priorities and zone == "family":
-        base *= 1.2
-    if "Staying comfortable throughout the visit" in priorities and zone == "relaxation":
-        base *= 1.3
-    if "Having regular food and rest breaks" in priorities and zone == "food":
-        base *= 1.2
-    return base
 
-zone_weights = {zone: fuzzy_zone_weight(zone) for zone in zones}
+preference_input = ctrl.Antecedent(np.arange(0, 11, 1), 'preference')
+accessibility_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'accessibility')
+weight_output = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
+
+# Define membership functions
+preference_input['low'] = fuzz.trimf(preference_input.universe, [0, 0, 5])
+preference_input['medium'] = fuzz.trimf(preference_input.universe, [2, 5, 8])
+preference_input['high'] = fuzz.trimf(preference_input.universe, [5, 10, 10])
+
+accessibility_input['poor'] = fuzz.trimf(accessibility_input.universe, [0.0, 0.0, 0.5])
+accessibility_input['moderate'] = fuzz.trimf(accessibility_input.universe, [0.2, 0.5, 0.8])
+accessibility_input['good'] = fuzz.trimf(accessibility_input.universe, [0.5, 1.0, 1.0])
+
+weight_output['low'] = fuzz.trimf(weight_output.universe, [0, 0, 5])
+weight_output['medium'] = fuzz.trimf(weight_output.universe, [2, 5, 8])
+weight_output['high'] = fuzz.trimf(weight_output.universe, [5, 10, 10])
+
+# Define rules
+rules = [
+    ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high']),
+    ctrl.Rule(preference_input['medium'] & accessibility_input['moderate'], weight_output['medium']),
+    ctrl.Rule(preference_input['low'] | accessibility_input['poor'], weight_output['low']),
+    ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['high']),
+    ctrl.Rule(preference_input['medium'] & accessibility_input['good'], weight_output['high']),
+]
+
+# Build and simulate control system
+weight_ctrl = ctrl.ControlSystem(rules)
+weight_sim = ctrl.ControlSystemSimulation(weight_ctrl)
+
+# Compute fuzzy weight for each zone
+zone_weights = {}
+for zone in zones:
+    pref = preferences[zone]
+    acc = accessibility_factors[zone]
+    weight_sim.input['preference'] = pref
+    weight_sim.input['accessibility'] = acc
+    weight_sim.compute()
+    zone_weights[zone] = weight_sim.output['weight']
+
+# Normalize weights
 total_weight = sum(zone_weights.values())
 normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
 
