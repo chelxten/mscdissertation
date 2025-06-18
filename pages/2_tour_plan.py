@@ -344,18 +344,37 @@ def calculate_distance(point_a, point_b):
     x2, y2 = point_b
     return math.hypot(x2 - x1, y2 - y1)
 
-def greedy_route(attractions):
+def greedy_route(attractions, start_with=None):
     route = []
-    current = (0, 0)  # Entrance
     pool = attractions.copy()
+
+    # Optional forced first attraction
+    if start_with and start_with in pool:
+        route.append(start_with)
+        current = attraction_coordinates[start_with]
+        pool.remove(start_with)
+    else:
+        current = (0, 0)  # Default: Entrance
+
+    # Greedy selection of remaining attractions
     while pool:
         next_attraction = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
         route.append(next_attraction)
         current = attraction_coordinates[next_attraction]
         pool.remove(next_attraction)
-    return route
 
-final_route = greedy_route(initial_attractions)
+    return route
+    
+first_preference_zone = max(preferences, key=preferences.get)
+first_pref_attraction = None
+
+# Choose one attraction from top preference zone
+for a in zones[first_preference_zone]:
+    if a in initial_attractions:
+        first_pref_attraction = a
+        break
+
+final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
 
 # ------------------------------------------
 # 7. Break Insertion
