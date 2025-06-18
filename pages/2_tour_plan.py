@@ -65,9 +65,10 @@ zone_coordinates = {
 attraction_coordinates = {}
 for zone, attractions in zones.items():
     for idx, attraction in enumerate(attractions):
-        offset = idx * 5
+        offset_x = (idx % 3) * 20  # wider spread in x
+        offset_y = (idx // 3) * 20  # stack next row after 3
         zone_x, zone_y = zone_coordinates[zone]
-        attraction_coordinates[attraction] = (zone_x + offset, zone_y + offset)
+        attraction_coordinates[attraction] = (zone_x + offset_x, zone_y + offset_y)
 
 # ------------------------------------------
 # 3. Accessibility, Duration & Wait Times
