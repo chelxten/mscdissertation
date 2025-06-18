@@ -336,20 +336,21 @@ walking_speed = 67  # meters/min
 plan_text_lines = []
 total_time_used = 0
 previous_location = (0, 0)
-start_time = datetime.strptime("10:00", "%H:%M")
+start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
 with st.expander("🗺️ Your Route", expanded=True):
     for stop in final_plan:
+        scheduled_time = start_time + timedelta(minutes=total_time_used)
+        formatted_time = scheduled_time.strftime("%I:%M %p")
+
         if stop == "Break":
             added_time = 15
-            scheduled_time = start_time + timedelta(minutes=total_time_used)
-            formatted_time = scheduled_time.strftime("%I:%M %p")
-            st.markdown("🛑 **Break — 15 mins**")
             plan_text_lines.append(f"• {formatted_time} — Break — 15 mins")
+            st.markdown("🛑 **Break — 15 mins**")
             total_time_used += added_time
             continue
 
-        # Time components
+        # Calculate components
         ride_time = attraction_durations[stop]
         wait_time = attraction_wait_times[stop]
         attraction_loc = attraction_coordinates[stop]
@@ -358,42 +359,22 @@ with st.expander("🗺️ Your Route", expanded=True):
         display_walk = max(1, int(walk_time))
         added_time = ride_time + wait_time + walk_time
 
-        # Check if it fits within schedule (+15 mins overflow allowed)
+        # Check if it fits
         if total_time_used + added_time > visit_duration + 15:
             break
 
-        total_time_used += added_time
-        scheduled_time = start_time + timedelta(minutes=total_time_used)
-        formatted_time = scheduled_time.strftime("%I:%M %p")
-
-        # Zone and display
+        # Display
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis[zone]
-        total = ride_time + wait_time + display_walk
-        full_text = f"• {formatted_time} — {stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m"
-
-        # Update
+        full_text = f"• {formatted_time} — {stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(ride_time + wait_time + display_walk)}m"
         plan_text_lines.append(full_text)
-        st.markdown(f"{emoji} **{formatted_time} — {stop}** — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m")
-        previous_location = attraction_loc
+        st.markdown(f"{emoji} **{formatted_time} — {stop}** — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk")
 
-        
-        
-        # Define park entry time
-        start_time = datetime.strptime("10:00", "%H:%M")
-        scheduled_time = start_time + timedelta(minutes=total_time_used)
+        previous_location = attraction_loc
         total_time_used += added_time
 
-        # Format scheduled time
-        formatted_time = scheduled_time.strftime("%I:%M %p")
-
-        # Add to plan line
-        if stop != "Break":
-            full_text = f"• {formatted_time} — {stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m"
-        else:
-            full_text = f"• {formatted_time} — Break — 15 mins"
-        leftover_time = visit_duration - total_time_used
-        
+# Final info
+leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
 
