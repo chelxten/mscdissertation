@@ -204,18 +204,6 @@ if top_zone == "thrill":
         ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
     ]
 
-elif top_zone == "food":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & priority_food['yes'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['high'])
-    ]
-
-elif top_zone == "relaxation":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & priority_comfort['yes'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & wait_tolerance['high'], weight_output['high'])
-    ]
-
 elif top_zone == "family":
     reinforcement_rules += [
         ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
@@ -286,6 +274,11 @@ for zone in zones:
     weight_sim.compute()
     zone_weights[zone] = weight_sim.output['weight']
 
+# Cap weight of food and relaxation zones to prevent domination
+for zone in ["food", "relaxation"]:
+    if zone in zone_weights:
+        zone_weights[zone] = min(zone_weights[zone], 4.5)  # limit to moderate level
+
 # Normalize weights
 total_weight = sum(zone_weights.values())
 normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
@@ -304,8 +297,13 @@ if data["age"] == "Under 12":
 # Sort zones by normalized fuzzy weights
 sorted_zones = sorted(normalized_weights, key=lambda z: normalized_weights[z], reverse=True)
 
-# Get the top user preference zone (e.g., "thrill")
-top_pref_zone = max(preferences, key=preferences.get)
+ride_zones = ["thrill", "water", "family", "entertainment"]
+ride_zones_present = [z for z in preferences if z in ride_zones]
+
+if ride_zones_present:
+    top_pref_zone = max(ride_zones_present, key=lambda z: preferences[z])
+else:
+    top_pref_zone = "family"  # fallback to safe zone
 
 # Guarantee its inclusion in the initial attractions
 initial_attractions = []
