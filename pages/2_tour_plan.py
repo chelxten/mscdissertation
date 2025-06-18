@@ -401,34 +401,45 @@ final_route = greedy_route(initial_attractions, start_with=first_pref_attraction
 # ------------------------------------------
 def insert_breaks(route):
     updated = []
-    elapsed = 0
+    elapsed_since_break = 0
+    elapsed_since_food = 0
     used_break_spots = set()
+    used_food_spots = set()
 
     for i, stop in enumerate(route):
         updated.append(stop)
-        elapsed += attraction_durations[stop] + attraction_wait_times[stop]
+        elapsed_since_break += attraction_durations[stop] + attraction_wait_times[stop]
+        elapsed_since_food += attraction_durations[stop] + attraction_wait_times[stop]
 
+        # 🚨 Check for break need (based on preference or intense ride)
         needs_break = (
-            (break_pref == "After 1 hour" and elapsed >= 60) or
-            (break_pref == "After 2 hours" and elapsed >= 120) or
+            (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
+            (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
             (break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"])
         )
 
         if needs_break:
-            # Try to find unused break spot
+            # Find nearest unused relaxation spot
             available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
             if available_spots:
                 current_loc = attraction_coordinates[stop]
-                relax_spot = min(
-                    available_spots,
-                    key=lambda s: calculate_distance(current_loc, attraction_coordinates[s])
-                )
+                relax_spot = min(available_spots, key=lambda s: calculate_distance(current_loc, attraction_coordinates[s]))
                 updated.append(relax_spot)
                 used_break_spots.add(relax_spot)
-                elapsed = 0  # reset timer after break
+                elapsed_since_break = 0  # Reset
+
+        # 🍔 Check for food stop every 2 hours
+        if elapsed_since_food >= 120:
+            available_foods = [f for f in zones["food"] if f not in used_food_spots]
+            if available_foods:
+                current_loc = attraction_coordinates[stop]
+                food_spot = min(available_foods, key=lambda f: calculate_distance(current_loc, attraction_coordinates[f]))
+                updated.append(food_spot)
+                used_food_spots.add(food_spot)
+                elapsed_since_food = 0  # Reset
 
     return updated
-
+    
 final_plan = insert_breaks(final_route)
 
 
