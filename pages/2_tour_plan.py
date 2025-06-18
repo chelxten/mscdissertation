@@ -146,6 +146,12 @@ weight_output['low'] = fuzz.trimf(weight_output.universe, [0, 0, 5])
 weight_output['medium'] = fuzz.trimf(weight_output.universe, [2, 5, 8])
 weight_output['high'] = fuzz.trimf(weight_output.universe, [5, 10, 10])
 
+food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
+
+food_interval['short'] = fuzz.trimf(food_interval.universe, [60, 90, 120])
+food_interval['medium'] = fuzz.trimf(food_interval.universe, [100, 135, 170])
+food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
+
 # -- Define fuzzy rules --
 rules = [
     ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high']),
@@ -194,6 +200,16 @@ rules = [
     # 10. Priority: comfort=yes + poor accessibility → Medium weight (penalize access)
     ctrl.Rule(priority_comfort['yes'] & accessibility_input['poor'], weight_output['medium']),
     ]
+
+food_interval_rules = [
+    ctrl.Rule(preference_input['high'] & priority_food['yes'], food_interval['short']),
+    ctrl.Rule(preference_input['medium'] & priority_food['yes'], food_interval['medium']),
+    ctrl.Rule(preference_input['low'] | priority_food['no'], food_interval['long']),
+]
+
+food_interval_ctrl = ctrl.ControlSystem(food_interval_rules)
+food_interval_sim = ctrl.ControlSystemSimulation(food_interval_ctrl)
+
 # Special reinforcement for top preference zone
 reinforcement_rules = []
 
@@ -396,6 +412,14 @@ for a in zones[first_preference_zone]:
 
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
 
+food_pref = preferences["food"]
+
+food_interval_sim.input['preference'] = food_pref
+food_interval_sim.input['priority_food'] = priority_food_val
+food_interval_sim.compute()
+
+preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 240))  # cap between 1h and 4h
+
 # ------------------------------------------
 # 7. Break Insertion
 # ------------------------------------------
@@ -403,7 +427,7 @@ def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
     elapsed_since_food = 0
-    used_break_spots = set()
+    visited_relax_spots = set()
     used_food_spots = set()
 
     for i, stop in enumerate(route):
@@ -420,16 +444,16 @@ def insert_breaks(route):
 
         if needs_break:
             # Find nearest unused relaxation spot
-            available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
+            available_spots = [s for s in zones["relaxation"] if s not in visited_relax_spots]
             if available_spots:
                 current_loc = attraction_coordinates[stop]
                 relax_spot = min(available_spots, key=lambda s: calculate_distance(current_loc, attraction_coordinates[s]))
                 updated.append(relax_spot)
-                used_break_spots.add(relax_spot)
+                visited_relax_spots.add(relax_spot)
                 elapsed_since_break = 0  # Reset
 
         # 🍔 Check for food stop every 2 hours
-        if elapsed_since_food >= 120:
+        if elapsed_since_food >= preferred_food_gap and i >= 2:
             available_foods = [f for f in zones["food"] if f not in used_food_spots]
             if available_foods:
                 current_loc = attraction_coordinates[stop]
