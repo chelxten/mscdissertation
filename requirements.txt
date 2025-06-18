@@ -9,3 +9,4 @@ reportlab
 PyPDF2
 FPDF
 streamlit-sortables
+scikit-fuzzy
