@@ -216,7 +216,29 @@ elif top_zone == "relaxation":
         ctrl.Rule(preference_input['high'] & wait_tolerance['high'], weight_output['high'])
     ]
 
-# ... you can add more zone types similarly if needed
+elif top_zone == "family":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
+    ]
+
+elif top_zone == "water":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & wait_tolerance['high'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
+    ]
+
+elif top_zone == "entertainment":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & wait_tolerance['medium'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
+    ]
+
+elif top_zone == "shopping":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
+    ]
 
 # Combine with main rules
 rules += reinforcement_rules
