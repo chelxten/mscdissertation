@@ -65,8 +65,10 @@ zone_coordinates = {
 attraction_coordinates = {}
 for zone, attractions in zones.items():
     for idx, attraction in enumerate(attractions):
-        offset_x = (idx % 3) * 20  # wider spread in x
-        offset_y = (idx // 3) * 20  # stack next row after 3
+        angle = idx * (2 * np.pi / len(attractions))  # even angle distribution
+        radius = 40  # increase for more spacing
+        offset_x = int(radius * np.cos(angle))
+        offset_y = int(radius * np.sin(angle))
         zone_x, zone_y = zone_coordinates[zone]
         attraction_coordinates[attraction] = (zone_x + offset_x, zone_y + offset_y)
 
