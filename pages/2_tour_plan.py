@@ -361,7 +361,7 @@ with st.expander("🗺️ Your Route", expanded=True):
             emoji = zone_emojis[zone]
             total = ride_time + wait_time + walk_time
             display_text = f"{emoji} **{stop}** — {int(total)} mins total"
-            full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {int(walk_time)}m walk = {int(total)}m"
+            full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {int(walk_time) if walk_time >= 1 else 1}m walk = {int(total)}m"
             plan_text_lines.append(full_text)
             st.markdown(display_text)
             previous_location = attraction_loc
