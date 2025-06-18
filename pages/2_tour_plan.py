@@ -101,11 +101,20 @@ attraction_wait_times = {
 # 4. Weighted Allocation System (Fuzzy Logic)
 # ------------------------------------------
 
+
+# -- Define fuzzy variables --
 preference_input = ctrl.Antecedent(np.arange(0, 11, 1), 'preference')
 accessibility_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'accessibility')
+wait_tolerance = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'wait_tolerance')
+walking_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'walking')
+
+priority_thrill = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_thrill')
+priority_food = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_food')
+priority_comfort = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_comfort')
+
 weight_output = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
 
-# Define membership functions
+# -- Membership functions --
 preference_input['low'] = fuzz.trimf(preference_input.universe, [0, 0, 5])
 preference_input['medium'] = fuzz.trimf(preference_input.universe, [2, 5, 8])
 preference_input['high'] = fuzz.trimf(preference_input.universe, [5, 10, 10])
@@ -114,30 +123,81 @@ accessibility_input['poor'] = fuzz.trimf(accessibility_input.universe, [0.0, 0.0
 accessibility_input['moderate'] = fuzz.trimf(accessibility_input.universe, [0.2, 0.5, 0.8])
 accessibility_input['good'] = fuzz.trimf(accessibility_input.universe, [0.5, 1.0, 1.0])
 
+wait_tolerance['low'] = fuzz.trimf(wait_tolerance.universe, [0.0, 0.0, 0.4])
+wait_tolerance['medium'] = fuzz.trimf(wait_tolerance.universe, [0.2, 0.5, 0.8])
+wait_tolerance['high'] = fuzz.trimf(wait_tolerance.universe, [0.6, 1.0, 1.0])
+
+walking_input['short'] = fuzz.trimf(walking_input.universe, [0.0, 0.0, 0.4])
+walking_input['medium'] = fuzz.trimf(walking_input.universe, [0.2, 0.5, 0.8])
+walking_input['long'] = fuzz.trimf(walking_input.universe, [0.6, 1.0, 1.0])
+
+for priority in [priority_thrill, priority_food, priority_comfort]:
+    priority['no'] = fuzz.trimf(priority.universe, [0, 0, 1])
+    priority['yes'] = fuzz.trimf(priority.universe, [0, 1, 1])
+
 weight_output['low'] = fuzz.trimf(weight_output.universe, [0, 0, 5])
 weight_output['medium'] = fuzz.trimf(weight_output.universe, [2, 5, 8])
 weight_output['high'] = fuzz.trimf(weight_output.universe, [5, 10, 10])
 
-# Define rules
+# -- Define fuzzy rules --
 rules = [
     ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high']),
     ctrl.Rule(preference_input['medium'] & accessibility_input['moderate'], weight_output['medium']),
     ctrl.Rule(preference_input['low'] | accessibility_input['poor'], weight_output['low']),
     ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['high']),
     ctrl.Rule(preference_input['medium'] & accessibility_input['good'], weight_output['high']),
+
+    ctrl.Rule(wait_tolerance['low'], weight_output['low']),
+    ctrl.Rule(wait_tolerance['high'], weight_output['high']),
+
+    ctrl.Rule(walking_input['long'], weight_output['high']),
+    ctrl.Rule(walking_input['short'], weight_output['low']),
+
+    ctrl.Rule(priority_thrill['yes'], weight_output['high']),
+    ctrl.Rule(priority_food['yes'], weight_output['high']),
+    ctrl.Rule(priority_comfort['yes'], weight_output['high']),
 ]
 
-# Build and simulate control system
+# Build system
 weight_ctrl = ctrl.ControlSystem(rules)
 weight_sim = ctrl.ControlSystemSimulation(weight_ctrl)
 
-# Compute fuzzy weight for each zone
+# Priority flags
+priority_thrill_val = 1.0 if "Enjoying high-intensity rides" in priorities else 0.0
+priority_food_val = 1.0 if "Having regular food and rest breaks" in priorities else 0.0
+priority_comfort_val = 1.0 if "Staying comfortable throughout the visit" in priorities else 0.0
+
+# Map walking preference to value
+walking_map = {
+    "Very short distances": 0.0,
+    "Moderate walking": 0.5,
+    "Don’t mind walking": 1.0
+}
+walking_val = walking_map.get(walking_pref, 0.5)
+
+# Map wait tolerance to value
+wait_map = {
+    "<10 min": 0.0,
+    "10–20 min": 0.3,
+    "20–30 min": 0.6,
+    "30+ min": 1.0
+}
+wait_val = wait_map.get(data["wait_time"], 0.5)
+
+# Fuzzy weight computation
 zone_weights = {}
 for zone in zones:
     pref = preferences[zone]
     acc = accessibility_factors[zone]
+
     weight_sim.input['preference'] = pref
     weight_sim.input['accessibility'] = acc
+    weight_sim.input['wait_tolerance'] = wait_val
+    weight_sim.input['walking'] = walking_val
+    weight_sim.input['priority_thrill'] = 1.0 if zone == "thrill" and priority_thrill_val else 0.0
+    weight_sim.input['priority_food'] = 1.0 if zone == "food" and priority_food_val else 0.0
+    weight_sim.input['priority_comfort'] = 1.0 if zone == "relaxation" and priority_comfort_val else 0.0
+
     weight_sim.compute()
     zone_weights[zone] = weight_sim.output['weight']
 
@@ -145,6 +205,14 @@ for zone in zones:
 total_weight = sum(zone_weights.values())
 normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
 
+# Optional: Remove intense thrill rides for young children
+if data["age"] == "Under 12":
+    intense_rides = {"Roller Coaster", "Drop Tower", "Freefall Cannon", "Spinning Vortex"}
+    for ride in intense_rides:
+        for zone_list in zones.values():
+            if ride in zone_list:
+                zone_list.remove(ride)
+                
 # ------------------------------------------
 # 5. Initial Attraction Allocation
 # ------------------------------------------
