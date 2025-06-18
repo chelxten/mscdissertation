@@ -292,39 +292,44 @@ zone_emojis = {
 }
 
 walking_speed = 67  # meters/min
+plan_text_lines = []
 total_time_used = 0
 previous_location = (0, 0)
 
-plan_text_lines = []
 with st.expander("🗺️ Your Route", expanded=True):
     for stop in final_plan:
+        added_time = 0
+
         if stop == "Break":
-            total_time_used += 15
+            added_time = 15
+        else:
+            ride_time = attraction_durations[stop]
+            wait_time = attraction_wait_times[stop]
+            attraction_loc = attraction_coordinates[stop]
+            walk_dist = calculate_distance(previous_location, attraction_loc)
+            walk_time = walk_dist / walking_speed
+            added_time = ride_time + wait_time + walk_time
+
+        if total_time_used + added_time > visit_duration:
+            break  # ⛔ stop here to avoid overflow
+
+        # ✅ Only add if fits
+        if stop == "Break":
             plan_text_lines.append("Break — 15 mins")
             st.markdown("🛑 **Break — 15 mins**")
-            continue
+        else:
+            zone = next(z for z, a in zones.items() if stop in a)
+            emoji = zone_emojis[zone]
+            total = ride_time + wait_time + walk_time
+            display_text = f"{emoji} **{stop}** — {int(total)} mins total"
+            full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {int(walk_time)}m walk = {int(total)}m"
+            plan_text_lines.append(full_text)
+            st.markdown(display_text)
+            previous_location = attraction_loc
 
-        zone = next(z for z, a in zones.items() if stop in a)
-        emoji = zone_emojis[zone]
-        ride_time = attraction_durations[stop]
-        wait_time = attraction_wait_times[stop]
-        attraction_loc = attraction_coordinates[stop]
-        walk_dist = calculate_distance(previous_location, attraction_loc)
-        walk_time = walk_dist / walking_speed
-
-        total = ride_time + wait_time + walk_time
-        total_time_used += total
-
-        display_text = f"{emoji} **{stop}** — {int(total)} mins total"
-        full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {int(walk_time)}m walk = {int(total)}m"
-        plan_text_lines.append(full_text)
-        st.markdown(display_text)
-
-        previous_location = attraction_loc
-
-leftover_time = visit_duration - total_time_used
+        total_time_used += added_time
+        leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
-
 
 
 # ✅ Store clean plan into both session and Google Sheet:
@@ -338,7 +343,7 @@ row_num = cell.row
 sheet.update_cell(row_num, 19, final_clean_plan)
 
 sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
-sheet.update_cell(row_num, 21, str(int(visit_duration - total_time_used)))  # Column U
+sheet.update_cell(row_num, 21, str(int(leftover_time)))  # Column U
 
 # ------------------------------------------
 # 9. Feedback & Rating
