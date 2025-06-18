@@ -156,7 +156,37 @@ rules = [
     ctrl.Rule(priority_thrill['yes'], weight_output['high']),
     ctrl.Rule(priority_food['yes'], weight_output['high']),
     ctrl.Rule(priority_comfort['yes'], weight_output['high']),
-]
+
+    # 1. High preference + long walking + moderate wait → High weight
+    ctrl.Rule(preference_input['high'] & walking_input['long'] & wait_tolerance['medium'], weight_output['high']),
+
+    # 2. Medium preference + short walking + good accessibility → Medium weight
+    ctrl.Rule(preference_input['medium'] & walking_input['short'] & accessibility_input['good'], weight_output['medium']),
+
+    # 3. High preference + poor accessibility → Medium weight (penalize access)
+    ctrl.Rule(preference_input['high'] & accessibility_input['poor'], weight_output['medium']),
+    
+    # 4. Low preference + poor accessibility → Low weight
+    ctrl.Rule(preference_input['low'] & accessibility_input['poor'], weight_output['low']),
+
+    # 5. High preference + low wait tolerance → Medium weight (conflict)
+    ctrl.Rule(preference_input['high'] & wait_tolerance['low'], weight_output['medium']),
+
+    # 6. High preference + high wait tolerance + long walking → High weight
+    ctrl.Rule(preference_input['high'] & wait_tolerance['high'] & walking_input['long'], weight_output['high']),
+
+    # 7. Medium preference + moderate accessibility + short walking → Medium weight
+    ctrl.Rule(preference_input['medium'] & accessibility_input['moderate'] & walking_input['short'], weight_output['medium']),
+
+    # 8. Priority: thrill=yes + low wait tolerance → High weight
+    ctrl.Rule(priority_thrill['yes'] & wait_tolerance['low'], weight_output['high']),
+
+    # 9. Priority: food=yes + short walking → High weight (comfort focus)
+    ctrl.Rule(priority_food['yes'] & walking_input['short'], weight_output['high']),
+
+    # 10. Priority: comfort=yes + poor accessibility → Medium weight (penalize access)
+    ctrl.Rule(priority_comfort['yes'] & accessibility_input['poor'], weight_output['medium']),
+    ]
 
 # Build system
 weight_ctrl = ctrl.ControlSystem(rules)
