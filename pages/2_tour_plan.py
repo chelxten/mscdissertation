@@ -317,7 +317,9 @@ final_route = greedy_route(initial_attractions)
 def insert_breaks(route):
     updated = []
     elapsed = 0
-    for stop in route:
+    used_break_spots = set()
+
+    for i, stop in enumerate(route):
         updated.append(stop)
         elapsed += attraction_durations[stop] + attraction_wait_times[stop]
 
@@ -328,9 +330,17 @@ def insert_breaks(route):
         )
 
         if needs_break:
-            relax_spot = nearest_relaxation_spot(stop)
-            updated.append(relax_spot)
-            elapsed = 0  # reset time counter
+            # Try to find unused break spot
+            available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
+            if available_spots:
+                current_loc = attraction_coordinates[stop]
+                relax_spot = min(
+                    available_spots,
+                    key=lambda s: calculate_distance(current_loc, attraction_coordinates[s])
+                )
+                updated.append(relax_spot)
+                used_break_spots.add(relax_spot)
+                elapsed = 0  # reset timer after break
 
     return updated
 
