@@ -374,7 +374,7 @@ with st.expander("🗺️ Your Route", expanded=True):
 
         # Update
         plan_text_lines.append(full_text)
-        st.markdown(f"{emoji} **{stop}** — {int(total)} mins total")
+        st.markdown(f"{emoji} **{formatted_time} — {stop}** — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m")
         previous_location = attraction_loc
 
         total_time_used += added_time
