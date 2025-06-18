@@ -377,11 +377,12 @@ with st.expander("🗺️ Your Route", expanded=True):
         st.markdown(f"{emoji} **{formatted_time} — {stop}** — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m")
         previous_location = attraction_loc
 
-        total_time_used += added_time
+        
         
         # Define park entry time
         start_time = datetime.strptime("10:00", "%H:%M")
         scheduled_time = start_time + timedelta(minutes=total_time_used)
+        total_time_used += added_time
 
         # Format scheduled time
         formatted_time = scheduled_time.strftime("%I:%M %p")
