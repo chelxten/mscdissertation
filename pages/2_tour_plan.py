@@ -123,6 +123,9 @@ preference_input['low'] = fuzz.trimf(preference_input.universe, [0, 0, 5])
 preference_input['medium'] = fuzz.trimf(preference_input.universe, [2, 5, 8])
 preference_input['high'] = fuzz.trimf(preference_input.universe, [5, 10, 10])
 
+# Detect top preference zone
+top_zone = max(preferences, key=preferences.get)
+
 accessibility_input['poor'] = fuzz.trimf(accessibility_input.universe, [0.0, 0.0, 0.5])
 accessibility_input['moderate'] = fuzz.trimf(accessibility_input.universe, [0.2, 0.5, 0.8])
 accessibility_input['good'] = fuzz.trimf(accessibility_input.universe, [0.5, 1.0, 1.0])
@@ -191,6 +194,32 @@ rules = [
     # 10. Priority: comfort=yes + poor accessibility → Medium weight (penalize access)
     ctrl.Rule(priority_comfort['yes'] & accessibility_input['poor'], weight_output['medium']),
     ]
+# Special reinforcement for top preference zone
+reinforcement_rules = []
+
+if top_zone == "thrill":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & priority_thrill['yes'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & wait_tolerance['medium'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
+    ]
+
+elif top_zone == "food":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & priority_food['yes'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['high'])
+    ]
+
+elif top_zone == "relaxation":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & priority_comfort['yes'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & wait_tolerance['high'], weight_output['high'])
+    ]
+
+# ... you can add more zone types similarly if needed
+
+# Combine with main rules
+rules += reinforcement_rules
 
 # Build system
 weight_ctrl = ctrl.ControlSystem(rules)
