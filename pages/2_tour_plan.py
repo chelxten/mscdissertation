@@ -6,6 +6,7 @@ import math
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
+from datetime import timedelta, datetime
 
 # ✅ Google Sheets function for feedback update
 @st.cache_resource
@@ -336,9 +337,8 @@ total_time_used = 0
 previous_location = (0, 0)
 
 with st.expander("🗺️ Your Route", expanded=True):
+    start_time = datetime.strptime("10:00", "%H:%M")
     for stop in final_plan:
-        added_time = 0
-
         if stop == "Break":
             added_time = 15
         else:
@@ -349,24 +349,40 @@ with st.expander("🗺️ Your Route", expanded=True):
             walk_time = walk_dist / walking_speed
             display_walk = max(1, int(walk_time))  # Ensure minimum walk display
             added_time = ride_time + wait_time + walk_time
+            total = ride_time + wait_time + display_walk
 
         if total_time_used + added_time > visit_duration + 15:
             break
 
+        scheduled_time = start_time + timedelta(minutes=total_time_used)
+        formatted_time = scheduled_time.strftime("%I:%M %p")
+
         if stop == "Break":
-            plan_text_lines.append("Break — 15 mins")
+            full_text = f"• {formatted_time} — Break — 15 mins"
+            plan_text_lines.append(full_text)
             st.markdown("🛑 **Break — 15 mins**")
         else:
             zone = next(z for z, a in zones.items() if stop in a)
             emoji = zone_emojis[zone]
-            total = ride_time + wait_time + display_walk
-            display_text = f"{emoji} **{stop}** — {int(total)} mins total"
-            full_text = f"{stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m"
+            full_text = f"• {formatted_time} — {stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m"
             plan_text_lines.append(full_text)
-            st.markdown(display_text)
+            st.markdown(f"{emoji} **{stop}** — {int(total)} mins total")
             previous_location = attraction_loc
 
         total_time_used += added_time
+        
+        # Define park entry time
+        start_time = datetime.strptime("10:00", "%H:%M")
+        scheduled_time = start_time + timedelta(minutes=total_time_used)
+
+        # Format scheduled time
+        formatted_time = scheduled_time.strftime("%I:%M %p")
+
+        # Add to plan line
+        if stop != "Break":
+            full_text = f"• {formatted_time} — {stop} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {int(total)}m"
+        else:
+            full_text = f"• {formatted_time} — Break — 15 mins"
         leftover_time = visit_duration - total_time_used
         
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
