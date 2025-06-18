@@ -251,10 +251,20 @@ if data["age"] == "Under 12":
 # 5. Initial Attraction Allocation
 # ------------------------------------------
 sorted_zones = sorted(normalized_weights, key=lambda z: normalized_weights[z], reverse=True)
+
+# Guarantee top preference zone is included
+top_pref_zone = max(preferences, key=preferences.get)
 initial_attractions = []
 
-for zone in sorted_zones[:4]:
-    initial_attractions.append(zones[zone][0])
+if top_pref_zone in zones:
+    initial_attractions.append(zones[top_pref_zone][0])
+
+# Fill remaining from top weighted zones (excluding one already added)
+for zone in sorted_zones:
+    if zone != top_pref_zone and zones[zone][0] not in initial_attractions:
+        initial_attractions.append(zones[zone][0])
+    if len(initial_attractions) >= 4:
+        break
 
 remaining_time = visit_duration - sum([
     attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
