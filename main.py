@@ -54,6 +54,18 @@ st.set_page_config(page_title="Participant Information & Consent")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Welcome")
 
+# Custom styled checkbox label
+st.markdown("""
+    <style>
+    .consent-label {
+        font-size: 20px;
+        font-weight: 600;
+        padding: 10px 0;
+    }
+    </style>
+    <div class="consent-label">✅ I have read the Participant Information Sheet and Consent to Participate.</div>
+""", unsafe_allow_html=True)
+
 # ✅ Project Intro (exactly as SHU guideline requests)
 st.markdown(f"""
 You are being invited to participate in a research study titled **The Search of Advanced AI-Powered Service Robots for Amusement Parks.** This study is being conducted by **Cherry San** from the Department of Computing at Sheffield Hallam University.
@@ -98,14 +110,16 @@ If you have any questions, please contact **Cherry San** at:
 
 # ✅ Consent via Start Button
 # Consent Checkbox + Start Button
-consent_given = st.checkbox("✅ I have read the Participant Information Sheet and Consent to Participate.")
+# Now show the checkbox without label
+consent_given = st.checkbox("", key="consent_checkbox")
 
 start_clicked = st.button("🚀 Start Questionnaire")
 
 if start_clicked:
-    if not consent_given:
+    if not st.session_state.get("consent_checkbox", False):
         st.warning("Please confirm your consent before starting.")
     else:
+  
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         unique_id = generate_unique_id()
 
