@@ -597,26 +597,36 @@ time_timeline = [0]
 labels = []
 
 elapsed_time = 0
-current_location = (0, 0)
+total_time_check = 0
+previous_location = (0, 0)
 
 for stop in final_plan:
     zone = next(z for z, a in zones.items() if stop in a)
     duration = attraction_durations[stop]
     wait = attraction_wait_times[stop]
-    walk_dist = calculate_distance(current_location, attraction_coordinates[stop])
+    time_spent = duration + wait
+
+    # Include walk time
+    current_location = attraction_coordinates[stop]
+    walk_dist = calculate_distance(previous_location, current_location)
     walk_time = max(1, int(walk_dist / walking_speed))
-    total_time = duration + wait + walk_time
+    total_this_stop = time_spent + walk_time
 
-    # Drop energy based on zone intensity
-    energy_loss = zone_intensity.get(zone, 1) * energy_settings['loss_factor'] * 6
-    energy = max(0, min(100, energy - energy_loss))
+    # Check if within time allowance
+    if total_time_check + total_this_stop > visit_duration + 15:
+        break
 
-    elapsed_time += total_time
+    # Apply energy loss
+    energy -= zone_intensity.get(zone, 1) * energy_settings['loss_factor'] * 6
+    energy = max(0, min(100, energy))  # clamp
+
+    elapsed_time += total_this_stop
+    total_time_check += total_this_stop
     energy_timeline.append(energy)
     time_timeline.append(elapsed_time)
     labels.append(f"{stop}\n{int(energy)}%")
 
-    current_location = attraction_coordinates[stop]
+    previous_location = current_location
 
 # 📊 Plot with annotated labels
 fig, ax = plt.subplots(figsize=(10, 5))
