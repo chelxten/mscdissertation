@@ -14,7 +14,7 @@ if "consent_submitted" not in st.session_state or not st.session_state.consent_s
     st.stop()
 
 st.image("Sheffield-Hallam-University.png", width=250)
-st.title("🎡 Visitor Questionnaire")
+st.title("Visitor Questionnaire")
 
 # ✅ Google Sheets setup
 @st.cache_resource
@@ -47,6 +47,14 @@ pis_data = load_pis_file()
 b64_pdf = base64.b64encode(pis_data).decode('utf-8')
 pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">Participant Information Sheet (PDF)</a>'
 
+st.markdown("""
+### 🧭 Before You Begin
+
+*Imagine you're visiting an exciting amusement park like the one shown below.*  
+You're about to fill out a short questionnaire that will help our AI system design a **personalized tour plan** just for you — based on your preferences, priorities, and comfort.
+""")
+
+st.image("", use_column_width=True)
 
 # ✅ Inject Custom Styles
 st.markdown("""
