@@ -122,7 +122,6 @@ with st.form("questionnaire_form"):
     st.markdown('<div class="question-label">8. When do you prefer to take breaks?</div>', unsafe_allow_html=True)
     break_time = st.selectbox("", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"], key="break_time")
 
-    st.markdown("---")
     st.markdown(f"""
     ---
     By clicking  **‘Submit’** button below, you are consenting to participate in this study,as it is described in the participant information sheet, which you can download here
