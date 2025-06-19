@@ -681,7 +681,7 @@ start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
 show_details = st.checkbox("Show detailed time allocation", value=False)
 
-with st.expander("🗺️ Your Itinerary", expanded=True):
+with st.expander("", expanded=True):
     st.markdown("🏁 **Entrance**")
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
