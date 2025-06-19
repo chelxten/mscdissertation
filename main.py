@@ -98,6 +98,8 @@ If you have any questions, please contact **Cherry San** at:
 
 """, unsafe_allow_html=True)
 
+---
+
 # ✅ Consent via Start Button
 st.markdown("### Consent Confirmation")
 
