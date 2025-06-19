@@ -107,7 +107,7 @@ st.markdown("### Consent Confirmation")
 
 consent_given = st.checkbox("I have read the Participant Information Sheet and Consent to Participate.")
 st.markdown("")
-start_clicked = st.button("🚀 Start Questionnaire")
+start_clicked = st.button("Start Questionnaire")
 
 if start_clicked:
     if not st.session_state.get("consent_checkbox", False):
