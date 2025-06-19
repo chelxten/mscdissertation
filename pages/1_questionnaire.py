@@ -45,7 +45,7 @@ pis_data = load_pis_file()
 
 # Generate base64-encoded PDF to embed as a hyperlink
 b64_pdf = base64.b64encode(pis_data).decode('utf-8')
-pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">📄 Download the Participant Information Sheet (PDF)</a>'
+pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">Participant Information Sheet (PDF)</a>'
 
 
 # ✅ Inject Custom Styles
