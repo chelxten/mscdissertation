@@ -679,8 +679,7 @@ total_time_used = 0
 previous_location = (0, 0)
 start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
-show_wait = st.checkbox("Show wait times", value=False)
-show_walk = st.checkbox("Show walking durations", value=False)
+show_details = st.checkbox("Show detailed time allocation", value=False)
 
 with st.expander("🗺️ Your Route", expanded=True):
     st.markdown("🏁 **Entrance**")
@@ -693,37 +692,30 @@ with st.expander("🗺️ Your Route", expanded=True):
         attraction_loc = attraction_coordinates[stop]
         walk_dist = calculate_distance(previous_location, attraction_loc)
         walk_time = max(1, int(walk_dist / walking_speed))
-
         total_duration = int(ride_time + wait_time + walk_time)
+
         if total_time_used + total_duration > visit_duration + 15:
             break
 
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis.get(zone, "📍")
 
-        # Tag special stops
+        # Tagging special stops
         tag = ""
         if zone == "relaxation":
             tag = " [Rest Stop]"
         elif zone == "food":
             tag = " [Meal Break]"
 
-        # First line: main summary
+        # Main itinerary line
         main_line = f"{emoji} **{formatted_time} — {stop}{tag} — {total_duration} minutes**"
         st.markdown(main_line)
-
-        # Optional breakdown
-        if show_wait or show_walk:
-            breakdown = []
-            breakdown.append(f"{ride_time}m ride")
-            if show_wait:
-                breakdown.append(f"{wait_time}m wait")
-            if show_walk:
-                breakdown.append(f"{walk_time}m walk")
-            st.markdown(f"• Includes: {', '.join(breakdown)}")
-
-        # Store plan
         plan_text_lines.append(main_line)
+
+        # Show breakdown only if details enabled
+        if show_details:
+            st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
+
         previous_location = attraction_loc
         total_time_used += total_duration
 
