@@ -748,6 +748,7 @@ st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
 
+sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
 if cell:
     row_num = cell.row
