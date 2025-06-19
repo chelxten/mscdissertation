@@ -4,6 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
 from streamlit_sortables import sort_items
+import base64
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
@@ -41,6 +42,11 @@ def load_pis_file():
         return f.read()
 
 pis_data = load_pis_file()
+
+# Generate base64-encoded PDF to embed as a hyperlink
+b64_pdf = base64.b64encode(pis_data).decode('utf-8')
+pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">📄 Download the Participant Information Sheet (PDF)</a>'
+
 
 # ✅ Inject Custom Styles
 st.markdown("""
@@ -117,12 +123,11 @@ with st.form("questionnaire_form"):
     break_time = st.selectbox("", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"], key="break_time")
 
     st.markdown("---")
-    st.markdown(
-        '<div style="font-size: 15px;">'
-        "By clicking **‘Submit’**, you are consenting to participate in this study as described in the Participant Information Sheet. "
-        "If you have not downloaded it yet, please do so below."
-        '</div>', unsafe_allow_html=True
-    )
+    st.markdown(f"""
+    ---
+    By clicking **‘Submit’**, you are consenting to participate in this study as described in the Participant Information Sheet.
+    If you have not downloaded it yet, please do so here: {pdf_link}
+    """, unsafe_allow_html=True)
 
      # Required by Streamlit to properly process the form
     submit = st.form_submit_button("📩 Submit")
