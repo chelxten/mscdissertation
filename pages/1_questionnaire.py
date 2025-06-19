@@ -85,7 +85,11 @@ with st.form("questionnaire_form"):
     accessibility_cleaned = ", ".join(accessibility_selected)
 
     st.markdown('<div class="question-label">3. How long do you plan to stay in the park today?</div>', unsafe_allow_html=True)
-    duration = st.selectbox("", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"], key="duration")
+    duration = st.select_slider(
+        label="",
+        options=["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"],
+        key="duration"
+    )
 
     st.markdown('<div class="question-label">4. Rank your preferences (drag to reorder)</div>', unsafe_allow_html=True)
     initial_preferences = [
@@ -114,14 +118,29 @@ with st.form("questionnaire_form"):
     )
 
     st.markdown('<div class="question-label">6. What is the maximum wait time you are okay with?</div>', unsafe_allow_html=True)
-    wait_time = st.selectbox("", ["<10 min", "10–20 min", "20–30 min", "30+ min"], key="wait_time")
+    wait_time = st.slider(
+        label="",
+        min_value=0,
+        max_value=40,
+        step=5,
+        value=15,
+        format="%d min",
+        key="wait_time"
+    )
 
     st.markdown('<div class="question-label">7. How far are you willing to walk between attractions?</div>', unsafe_allow_html=True)
-    walking = st.selectbox("", ["Very short distances", "Moderate walking", "Don’t mind walking"], key="walking")
+    walking = st.radio(
+        label="",
+        options=["Very short distances", "Moderate walking", "Don’t mind walking"],
+        key="walking"
+    )
 
     st.markdown('<div class="question-label">8. When do you prefer to take breaks?</div>', unsafe_allow_html=True)
-    break_time = st.selectbox("", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"], key="break_time")
-
+    break_time = st.radio(
+        label="",
+        options=["After 1 hour", "After 2 hours", "After every big ride", "Flexible"],
+        key="break_time"
+    )
     st.markdown(f"""
     ---
     By clicking  **‘Submit’** button below, you are consenting to participate in this study,as it is described in the participant information sheet, which you can download here
