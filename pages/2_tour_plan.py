@@ -683,7 +683,7 @@ show_wait = st.checkbox("Show wait times", value=False)
 show_walk = st.checkbox("Show walking durations", value=False)
 
 with st.expander("🗺️ Your Route", expanded=True):
-    st.markdown("🏁 **Entrance**\n")
+    st.markdown("🏁 **Entrance**")
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
         formatted_time = scheduled_time.strftime("%I:%M %p")
@@ -694,35 +694,38 @@ with st.expander("🗺️ Your Route", expanded=True):
         walk_dist = calculate_distance(previous_location, attraction_loc)
         walk_time = max(1, int(walk_dist / walking_speed))
 
-        added_time = ride_time + wait_time + walk_time
-        if total_time_used + added_time > visit_duration + 15:
+        total_duration = int(ride_time + wait_time + walk_time)
+        if total_time_used + total_duration > visit_duration + 15:
             break
 
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis.get(zone, "📍")
 
-        # Label tags
+        # Tag special stops
         tag = ""
         if zone == "relaxation":
             tag = " [Rest Stop]"
         elif zone == "food":
             tag = " [Meal Break]"
 
-        # Duration summary
-        total = int(ride_time + wait_time + walk_time)
-        detail = ""
-        if show_wait:
-            detail += f" (+{wait_time}m wait)"
-        if show_walk:
-            detail += f" (+{walk_time}m walk)"
+        # First line: main summary
+        main_line = f"{emoji} **{formatted_time} — {stop}{tag} — {total_duration} minutes**"
+        st.markdown(main_line)
 
-        line = f"{emoji} **{formatted_time} — {stop}{tag} – {total} minutes**{detail}"
-        st.markdown(line)
+        # Optional breakdown
+        if show_wait or show_walk:
+            breakdown = []
+            breakdown.append(f"{ride_time}m ride")
+            if show_wait:
+                breakdown.append(f"{wait_time}m wait")
+            if show_walk:
+                breakdown.append(f"{walk_time}m walk")
+            st.markdown(f"• Includes: {', '.join(breakdown)}")
 
-        # Store clean version
-        plan_text_lines.append(line)
+        # Store plan
+        plan_text_lines.append(main_line)
         previous_location = attraction_loc
-        total_time_used += added_time
+        total_time_used += total_duration
 
     st.markdown("\n🏁 **Exit**")
 
