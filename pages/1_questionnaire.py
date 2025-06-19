@@ -93,14 +93,22 @@ with st.form("questionnaire_form"):
     ]
     sorted_preferences = sort_items(initial_preferences, direction="vertical", key="preferences_sort")
 
-    st.markdown('<div class="question-label">5. What are your top visit priorities?</div>', unsafe_allow_html=True)
-    top_priorities = st.multiselect("", [
-        "Enjoying high-intensity rides",
-        "Visiting family-friendly attractions together",
-        "Seeing as many attractions as possible",
-        "Staying comfortable throughout the visit",
-        "Having regular food and rest breaks"
-    ], key="priorities")
+    st.markdown('<div class="question-label">5. What are your top visit priorities? (Select up to 3)</div>', unsafe_allow_html=True)
+
+    top_priorities = st.multiselect(
+        label="",
+        options=[
+            "Enjoying high-intensity rides",
+            "Visiting family-friendly attractions together",
+            "Seeing as many attractions as possible",
+            "Staying comfortable throughout the visit",
+            "Having regular food and rest breaks"
+        ],
+        key="priorities"
+    )
+
+    if len(top_priorities) > 3:
+        st.error("You can select a maximum of 3 priorities.")
 
     st.markdown('<div class="question-label">6. What is the maximum wait time you are okay with?</div>', unsafe_allow_html=True)
     wait_time = st.selectbox("", ["<10 min", "10–20 min", "20–30 min", "30+ min"], key="wait_time")
