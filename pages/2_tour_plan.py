@@ -128,14 +128,16 @@ attraction_wait_times = {
 }
 
 zone_intensity = {
-    "thrill": 0.9,
-    "water": 0.7,
-    "family": 0.5,
-    "entertainment": 0.4,
-    "food": 0.2,
-    "shopping": 0.2,
-    "relaxation": 0.1
+    "thrill": 0.95,         # High energy demand (e.g. roller coasters)
+    "water": 0.75,          # Swimming or flume-based attractions
+    "family": 0.55,         # Interactive but moderate exertion
+    "entertainment": 0.35,  # Low exertion, seated shows
+    "food": 0.15,           # Resting and eating
+    "shopping": 0.25,       # Low walking activity
+    "relaxation": 0.1       # Passive resting (benches, gardens)
 }
+
+
 
 # ------------------------------------------
 # 4. Weighted Allocation System (Fuzzy Logic)
@@ -319,6 +321,15 @@ wait_map = {
 }
 wait_val = wait_map.get(data["wait_time"], 0.5)
 
+age_energy_scaling = {
+    "Under 12": {"loss_factor": 1.1, "rest_boost": 45, "food_boost": 30},
+    "Teen": {"loss_factor": 1.0, "rest_boost": 35, "food_boost": 25},
+    "Adult": {"loss_factor": 0.9, "rest_boost": 30, "food_boost": 20},
+    "Senior": {"loss_factor": 1.2, "rest_boost": 50, "food_boost": 35}
+}
+
+
+
 # Fuzzy weight computation
 zone_weights = {}
 for zone in zones:
@@ -471,6 +482,10 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 # ------------------------------------------
 # 7. Break Insertion
 # ------------------------------------------
+
+user_age_group = data.get("age", "Adult")  # fallback to "Adult"
+energy_settings = age_energy_scaling[user_age_group]
+
 # 🧠 Automatically reorder medium-intensity zones for rhythm
 def reorder_medium_intensity(route):
     medium_stops = []
@@ -484,7 +499,7 @@ def reorder_medium_intensity(route):
         else:
             other_stops.append(stop)
 
-    # Alternate medium zones with high/low intensity
+    # Alternate medium with others
     reordered = []
     m_idx = 0
     for i, stop in enumerate(other_stops):
@@ -492,20 +507,20 @@ def reorder_medium_intensity(route):
         if i % 2 == 1 and m_idx < len(medium_stops):
             reordered.append(medium_stops[m_idx])
             m_idx += 1
-
-    # Add any leftover
     reordered += medium_stops[m_idx:]
     return reordered
-
 
 
 def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
     elapsed_since_food = 0
+    last_break_time = -999
     used_break_spots = set()
     used_food_spots = set()
-    energy_level = 100  # Starts fully energized
+    energy_level = 100
+    current_location = (0, 0)
+    total_elapsed_time = 0
 
     for i, stop in enumerate(route):
         updated.append(stop)
@@ -514,53 +529,60 @@ def insert_breaks(route):
         duration = attraction_durations[stop]
         wait = attraction_wait_times[stop]
         time_spent = duration + wait
+        walk_dist = calculate_distance(current_location, attraction_coordinates[stop])
+        walk_time = max(1, int(walk_dist / walking_speed))
 
-        elapsed_since_break += time_spent
-        elapsed_since_food += time_spent
+        total_this_stop = time_spent + walk_time
+        total_elapsed_time += total_this_stop
+        elapsed_since_break += total_this_stop
+        elapsed_since_food += total_this_stop
 
-        # 🧠 Deduct energy by zone intensity
-        energy_loss = zone_intensity.get(zone, 1) * 6  # 6 is a tuning factor
+        # 🔋 Energy loss
+        energy_loss = zone_intensity.get(zone, 1) * energy_settings['loss_factor'] * 6
         energy_level = max(0, energy_level - energy_loss)
 
-        # 🌳 Check for dynamic fatigue-based rest
-        if energy_level < 40:
-            available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
-            if available_spots:
-                current_loc = attraction_coordinates[stop]
-                relax_spot = min(available_spots, key=lambda s: calculate_distance(current_loc, attraction_coordinates[s]))
-                updated.append(relax_spot)
-                used_break_spots.add(relax_spot)
+        # 🌳 Dynamic rest
+        if energy_level < 40 and elapsed_since_break > 10:
+            relax = [s for s in zones["relaxation"] if s not in used_break_spots]
+            if relax:
+                best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
+                updated.append(best)
+                used_break_spots.add(best)
                 elapsed_since_break = 0
-                energy_level += 35  # regain partial energy
+                energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                last_break_time = total_elapsed_time
 
-        # 😴 Scheduled break logic
+        # 😴 Scheduled rest
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
-            (break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"])
+            (break_pref == "After every big ride" and stop in {"Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"})
         )
-        if needs_break and energy_level >= 40:  # skip if dynamic fatigue already triggered one
-            available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
-            if available_spots:
-                current_loc = attraction_coordinates[stop]
-                relax_spot = min(available_spots, key=lambda s: calculate_distance(current_loc, attraction_coordinates[s]))
-                updated.append(relax_spot)
-                used_break_spots.add(relax_spot)
+        if needs_break and energy_level >= 40 and (total_elapsed_time - last_break_time) > 10:
+            relax = [s for s in zones["relaxation"] if s not in used_break_spots]
+            if relax:
+                best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
+                updated.append(best)
+                used_break_spots.add(best)
                 elapsed_since_break = 0
-                energy_level += 35  # regain partial energy
+                energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                last_break_time = total_elapsed_time
 
-        # 🍔 Food logic (based on food preference-driven interval)
+        # 🍔 Food logic
         if elapsed_since_food >= preferred_food_gap:
-            available_foods = [f for f in zones["food"] if f not in used_food_spots]
-            if available_foods:
-                current_loc = attraction_coordinates[stop]
-                food_spot = min(available_foods, key=lambda f: calculate_distance(current_loc, attraction_coordinates[f]))
-                updated.append(food_spot)
-                used_food_spots.add(food_spot)
+            options = [f for f in zones["food"] if f not in used_food_spots]
+            if options:
+                best = min(options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
+                updated.append(best)
+                used_food_spots.add(best)
                 elapsed_since_food = 0
+                energy_level = min(100, energy_level + energy_settings['food_boost'])
+
+        current_location = attraction_coordinates[stop]
 
     return updated
-    
+
+# 🚦 Final plan construction
 final_route = reorder_medium_intensity(final_route)
 final_plan = insert_breaks(final_route)
 
@@ -572,23 +594,28 @@ time_timeline = [0]
 labels = []
 
 elapsed_time = 0
+current_location = (0, 0)
 
 for stop in final_plan:
     zone = next(z for z, a in zones.items() if stop in a)
     duration = attraction_durations[stop]
     wait = attraction_wait_times[stop]
-    time_spent = duration + wait
+    walk_dist = calculate_distance(current_location, attraction_coordinates[stop])
+    walk_time = max(1, int(walk_dist / walking_speed))
+    total_time = duration + wait + walk_time
 
     # Drop energy based on zone intensity
-    energy -= zone_intensity.get(zone, 1) * 6
-    energy = max(0, min(100, energy))  # clamp to 0–100
+    energy_loss = zone_intensity.get(zone, 1) * energy_settings['loss_factor'] * 6
+    energy = max(0, min(100, energy - energy_loss))
 
-    elapsed_time += time_spent
+    elapsed_time += total_time
     energy_timeline.append(energy)
     time_timeline.append(elapsed_time)
     labels.append(f"{stop}\n{int(energy)}%")
 
-# 📊 Plot with labels
+    current_location = attraction_coordinates[stop]
+
+# 📊 Plot with annotated labels
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(time_timeline, energy_timeline, marker='o')
 
