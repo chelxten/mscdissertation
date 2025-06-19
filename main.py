@@ -101,7 +101,7 @@ If you have any questions, please contact **Cherry San** at:
 # ✅ Consent via Start Button
 st.markdown("### Consent Confirmation")
 
-consent_given = st.checkbox("✅ I have read the Participant Information Sheet and Consent to Participate.")
+consent_given = st.checkbox("I have read the Participant Information Sheet and Consent to Participate.")
 
 start_clicked = st.button("🚀 Start Questionnaire")
 
