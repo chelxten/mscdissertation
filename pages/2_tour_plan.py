@@ -709,11 +709,11 @@ with st.expander("The Fun Starts Here", expanded=True):
 
         # 🏷️ Special formatting for rest and meal breaks
         if zone == "relaxation":
-            display_name = f"🌿 [Rest Stop]  {stop}"
+            display_name = f"🌿 [Rest Stop] - {stop}"
             emoji = ""
             st.markdown("---")
         elif zone == "food":
-            display_name = f"🍽️ [Meal Break]  {stop}"
+            display_name = f"🍽️ [Meal Break] - {stop}"
             emoji = ""
             st.markdown("---")
 
