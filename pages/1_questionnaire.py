@@ -42,38 +42,46 @@ def load_pis_file():
 
 pis_data = load_pis_file()
 
-# ✅ Questionnaire form
-with st.form("questionnaire_form"):
-    age = st.selectbox("What is your age group?", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"])
+# ✅ Inject Custom Styles
+st.markdown("""
+    <style>
+    .question-label {
+        font-size: 18px !important;
+        font-weight: 600;
+        margin-top: 20px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    st.markdown("Do you have any accessibility needs? (Select all that apply)")
-    physical = st.checkbox("Physical")
-    sensory = st.checkbox("Sensory")
-    cognitive = st.checkbox("Cognitive")
-    prefer_not = st.checkbox("Prefer not to say")
-    no_accessibility = st.checkbox("No Accessibility Needs")
+# ✅ Questionnaire Form
+with st.form("questionnaire_form"):
+
+    st.markdown('<div class="question-label">1. What is your age group?</div>', unsafe_allow_html=True)
+    age = st.selectbox("", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"], key="age")
+
+    st.markdown('<div class="question-label">2. Do you have any accessibility needs? (Select all that apply)</div>', unsafe_allow_html=True)
+    physical = st.checkbox("Physical", key="acc_physical")
+    sensory = st.checkbox("Sensory", key="acc_sensory")
+    cognitive = st.checkbox("Cognitive", key="acc_cognitive")
+    prefer_not = st.checkbox("Prefer not to say", key="acc_prefer")
+    no_accessibility = st.checkbox("No Accessibility Needs", key="acc_none")
 
     if no_accessibility and (physical or sensory or cognitive or prefer_not):
         st.warning("You cannot select 'No Accessibility Needs' together with other options.")
 
     accessibility_selected = []
-    if physical:
-        accessibility_selected.append("Physical")
-    if sensory:
-        accessibility_selected.append("Sensory")
-    if cognitive:
-        accessibility_selected.append("Cognitive")
-    if prefer_not:
-        accessibility_selected.append("Prefer not to say")
-    if no_accessibility:
-        accessibility_selected.append("No Accessibility Needs")
-    if not accessibility_selected:
-        accessibility_selected = ["Not specified"]
+    if physical: accessibility_selected.append("Physical")
+    if sensory: accessibility_selected.append("Sensory")
+    if cognitive: accessibility_selected.append("Cognitive")
+    if prefer_not: accessibility_selected.append("Prefer not to say")
+    if no_accessibility: accessibility_selected.append("No Accessibility Needs")
+    if not accessibility_selected: accessibility_selected = ["Not specified"]
     accessibility_cleaned = ", ".join(accessibility_selected)
 
-    duration = st.selectbox("How long do you plan to stay in the park today?", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"])
+    st.markdown('<div class="question-label">3. How long do you plan to stay in the park today?</div>', unsafe_allow_html=True)
+    duration = st.selectbox("", ["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"], key="duration")
 
-    st.markdown("### Rank your preferences (Drag & Drop)")
+    st.markdown('<div class="question-label">4. Rank your preferences (drag to reorder)</div>', unsafe_allow_html=True)
     initial_preferences = [
         "Thrill rides",
         "Family rides",
@@ -85,23 +93,31 @@ with st.form("questionnaire_form"):
     ]
     sorted_preferences = sort_items(initial_preferences, direction="vertical", key="preferences_sort")
 
-    top_priorities = st.multiselect("What are your top visit priorities?", [
+    st.markdown('<div class="question-label">5. What are your top visit priorities?</div>', unsafe_allow_html=True)
+    top_priorities = st.multiselect("", [
         "Enjoying high-intensity rides",
         "Visiting family-friendly attractions together",
         "Seeing as many attractions as possible",
         "Staying comfortable throughout the visit",
         "Having regular food and rest breaks"
-    ])
+    ], key="priorities")
 
-    wait_time = st.selectbox("What is the maximum wait time you are okay with?", ["<10 min", "10–20 min", "20–30 min", "30+ min"])
-    walking = st.selectbox("How far are you willing to walk?", ["Very short distances", "Moderate walking", "Don’t mind walking"])
-    break_time = st.selectbox("When do you prefer to take breaks?", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"])
+    st.markdown('<div class="question-label">6. What is the maximum wait time you are okay with?</div>', unsafe_allow_html=True)
+    wait_time = st.selectbox("", ["<10 min", "10–20 min", "20–30 min", "30+ min"], key="wait_time")
 
-    st.markdown("""
-    ---
-    By clicking the **‘Submit’** button below, you are consenting to participate in this study,
-    as described in the Participant Information Sheet. If you did not yet download and keep a copy for your records, you may download it now (button below).
-    """)
+    st.markdown('<div class="question-label">7. How far are you willing to walk between attractions?</div>', unsafe_allow_html=True)
+    walking = st.selectbox("", ["Very short distances", "Moderate walking", "Don’t mind walking"], key="walking")
+
+    st.markdown('<div class="question-label">8. When do you prefer to take breaks?</div>', unsafe_allow_html=True)
+    break_time = st.selectbox("", ["After 1 hour", "After 2 hours", "After every big ride", "Flexible"], key="break_time")
+
+    st.markdown("---")
+    st.markdown(
+        '<div style="font-size: 15px;">'
+        "By clicking **‘Submit’**, you are consenting to participate in this study as described in the Participant Information Sheet. "
+        "If you have not downloaded it yet, please do so below."
+        '</div>', unsafe_allow_html=True
+    )
 
     submit = st.form_submit_button("📩 Submit")
 
