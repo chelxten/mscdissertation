@@ -750,12 +750,17 @@ st.session_state.tour_plan = final_clean_plan
 
 uid = st.session_state.get("unique_id")
 sheet = get_consent_worksheet()
-cell = sheet.find(uid, in_column=2)
-row_num = cell.row
 
-sheet.update_cell(row_num, 19, final_clean_plan)
-sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
-sheet.update_cell(row_num, 21, str(int(leftover_time)))    # Column U
+cell = sheet.find(uid, in_column=2)
+if cell:
+    row_num = cell.row
+
+    # Update clean plan
+    sheet.update_cell(row_num, 19, final_clean_plan)  # Column S
+    sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
+    sheet.update_cell(row_num, 21, str(int(leftover_time)))    # Column U
+else:
+    st.warning("⚠️ Could not save tour plan. User ID not found in the sheet.")
 
 # ------------------------------------------
 # 9. Feedback & Rating
