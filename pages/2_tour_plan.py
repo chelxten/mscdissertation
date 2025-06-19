@@ -703,14 +703,16 @@ with st.expander("The Fun Starts Here", expanded=True):
         # Tagging special stops
         tag = ""
         if zone == "relaxation":
-            tag = " [Rest Stop]"
+            tag = " 🌿 **[Rest Stop]**"
+            st.markdown("---")
         elif zone == "food":
-            tag = " [Meal Break]"
+            tag = " 🍽️ **[Meal Break]**"
+            st.markdown("---")
+        else:
+            tag = ""
 
-        # Main itinerary line
-        main_line = f"{emoji} **{formatted_time} — {stop}{tag} — {total_duration} minutes**"
+        main_line = f"{emoji} **{formatted_time} — {stop}**{tag} — **{total_duration} minutes**"
         st.markdown(main_line)
-        plan_text_lines.append(main_line)
 
         # Show breakdown only if details enabled
         if show_details:
