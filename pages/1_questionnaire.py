@@ -49,8 +49,7 @@ pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pd
 
 st.markdown("""
 <div style="font-size: 16px; line-height: 1.6;">
-<p>Imagine you're visiting an exciting amusement park like the one shown below.</p>
-<p>You're about to complete a short questionnaire that will help our AI system generate a personalized tour plan for you — tailored to your preferences, priorities, and comfort.</p>
+<p>Imagine you're visiting an exciting amusement park like the one shown below.You're about to complete a short questionnaire that will help our AI system generate a personalized tour plan for you — tailored to your preferences, priorities, and comfort.</p>
 </div>
 """, unsafe_allow_html=True)
 
