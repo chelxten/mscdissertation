@@ -12,7 +12,7 @@ import PyPDF2
 
 st.set_page_config(page_title="Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
-st.title("Final Summary")
+st.title("Thank You for Participating!")
 
 # -----------------------
 # 2. Load Session State
@@ -31,7 +31,7 @@ if not unique_id:
 # 3. Thank You Message
 # -----------------------
 
-st.markdown("## Thank You for Participating!")
+#st.markdown("## Thank You for Participating!")
 
 st.markdown("""
 We appreciate your time and thoughtful responses.
