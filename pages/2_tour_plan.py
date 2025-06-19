@@ -764,7 +764,7 @@ else:
 # ------------------------------------------
 # 9. Feedback & Rating
 # ------------------------------------------
-st.subheader("⭐ Tell Us What You Think")
+st.subheader("⭐ Plan Feedback")
 rating = st.slider("How would you rate your personalized tour plan?", 1, 10, 8)
 feedback = st.text_area("Do you have any comments or suggestions?")
 
