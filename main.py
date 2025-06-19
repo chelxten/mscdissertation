@@ -56,7 +56,7 @@ st.title("Visitor Questionnaire")
 
 # ✅ Project Intro (exactly as SHU guideline requests)
 st.markdown("""
-You are being invited to participate in a research study titled **"The Search of Advanced AI-Powered Service Robots for Amusement Parks."** This study is being conducted by **Cherry San** from the **Department of Computing, Sheffield Hallam University**.
+You are being invited to participate in a research study titled **The Search of Advanced AI-Powered Service Robots for Amusement Parks.** This study is being conducted by **Cherry San** from the Department of Computing at Sheffield Hallam University.
 
 ---
 
