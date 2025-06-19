@@ -513,7 +513,7 @@ def reorder_medium_intensity(route):
     reordered += medium_stops[m_idx:]
     return reordered
 
-
+walking_speed = 67  # meters/min
 def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
@@ -647,7 +647,7 @@ zone_emojis = {
     "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
 }
 
-walking_speed = 67  # meters/min
+
 plan_text_lines = []
 total_time_used = 0
 previous_location = (0, 0)
