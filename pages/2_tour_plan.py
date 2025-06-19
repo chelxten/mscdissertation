@@ -681,12 +681,14 @@ start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
 show_details = st.checkbox("Show detailed time allocation", value=False)
 
-with st.expander("🎡 The Fun Starts Here", expanded=True):
+with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Entrance**")
+    
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
         formatted_time = scheduled_time.strftime("%I:%M %p")
 
+        # Times
         ride_time = attraction_durations[stop]
         wait_time = attraction_wait_times[stop]
         attraction_loc = attraction_coordinates[stop]
@@ -697,30 +699,34 @@ with st.expander("🎡 The Fun Starts Here", expanded=True):
         if total_time_used + total_duration > visit_duration + 15:
             break
 
+        # Zone info
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis.get(zone, "")
+        
+        # Display formatting
+        show_details_block = show_details
+        display_name = stop
 
-        # Skip emoji for food and relaxation
-        emoji = "" if zone in ["relaxation", "food"] else emoji
-
-        # Custom labeling
+        # 🏷️ Special formatting for rest and meal breaks
         if zone == "relaxation":
-            tag = "🌿 **[Rest Stop]**"
-            display_name = f"{tag} {stop}"
+            display_name = f"🌿 [Rest Stop]  {stop}"
+            emoji = ""
             st.markdown("---")
         elif zone == "food":
-            tag = "🍽️ **[Meal Break]**"
-            display_name = f"{tag} {stop}"
+            display_name = f"🍽️ [Meal Break]  {stop}"
+            emoji = ""
             st.markdown("---")
-        else:
-            display_name = stop
 
-        # Main display line (emoji comes after time)
-        main_line = f"**{formatted_time}** {emoji} — {display_name} — **{total_duration} minutes**"
+        # Format main line
+        if emoji:
+            main_line = f"**{formatted_time} — {emoji}  {display_name} — {total_duration} minutes**"
+        else:
+            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
+
         st.markdown(main_line)
 
-        # Detailed breakdown
-        if show_details:
+        # Optional breakdown
+        if show_details_block:
             st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
 
         previous_location = attraction_loc
