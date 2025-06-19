@@ -107,9 +107,6 @@ with st.form("questionnaire_form"):
         key="priorities"
     )
 
-    if len(top_priorities) > 3:
-        st.error("Please select no more than 3 priorities.")
-
     st.markdown('<div class="question-label">6. What is the maximum wait time you are okay with?</div>', unsafe_allow_html=True)
     wait_time = st.selectbox("", ["<10 min", "10–20 min", "20–30 min", "30+ min"], key="wait_time")
 
@@ -132,8 +129,7 @@ with st.form("questionnaire_form"):
 
     if submit:
         if len(top_priorities) > 3:
-            st.warning("Please reduce your selections to 3 or fewer before submitting.")
-            st.stop()
+            st.error("Please reduce your selections to 3 or fewer before submitting.")
         else:
             st.success("✅ Form submitted successfully.")
             # Continue with processing...
