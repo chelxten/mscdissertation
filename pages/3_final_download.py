@@ -14,9 +14,6 @@ st.set_page_config(page_title="Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("📥 Final Summary & Document")
 
-st.markdown("---")
-st.markdown("Below is a summary of your amusement park experience and feedback. You can download your complete personalized report as a PDF document.")
-
 # -----------------------
 # 2. Load from Session
 # -----------------------
