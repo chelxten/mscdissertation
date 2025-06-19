@@ -51,39 +51,36 @@ leftover_time = sheet.cell(row_num, 21).value  # Column U
 # -----------------------
 
 def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent):
-    clean_lines = [
-        line.strip().replace("🎢", "").replace("💦", "").replace("👨‍👩‍👧‍👦", "")
-        .replace("🎭", "").replace("🍔", "").replace("🛍️", "").replace("🌳", "")
-        .replace("🌿", "").replace("🍽️", "")
-        for line in plan_text.split('\n') if line.strip()
-    ]
-
     html_content = f"""
     <html>
     <head>
     <style>
-        body {{ font-family: Arial, sans-serif; margin: 40px; }}
-        h1 {{ text-align: center; color: #990033; font-size: 16pt;}}
-        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 14pt;}}
-        p, li {{ font-size: 12pt; }}
+        body {{ font-family: Arial, sans-serif; margin: 30px; font-size: 10pt; }}
+        h1 {{ text-align: center; color: #990033; font-size: 14pt; margin-bottom: 12px; }}
+        h2 {{ color: #990033; border-bottom: 1px solid #ddd; padding-bottom: 2px; font-size: 12pt; margin-top: 20px; }}
+        p {{ margin: 4px 0; }}
     </style>
     </head>
     <body>
 
     <h1>Personalized Amusement Park Tour Report</h1>
 
-    {"<p><b>Consent:</b> I confirm I have given consent to participate.</p>" if consent else "<p><b>Consent:</b> Not provided.</p>"}
+    {"<p><i>I confirm I have given consent to participate.</i></p>" if consent else ""}
 
     <h2>Tour Plan Summary</h2>
-    <ul>
+    <p><b>Entrance</b></p>
     """
 
-    for line in clean_lines:
-        html_content += f"<li>{line}</li>"
+    for line in plan_text.split('\n'):
+        line = line.strip()
+        if line.lower() == "entrance" or line.lower() == "exit":
+            html_content += f"<p><b>{line}</b></p>"
+        elif line.lower().startswith("includes:"):
+            html_content += f"<p style='margin-left: 10px; font-style: italic;'>{line}</p>"
+        else:
+            html_content += f"<p>{line}</p>"
 
     html_content += f"""
-    </ul>
-
     <p><b>Total Time Used:</b> {total_time_used} minutes</p>
     <p><b>Leftover Time:</b> {leftover_time} minutes</p>
 
@@ -91,7 +88,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     <p><b>Rating:</b> {rating}/10</p>
     <p><b>Comments:</b> {feedback}</p>
 
-    <p><i>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>
+    <p style="margin-top: 30px; font-size: 8pt;"><i>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>
 
     </body></html>
     """
