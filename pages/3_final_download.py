@@ -10,7 +10,7 @@ import PyPDF2
 # 1. Setup & Config
 # -----------------------
 
-st.set_page_config(page_title="🎓 Final Document Download", layout="centered")
+st.set_page_config(page_title="Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("📥 Final Summary & Document")
 
@@ -31,6 +31,20 @@ if not unique_id:
     st.stop()
 
 # -----------------------
+# 2. Thank You & Appreciation
+# -----------------------
+
+st.markdown("## 🎉 Thank You for Participating!")
+
+st.markdown("""
+We appreciate your time and valuable input in completing this study.
+
+Your personalized amusement park tour plan has been generated and combined with your consent form into a downloadable document below.
+
+Please keep this for your records.
+""")
+
+# -----------------------
 # 3. Google Sheets Connection
 # -----------------------
 
@@ -43,46 +57,21 @@ def get_consent_worksheet():
     return client.open("Survey Responses").worksheet("Sheet1")
 
 sheet = get_consent_worksheet()
+
+unique_id = st.session_state.get("unique_id", "Unknown")
+consent = st.session_state.get("consent_agreed", False)
+rating = st.session_state.get("tour_rating", "Not Provided")
+feedback = st.session_state.get("tour_feedback", "No comments.")
+
 cell = sheet.find(unique_id, in_column=2)
 row_num = cell.row
 
 plan_text = sheet.cell(row_num, 19).value  # Column S
-total_time_used = sheet.cell(row_num, 20).value  # Column T
-leftover_time = sheet.cell(row_num, 21).value  # Column U
+total_time_used = sheet.cell(row_num, 20).value
+leftover_time = sheet.cell(row_num, 21).value
 
 # -----------------------
-# 4. Display Questionnaire Responses
-# -----------------------
-
-# Load questionnaire answers from columns C to R (3 to 18)
-questionnaire_answers = sheet.row_values(row_num)[2:18]  # index 0-based
-
-question_labels = [
-    "1. Age Group",
-    "2. Accessibility Needs",
-    "3. Planned Park Duration",
-    "4. Thrill Ride Preference",
-    "5. Family Ride Preference",
-    "6. Water Ride Preference",
-    "7. Live Show Preference",
-    "8. Food & Dining Preference",
-    "9. Shopping Preference",
-    "10. Relaxation Area Preference",
-    "11. Top Visit Priorities",
-    "12. Max Wait Time Tolerance",
-    "13. Walking Willingness",
-    "14. Break Preferences",
-    "15. Overall Rating",
-    "16. Comments"
-]
-
-st.subheader("📝 Your Questionnaire Responses")
-
-for label, answer in zip(question_labels, questionnaire_answers):
-    st.markdown(f"**{label}:** {answer if answer else '_Not Answered_'}")
-
-# -----------------------
-# 5. PDF Generator
+# 4. PDF Generator
 # -----------------------
 
 def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent):
@@ -133,7 +122,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     return pdf_buffer
 
 # -----------------------
-# 6. Merge with PISPCF
+# 5. Merge with PISPCF
 # -----------------------
 
 def merge_pdfs(master_path, generated_buffer):
@@ -147,12 +136,10 @@ def merge_pdfs(master_path, generated_buffer):
     return final_pdf
 
 # -----------------------
-# 7. Generate Button
+# 6. Generate Download Button
 # -----------------------
 
-st.markdown("### 📄 Generate Your Final Report")
-
-if st.button("🖨️ Generate & Download PDF"):
+if st.button("📄 Generate & Download PDF Report"):
     dynamic_pdf = generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent)
     final_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
