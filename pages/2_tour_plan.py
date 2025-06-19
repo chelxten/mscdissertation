@@ -475,40 +475,61 @@ def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
     elapsed_since_food = 0
-    visited_relax_spots = set()
+    used_break_spots = set()
     used_food_spots = set()
+    energy_level = 100  # Starts fully energized
 
     for i, stop in enumerate(route):
         updated.append(stop)
-        elapsed_since_break += attraction_durations[stop] + attraction_wait_times[stop]
-        elapsed_since_food += attraction_durations[stop] + attraction_wait_times[stop]
+        zone = next(z for z, a in zones.items() if stop in a)
 
-        # 🚨 Check for break need (based on preference or intense ride)
+        duration = attraction_durations[stop]
+        wait = attraction_wait_times[stop]
+        time_spent = duration + wait
+
+        elapsed_since_break += time_spent
+        elapsed_since_food += time_spent
+
+        # 🧠 Deduct energy by zone intensity
+        energy_loss = zone_intensity.get(zone, 1) * 6  # 6 is a tuning factor
+        energy_level = max(0, energy_level - energy_loss)
+
+        # 🌳 Check for dynamic fatigue-based rest
+        if energy_level < 40:
+            available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
+            if available_spots:
+                current_loc = attraction_coordinates[stop]
+                relax_spot = min(available_spots, key=lambda s: calculate_distance(current_loc, attraction_coordinates[s]))
+                updated.append(relax_spot)
+                used_break_spots.add(relax_spot)
+                elapsed_since_break = 0
+                energy_level += 35  # regain partial energy
+
+        # 😴 Scheduled break logic
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
             (break_pref == "After every big ride" and stop in ["Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"])
         )
-
-        if needs_break:
-            # Find nearest unused relaxation spot
-            available_spots = [s for s in zones["relaxation"] if s not in visited_relax_spots]
+        if needs_break and energy_level >= 40:  # skip if dynamic fatigue already triggered one
+            available_spots = [s for s in zones["relaxation"] if s not in used_break_spots]
             if available_spots:
                 current_loc = attraction_coordinates[stop]
                 relax_spot = min(available_spots, key=lambda s: calculate_distance(current_loc, attraction_coordinates[s]))
                 updated.append(relax_spot)
-                visited_relax_spots.add(relax_spot)
-                elapsed_since_break = 0  # Reset
+                used_break_spots.add(relax_spot)
+                elapsed_since_break = 0
+                energy_level += 35  # regain partial energy
 
-        # 🍔 Check for food stop every 2 hours
-        if elapsed_since_food >= preferred_food_gap and i >= 2:
+        # 🍔 Food logic (based on food preference-driven interval)
+        if elapsed_since_food >= preferred_food_gap:
             available_foods = [f for f in zones["food"] if f not in used_food_spots]
             if available_foods:
                 current_loc = attraction_coordinates[stop]
                 food_spot = min(available_foods, key=lambda f: calculate_distance(current_loc, attraction_coordinates[f]))
                 updated.append(food_spot)
                 used_food_spots.add(food_spot)
-                elapsed_since_food = 0  # Reset
+                elapsed_since_food = 0
 
     return updated
     
