@@ -30,6 +30,14 @@ def get_questionnaire_worksheet():
     st.error("Failed after multiple retries.")
     st.stop()
 
+# ✅ Load PIS file for download
+@st.cache_resource
+def load_pis_file():
+    with open("PISPCF.pdf", "rb") as f:
+        return f.read()
+
+pis_data = load_pis_file()
+
 # Generate base64-encoded PDF to embed as a hyperlink
 b64_pdf = base64.b64encode(pis_data).decode('utf-8')
 pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">📄 Download the Participant Information Sheet (PDF)</a>'
