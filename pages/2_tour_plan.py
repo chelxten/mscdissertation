@@ -599,6 +599,7 @@ def insert_breaks(route):
 final_route = reorder_medium_intensity(final_route)
 final_plan = insert_breaks(final_route)
 
+st.write("Energy Settings:", energy_settings)
 import matplotlib.pyplot as plt
 
 energy = 100
