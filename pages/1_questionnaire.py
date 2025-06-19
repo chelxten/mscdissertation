@@ -127,6 +127,15 @@ with st.form("questionnaire_form"):
         format="%d min",
         key="wait_time"
     )
+    # ⏳ Convert numeric slider to fuzzy category
+    if wait_time < 10:
+        wait_category = "<10 min"
+    elif wait_time <= 20:
+        wait_category = "10–20 min"
+    elif wait_time <= 30:
+        wait_category = "20–30 min"
+    else:
+        wait_category = "30+ min"
 
     st.markdown('<div class="question-label">7. How far are you willing to walk between attractions?</div>', unsafe_allow_html=True)
     walking = st.radio(
@@ -173,7 +182,7 @@ if submit:
         "shopping": sorted_preferences.index("Shopping") + 1,
         "relaxation": sorted_preferences.index("Relaxation areas") + 1,
         "priorities": top_priorities.copy(),
-        "wait_time": wait_time,
+        "wait_time": wait_category,
         "walking": walking,
         "break": break_time,
     }
