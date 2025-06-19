@@ -52,10 +52,9 @@ pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pd
 st.markdown("""
     <style>
     .question-label {
-        font-size: 1.1rem;
+        font-size: 18px !important;
         font-weight: 600;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
+        margin-top: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
