@@ -564,6 +564,36 @@ def insert_breaks(route):
 final_route = reorder_medium_intensity(final_route)
 final_plan = insert_breaks(final_route)
 
+import matplotlib.pyplot as plt
+
+energy = 100
+energy_timeline = [energy]
+time_timeline = [0]
+
+elapsed_time = 0
+
+for stop in final_plan:
+    zone = next(z for z, a in zones.items() if stop in a)
+    duration = attraction_durations[stop]
+    wait = attraction_wait_times[stop]
+    time_spent = duration + wait
+
+    # Drop energy based on zone intensity
+    energy -= zone_intensity.get(zone, 1) * 6
+    energy = max(0, min(100, energy))  # clamp to 0–100
+
+    elapsed_time += time_spent
+    energy_timeline.append(energy)
+    time_timeline.append(elapsed_time)
+
+# 📊 Plot
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(time_timeline, energy_timeline, marker='o')
+ax.set_title("🧠 Energy Over Time")
+ax.set_xlabel("Minutes Since Start")
+ax.set_ylabel("Energy Level (%)")
+ax.grid(True)
+st.pyplot(fig)
 
 # ------------------------------------------
 # 8. Display & Time Calculation with Walks
