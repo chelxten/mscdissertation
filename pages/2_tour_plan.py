@@ -322,10 +322,13 @@ wait_map = {
 wait_val = wait_map.get(data["wait_time"], 0.5)
 
 age_energy_scaling = {
-    "Under 12": {"loss_factor": 1.1, "rest_boost": 45, "food_boost": 30},
-    "Teen": {"loss_factor": 1.0, "rest_boost": 35, "food_boost": 25},
-    "Adult": {"loss_factor": 0.9, "rest_boost": 30, "food_boost": 20},
-    "Senior": {"loss_factor": 1.2, "rest_boost": 50, "food_boost": 35}
+    "Under 12": {"loss_factor": 1.2, "recovery_factor": 0.8},
+    "13–17": {"loss_factor": 1.0, "recovery_factor": 1.0},
+    "18–30": {"loss_factor": 0.9, "recovery_factor": 1.1},
+    "31–50": {"loss_factor": 1.0, "recovery_factor": 1.0},
+    "51–65": {"loss_factor": 1.1, "recovery_factor": 0.9},
+    "65+": {"loss_factor": 1.3, "recovery_factor": 0.8},
+    "Adult": {"loss_factor": 1.0, "recovery_factor": 1.0}  # fallback
 }
 
 
