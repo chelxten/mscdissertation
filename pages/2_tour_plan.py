@@ -606,22 +606,28 @@ for stop in final_plan:
     wait = attraction_wait_times[stop]
     time_spent = duration + wait
 
-    # Include walk time
+    # Walk distance
     current_location = attraction_coordinates[stop]
     walk_dist = calculate_distance(previous_location, current_location)
     walk_time = max(1, int(walk_dist / walking_speed))
     total_this_stop = time_spent + walk_time
 
-    # Check if within time allowance
+    # Check time cutoff
     if total_time_check + total_this_stop > visit_duration + 15:
         break
 
-    # Apply energy loss
-    energy -= zone_intensity.get(zone, 1) * energy_settings['loss_factor'] * 6
-    energy = max(0, min(100, energy))  # clamp
+    # Apply energy logic
+    if zone == "relaxation":
+        energy += energy_settings["rest_boost"]
+    elif zone == "food":
+        energy += energy_settings["food_boost"]
+    else:
+        energy -= zone_intensity.get(zone, 1) * energy_settings["loss_factor"] * 6
 
+    energy = max(0, min(100, energy))  # clamp
     elapsed_time += total_this_stop
     total_time_check += total_this_stop
+
     energy_timeline.append(energy)
     time_timeline.append(elapsed_time)
     labels.append(f"{stop}\n{int(energy)}%")
