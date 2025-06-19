@@ -20,7 +20,7 @@ def get_consent_worksheet():
 
 st.set_page_config(page_title="Personalized Tour Plan")
 st.image("Sheffield-Hallam-University.png", width=250)
-st.title("🎢 Your Personalized Tour Plan")
+st.title("Your Personalized Tour Plan")
 
 # ------------------------------------------
 # 1. Load Data from Session
@@ -764,9 +764,9 @@ else:
 # ------------------------------------------
 # 9. Feedback & Rating
 # ------------------------------------------
-st.subheader("⭐ Feedback")
-rating = st.slider("Rate your plan:", 1, 10, 8)
-feedback = st.text_area("Comments?")
+st.subheader("⭐ Tell Us What You Think")
+rating = st.slider("How would you rate your personalized tour plan?", 1, 10, 8)
+feedback = st.text_area("Do you have any comments or suggestions?")
 
 if st.button("Submit Feedback"):
     try:
