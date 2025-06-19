@@ -85,7 +85,7 @@ with st.form("questionnaire_form"):
     accessibility_cleaned = ", ".join(accessibility_selected)
 
     st.markdown('<div class="question-label">3. How long do you plan to stay in the park today?</div>', unsafe_allow_html=True)
-    duration = st.select_slider(
+    duration = st.selectbox(
         label="",
         options=["<2 hrs", "2–4 hrs", "4–6 hrs", "All day"],
         key="duration"
