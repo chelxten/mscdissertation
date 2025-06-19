@@ -99,16 +99,9 @@ If you have any questions, please contact **Cherry San** at:
 """, unsafe_allow_html=True)
 
 # ✅ Consent via Start Button
-# Use st.checkbox with styled markdown inside label
-# Create columns to align checkbox with styled label
-# Custom styled checkbox label
-st.markdown("""
-<div style='font-size: 20px; font-weight: bold; margin-bottom: 10px;'>
-✅ I have read the Participant Information Sheet and Consent to Participate.
-</div>
-""", unsafe_allow_html=True)
+st.markdown("### Consent Confirmation")
 
-consent_given = st.checkbox("I agree", key="consent_checkbox")
+consent_given = st.checkbox("✅ I have read the Participant Information Sheet and Consent to Participate.")
 
 start_clicked = st.button("🚀 Start Questionnaire")
 
