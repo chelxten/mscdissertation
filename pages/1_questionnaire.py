@@ -134,18 +134,12 @@ with st.form("questionnaire_form"):
 
     if submit:
         if len(top_priorities) > 3:
-            st.error("Please reduce your selections to 3 or fewer before submitting.")
+            st.warning("Please reduce your selections to 3 or fewer before submitting.")
+            st.stop()
         else:
             st.success("✅ Form submitted successfully.")
             # Continue with processing...
 
-# ✅ Download button outside form
-st.download_button(
-    label="📄 Download Participant Information Sheet (PDF)",
-    data=pis_data,
-    file_name="PISPCF.pdf",
-    mime="application/pdf"
-)
 
 # ✅ Handle form submission
 if submit:
