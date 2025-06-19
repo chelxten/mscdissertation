@@ -322,14 +322,27 @@ wait_map = {
 wait_val = wait_map.get(data["wait_time"], 0.5)
 
 age_energy_scaling = {
-    "Under 12":     {"loss_factor": 0.8, "rest_boost": 35, "food_boost": 20},
-    "12–17":        {"loss_factor": 1.0, "rest_boost": 30, "food_boost": 18},
-    "18–30":        {"loss_factor": 1.2, "rest_boost": 25, "food_boost": 15},
-    "31–50":        {"loss_factor": 1.0, "rest_boost": 30, "food_boost": 18},
-    "51–65":        {"loss_factor": 1.1, "rest_boost": 35, "food_boost": 20},
-    "65+":          {"loss_factor": 1.3, "rest_boost": 40, "food_boost": 25},
-    "Adult":        {"loss_factor": 1.1, "rest_boost": 30, "food_boost": 18},  # default fallback
+    "Child":        {"loss_factor": 0.8, "rest_boost": 35, "food_boost": 20},
+    "Teen":         {"loss_factor": 1.0, "rest_boost": 30, "food_boost": 18},
+    "Young Adult":  {"loss_factor": 1.2, "rest_boost": 25, "food_boost": 15},
+    "Middle-aged":  {"loss_factor": 1.0, "rest_boost": 30, "food_boost": 18},
+    "Older Adult":  {"loss_factor": 1.3, "rest_boost": 40, "food_boost": 25},
+    "Adult":        {"loss_factor": 1.1, "rest_boost": 30, "food_boost": 18},  # fallback
 }
+
+raw_age = data.get("age", "Adult")
+
+age_group_map = {
+    "Under 12": "Child",
+    "13–17": "Teen",
+    "18–30": "Young Adult",
+    "31–45": "Middle-aged",
+    "46–60": "Middle-aged",
+    "60+":    "Older Adult"
+}
+
+user_age_group = age_group_map.get(raw_age, "Adult")
+energy_settings = age_energy_scaling[user_age_group]
 
 
 
