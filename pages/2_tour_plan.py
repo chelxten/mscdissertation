@@ -700,24 +700,27 @@ with st.expander("The Fun Starts Here", expanded=True):
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = zone_emojis.get(zone, "📍")
 
+        # Tagging special stops
+        tag = ""
         if zone == "relaxation":
             tag = " 🌿 **[Rest Stop]**"
             st.markdown("---")
-            st.markdown(f"{emoji} **{formatted_time} — {stop}**{tag} — **{total_duration} minutes**")
-            st.markdown("---")
-
         elif zone == "food":
             tag = " 🍽️ **[Meal Break]**"
             st.markdown("---")
-            st.markdown(f"{emoji} **{formatted_time} — {stop}**{tag} — **{total_duration} minutes**")
-            st.markdown("---")
 
-        else:
-            st.markdown(f"{emoji} **{formatted_time} — {stop}** — **{total_duration} minutes**")
+        # Main itinerary line
+        main_line = f"{emoji} **{formatted_time} — {stop}**{tag} — **{total_duration} minutes**"
+        st.markdown(main_line)
 
+        # Detail breakdown (for all types)
         if show_details:
             st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
 
+        if zone in ["relaxation", "food"]:
+            st.markdown("---")
+
+        # Update state
         previous_location = attraction_loc
         total_time_used += total_duration
 
