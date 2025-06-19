@@ -96,9 +96,11 @@ If you have any questions, please contact **Cherry San** at:
 - You may **skip any question**.  
 - After submission, your data is collected anonymously and cannot be withdrawn.
 
+---
+
 """, unsafe_allow_html=True)
 
----
+
 
 # ✅ Consent via Start Button
 st.markdown("### Consent Confirmation")
