@@ -10,18 +10,25 @@ import PyPDF2
 # 1. Setup & Config
 # -----------------------
 
-st.set_page_config(page_title="Final Download", layout="centered")
+st.set_page_config(page_title="🎓 Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
-st.title("📥 Final Document Download")
+st.title("📥 Final Summary & Document")
+
+st.markdown("---")
+st.markdown("Below is a summary of your amusement park experience and feedback. You can download your complete personalized report as a PDF document.")
 
 # -----------------------
 # 2. Load from Session
 # -----------------------
 
-unique_id = st.session_state.get("unique_id", "Unknown")
+unique_id = st.session_state.get("unique_id")
 rating = st.session_state.get("tour_rating", "Not Provided")
 feedback = st.session_state.get("tour_feedback", "No comments.")
 consent = st.session_state.get("consent_agreed", False)
+
+if not unique_id:
+    st.error("Session expired or missing. Please restart from the beginning.")
+    st.stop()
 
 # -----------------------
 # 3. Google Sheets Connection
@@ -36,18 +43,31 @@ def get_consent_worksheet():
     return client.open("Survey Responses").worksheet("Sheet1")
 
 sheet = get_consent_worksheet()
-
-# ✅ Find correct row for user:
 cell = sheet.find(unique_id, in_column=2)
 row_num = cell.row
 
-# ✅ Load directly from Google Sheet:
-plan_text = sheet.cell(row_num, 19).value  # Column S (Tour Plan Text)
+plan_text = sheet.cell(row_num, 19).value  # Column S
 total_time_used = sheet.cell(row_num, 20).value  # Column T
 leftover_time = sheet.cell(row_num, 21).value  # Column U
 
 # -----------------------
-# 4. PDF Generator
+# 4. Display Summary
+# -----------------------
+
+with st.container():
+    st.subheader("📝 Your Tour Summary")
+    st.markdown(f"**🆔 ID:** `{unique_id}`")
+    st.markdown(f"**⏱ Total Time Used:** `{total_time_used} mins`")
+    st.markdown(f"**⏳ Leftover Time:** `{leftover_time} mins`")
+
+    st.markdown("**⭐ Rating:** " + (f"{rating}/10" if rating != "Not Provided" else "_Not Provided_"))
+    st.markdown("**💬 Feedback:**")
+    st.info(feedback if feedback else "No comments provided.")
+
+st.markdown("---")
+
+# -----------------------
+# 5. PDF Generator
 # -----------------------
 
 def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent):
@@ -68,7 +88,6 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     {"<p><i>I confirm I have given consent to participate.</i></p>" if consent else ""}
 
     <h2>Tour Plan Summary</h2>
-
     """
 
     for line in plan_text.split('\n'):
@@ -99,7 +118,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     return pdf_buffer
 
 # -----------------------
-# 5. Merge with PISPCF
+# 6. Merge with PISPCF
 # -----------------------
 
 def merge_pdfs(master_path, generated_buffer):
@@ -113,10 +132,12 @@ def merge_pdfs(master_path, generated_buffer):
     return final_pdf
 
 # -----------------------
-# 6. Generate Button
+# 7. Generate Button
 # -----------------------
 
-if st.button("📄 Generate & Download PDF"):
+st.markdown("### 📄 Generate Your Final Report")
+
+if st.button("🖨️ Generate & Download PDF"):
     dynamic_pdf = generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent)
     final_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
