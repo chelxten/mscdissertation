@@ -680,12 +680,15 @@ plan_text_lines = []
 total_time_used = 0
 entrance_location = (250, 250)
 previous_location = entrance_location
-start_time = datetime.strptime("10:00", "%H:%M")  # Park opening time
+start_time = datetime.strptime("10:00", "%H:%M")
 
 show_details_block = st.checkbox("Show detailed time breakdown", value=False)
 
 with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Entrance**")
+    total_time_used = 0
+    previous_location = entrance_location
+    plan_text_lines.append("Entrance")
 
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
@@ -704,51 +707,44 @@ with st.expander("The Fun Starts Here", expanded=True):
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = "" if zone in ["relaxation", "food"] else zone_emojis.get(zone, "📍")
 
-        # Build display
+        # Determine formatted name
         if zone == "relaxation":
             display_name = f"🌿 [Rest Stop]  {stop}"
-            st.markdown("---")
-            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
-            st.markdown(main_line)
-            plan_text_lines.append(main_line)
-            if show_details_block:
-                details = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
-                st.markdown(details)
-                plan_text_lines.append(details)
-            st.markdown("---")
-
+            save_name = f"[Rest Stop] {stop}"
         elif zone == "food":
             display_name = f"🍽️ [Meal Break]  {stop}"
-            st.markdown("---")
-            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
-            st.markdown(main_line)
-            plan_text_lines.append(main_line)
-            if show_details_block:
-                details = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
-                st.markdown(details)
-                plan_text_lines.append(details)
-            st.markdown("---")
-
+            save_name = f"[Meal Break] {stop}"
         else:
             display_name = f"{emoji}  {stop}"
-            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
-            st.markdown(main_line)
-            plan_text_lines.append(main_line)
-            if show_details_block:
-                details = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
-                st.markdown(details)
-                plan_text_lines.append(details)
+            save_name = stop
 
-        previous_location = attraction_loc
+        # Show display
+        line_display = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
+        line_save = f"{formatted_time} — {save_name} — {total_duration} minutes"
+
+        st.markdown("---") if zone in ["relaxation", "food"] else None
+        st.markdown(line_display)
+        st.markdown("---") if zone in ["relaxation", "food"] else None
+
+        if show_details_block:
+            detail = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
+            st.markdown(detail)
+
+        # Always save detail version
+        plan_text_lines.append(line_save)
+        plan_text_lines.append(f"Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
+
         total_time_used += total_duration
+        previous_location = attraction_loc
 
     st.markdown("🏁 **Exit**")
+    plan_text_lines.append("Exit")
 
-# Final info
+# 🧾 Final time info
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
-# ✅ Store clean plan into both session and Google Sheet:
+# ✅ Save to session & Google Sheet
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
 
@@ -756,6 +752,7 @@ uid = st.session_state.get("unique_id")
 sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
 row_num = cell.row
+
 sheet.update_cell(row_num, 19, final_clean_plan)
 sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
 sheet.update_cell(row_num, 21, str(int(leftover_time)))    # Column U
