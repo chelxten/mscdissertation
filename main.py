@@ -86,15 +86,26 @@ If you have any questions, please contact **Cherry San** at:
 """)
 
 # ✅ Consent via Start Button
-if st.button("I Consent to Participate — Start Questionnaire"):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    unique_id = generate_unique_id()
+# Consent Checkbox + Start Button
+consent_given = st.checkbox("✅ I have read the Participant Information Sheet and consent to participate.")
 
-    st.session_state["consent_submitted"] = True
-    st.session_state["unique_id"] = unique_id
+start_clicked = st.button("🚀 Start Questionnaire")
 
-    # ✅ Save timestamp & ID into Google Sheet as first row
-    row = [timestamp, unique_id] + [""] * 16  # 18 columns total (2 filled + 16 empty)
-    get_questionnaire_worksheet().append_row(row)
+if start_clicked:
+    if not consent_given:
+        st.warning("Please confirm your consent before starting.")
+    else:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        unique_id = generate_unique_id()
 
-    st.switch_page("pages/1_questionnaire.py")
+        st.session_state["consent_submitted"] = True
+        st.session_state["unique_id"] = unique_id
+        st.session_state["consent_agreed"] = True
+
+        # ✅ Save timestamp & ID into Google Sheet as first row
+        row = [timestamp, unique_id] + [""] * 16  # total 18 columns
+        get_questionnaire_worksheet().append_row(row)
+
+        st.success("Consent recorded. Loading questionnaire...")
+        time.sleep(0.7)
+        st.switch_page("pages/1_questionnaire.py")
