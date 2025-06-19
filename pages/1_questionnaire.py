@@ -108,7 +108,7 @@ with st.form("questionnaire_form"):
     )
 
     if len(top_priorities) > 3:
-        st.error("You can select a maximum of 3 priorities.")
+        st.error("Please select no more than 3 priorities.")
 
     st.markdown('<div class="question-label">6. What is the maximum wait time you are okay with?</div>', unsafe_allow_html=True)
     wait_time = st.selectbox("", ["<10 min", "10–20 min", "20–30 min", "30+ min"], key="wait_time")
@@ -127,10 +127,16 @@ with st.form("questionnaire_form"):
         '</div>', unsafe_allow_html=True
     )
 
-    if len(top_priorities) <= 3:
-        submit = st.form_submit_button("📩 Submit")
-    else:
-        st.warning("Please reduce your selections to 3 or fewer before submitting.")
+     # Required by Streamlit to properly process the form
+    submit = st.form_submit_button("📩 Submit")
+
+    if submit:
+        if len(top_priorities) > 3:
+            st.warning("Please reduce your selections to 3 or fewer before submitting.")
+            st.stop()
+        else:
+            st.success("✅ Form submitted successfully.")
+            # Continue with processing...
 
 # ✅ Download button outside form
 st.download_button(
