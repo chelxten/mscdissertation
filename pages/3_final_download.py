@@ -68,7 +68,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     {"<p><i>I confirm I have given consent to participate.</i></p>" if consent else ""}
 
     <h2>Tour Plan Summary</h2>
-    <p><b>Entrance</b></p>
+
     """
 
     for line in plan_text.split('\n'):
