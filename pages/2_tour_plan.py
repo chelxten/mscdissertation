@@ -668,25 +668,24 @@ ax.grid(True)
 # ------------------------------------------
 # 8. Display & Time Calculation with Walks
 # ------------------------------------------
+# ------------------------------------------
+# 8. Display & Time Calculation with Walks
+# ------------------------------------------
 zone_emojis = {
     "thrill": "🎢", "water": "💦", "family": "👨‍👩‍👧‍👦",
     "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
 }
 
-
 plan_text_lines = []
 total_time_used = 0
-previous_location = (0, 0)
-entrance_location = (250, 250) 
-start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
+entrance_location = (250, 250)
+previous_location = entrance_location
+start_time = datetime.strptime("10:00", "%H:%M")  # Park opening time
 
 show_details_block = st.checkbox("Show detailed time breakdown", value=False)
 
 with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Entrance**")
-    total_time_used = 0
-    previous_location = entrance_location  # define entrance_location earlier
-    plan_text_lines = []
 
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
@@ -705,37 +704,49 @@ with st.expander("The Fun Starts Here", expanded=True):
         zone = next(z for z, a in zones.items() if stop in a)
         emoji = "" if zone in ["relaxation", "food"] else zone_emojis.get(zone, "📍")
 
-        # Prepare formatted display
+        # Build display
         if zone == "relaxation":
-            display_name = f"🌿 [Rest Stop] - {stop}"
+            display_name = f"🌿 [Rest Stop]  {stop}"
             st.markdown("---")
-            st.markdown(f"**{formatted_time} — {display_name} — {total_duration} minutes**")
+            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
+            st.markdown(main_line)
+            plan_text_lines.append(main_line)
             if show_details_block:
-                st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
+                details = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
+                st.markdown(details)
+                plan_text_lines.append(details)
             st.markdown("---")
+
         elif zone == "food":
-            display_name = f"🍽️ [Meal Break] - {stop}"
+            display_name = f"🍽️ [Meal Break]  {stop}"
             st.markdown("---")
-            st.markdown(f"**{formatted_time} — {display_name} — {total_duration} minutes**")
+            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
+            st.markdown(main_line)
+            plan_text_lines.append(main_line)
             if show_details_block:
-                st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
+                details = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
+                st.markdown(details)
+                plan_text_lines.append(details)
             st.markdown("---")
+
         else:
             display_name = f"{emoji}  {stop}"
-            st.markdown(f"**{formatted_time} — {display_name} — {total_duration} minutes**")
+            main_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
+            st.markdown(main_line)
+            plan_text_lines.append(main_line)
             if show_details_block:
-                st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
+                details = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
+                st.markdown(details)
+                plan_text_lines.append(details)
 
-        # Update trackers
-        total_time_used += total_duration
         previous_location = attraction_loc
+        total_time_used += total_duration
 
     st.markdown("🏁 **Exit**")
 
 # Final info
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
-
 
 # ✅ Store clean plan into both session and Google Sheet:
 final_clean_plan = "\n".join(plan_text_lines)
@@ -746,9 +757,8 @@ sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
 row_num = cell.row
 sheet.update_cell(row_num, 19, final_clean_plan)
-
 sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
-sheet.update_cell(row_num, 21, str(int(leftover_time)))  # Column U
+sheet.update_cell(row_num, 21, str(int(leftover_time)))    # Column U
 
 # ------------------------------------------
 # 9. Feedback & Rating
