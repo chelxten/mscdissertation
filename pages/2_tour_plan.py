@@ -129,7 +129,7 @@ attraction_wait_times = {
 
 zone_intensity = {
     "thrill": 0.9,
-    "water": 0.75,
+    "water": 0.7,
     "family": 0.5,
     "entertainment": 0.4,
     "food": 0.2,
@@ -471,6 +471,34 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 # ------------------------------------------
 # 7. Break Insertion
 # ------------------------------------------
+# 🧠 Automatically reorder medium-intensity zones for rhythm
+def reorder_medium_intensity(route):
+    medium_stops = []
+    other_stops = []
+
+    for stop in route:
+        zone = next(z for z, a in zones.items() if stop in a)
+        intensity = zone_intensity[zone]
+        if 0.3 <= intensity <= 0.7:
+            medium_stops.append(stop)
+        else:
+            other_stops.append(stop)
+
+    # Alternate medium zones with high/low intensity
+    reordered = []
+    m_idx = 0
+    for i, stop in enumerate(other_stops):
+        reordered.append(stop)
+        if i % 2 == 1 and m_idx < len(medium_stops):
+            reordered.append(medium_stops[m_idx])
+            m_idx += 1
+
+    # Add any leftover
+    reordered += medium_stops[m_idx:]
+    return reordered
+
+
+
 def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
@@ -533,6 +561,7 @@ def insert_breaks(route):
 
     return updated
     
+final_route = reorder_medium_intensity(final_route)
 final_plan = insert_breaks(final_route)
 
 
