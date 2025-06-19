@@ -56,7 +56,6 @@ You're about to fill out a short questionnaire that will help our AI system desi
 
 st.image("static/imagedfgad.png", use_column_width=True)
 
-st.image("", use_column_width=True)
 
 # ✅ Inject Custom Styles
 st.markdown("""
