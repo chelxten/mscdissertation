@@ -82,22 +82,48 @@ accessibility_factors = {
 }
 
 attraction_durations = {
-    "Roller Coaster": 25, "Drop Tower": 20, "Haunted Mine Train": 20, "Spinning Vortex": 15, "Freefall Cannon": 20,
-    "Water Slide": 20, "Lazy River": 25, "Log Flume": 20, "Splash Battle": 15, "Wave Pool": 30,
-    "Bumper Cars": 10, "Mini Ferris Wheel": 10, "Animal Safari Ride": 15, "Ball Pit Dome": 15, "Train Adventure": 20,
-    "Live Stage": 30, "Street Parade": 25, "Magic Show": 30, "Circus Tent": 30, "Musical Fountain": 20,
-    "Food Court": 30, "Snack Bar": 15, "Ice Cream Kiosk": 10, "Pizza Plaza": 25, "Smoothie Station": 10,
-    "Souvenir Shop": 10, "Candy Store": 10, "Photo Booth": 10, "Gift Emporium": 15, "Toy World": 15,
-    "Relaxation Garden": 20, "Shaded Benches": 10, "Quiet Lake View": 15, "Zen Courtyard": 15, "Sky Deck": 20
+    # Thrill (longer ride time)
+    "Roller Coaster": 5, "Drop Tower": 3, "Haunted Mine Train": 4, "Spinning Vortex": 4, "Freefall Cannon": 3,
+
+    # Water (medium–long experience)
+    "Water Slide": 4, "Lazy River": 10, "Log Flume": 6, "Splash Battle": 5, "Wave Pool": 10,
+
+    # Family (shorter ride time)
+    "Bumper Cars": 3, "Mini Ferris Wheel": 4, "Animal Safari Ride": 6, "Ball Pit Dome": 6, "Train Adventure": 8,
+
+    # Entertainment (long shows)
+    "Live Stage": 20, "Street Parade": 15, "Magic Show": 25, "Circus Tent": 25, "Musical Fountain": 15,
+
+    # Food (time to eat)
+    "Food Court": 25, "Snack Bar": 15, "Ice Cream Kiosk": 10, "Pizza Plaza": 20, "Smoothie Station": 10,
+
+    # Shopping (quick)
+    "Souvenir Shop": 10, "Candy Store": 8, "Photo Booth": 5, "Gift Emporium": 10, "Toy World": 10,
+
+    # Relaxation (fixed)
+    "Relaxation Garden": 15, "Shaded Benches": 10, "Quiet Lake View": 10, "Zen Courtyard": 10, "Sky Deck": 10
 }
 
 attraction_wait_times = {
-    "Roller Coaster": 20, "Drop Tower": 15, "Water Slide": 10, "Lazy River": 12, "Log Flume": 18,
-    "Haunted Mine Train": 14, "Spinning Vortex": 8, "Freefall Cannon": 10, "Splash Battle": 7, "Wave Pool": 12,
-    "Bumper Cars": 5, "Mini Ferris Wheel": 3, "Animal Safari Ride": 6, "Ball Pit Dome": 5, "Train Adventure": 8,
-    "Live Stage": 10, "Street Parade": 8, "Magic Show": 12, "Circus Tent": 10, "Musical Fountain": 8,
-    "Food Court": 5, "Snack Bar": 3, "Ice Cream Kiosk": 3, "Pizza Plaza": 4, "Smoothie Station": 3,
-    "Souvenir Shop": 3, "Candy Store": 3, "Photo Booth": 2, "Gift Emporium": 3, "Toy World": 3,
+    # Thrill (very popular)
+    "Roller Coaster": 30, "Drop Tower": 25, "Haunted Mine Train": 20, "Spinning Vortex": 18, "Freefall Cannon": 20,
+
+    # Water (popular on hot days)
+    "Water Slide": 15, "Lazy River": 10, "Log Flume": 20, "Splash Battle": 12, "Wave Pool": 15,
+
+    # Family (shorter queues)
+    "Bumper Cars": 5, "Mini Ferris Wheel": 5, "Animal Safari Ride": 8, "Ball Pit Dome": 6, "Train Adventure": 8,
+
+    # Entertainment (seating based, fixed wait)
+    "Live Stage": 10, "Street Parade": 5, "Magic Show": 10, "Circus Tent": 10, "Musical Fountain": 5,
+
+    # Food (variable)
+    "Food Court": 10, "Snack Bar": 5, "Ice Cream Kiosk": 4, "Pizza Plaza": 8, "Smoothie Station": 4,
+
+    # Shopping (minimal)
+    "Souvenir Shop": 3, "Candy Store": 2, "Photo Booth": 1, "Gift Emporium": 3, "Toy World": 3,
+
+    # Relaxation (no wait)
     "Relaxation Garden": 0, "Shaded Benches": 0, "Quiet Lake View": 0, "Zen Courtyard": 0, "Sky Deck": 0
 }
 
