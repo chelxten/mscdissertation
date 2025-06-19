@@ -51,20 +51,35 @@ total_time_used = sheet.cell(row_num, 20).value  # Column T
 leftover_time = sheet.cell(row_num, 21).value  # Column U
 
 # -----------------------
-# 4. Display Summary
+# 4. Display Questionnaire Responses
 # -----------------------
 
-with st.container():
-    st.subheader("📝 Your Tour Summary")
-    st.markdown(f"**🆔 ID:** `{unique_id}`")
-    st.markdown(f"**⏱ Total Time Used:** `{total_time_used} mins`")
-    st.markdown(f"**⏳ Leftover Time:** `{leftover_time} mins`")
+# Load questionnaire answers from columns C to R (3 to 18)
+questionnaire_answers = sheet.row_values(row_num)[2:18]  # index 0-based
 
-    st.markdown("**⭐ Rating:** " + (f"{rating}/10" if rating != "Not Provided" else "_Not Provided_"))
-    st.markdown("**💬 Feedback:**")
-    st.info(feedback if feedback else "No comments provided.")
+question_labels = [
+    "1. Age Group",
+    "2. Accessibility Needs",
+    "3. Planned Park Duration",
+    "4. Thrill Ride Preference",
+    "5. Family Ride Preference",
+    "6. Water Ride Preference",
+    "7. Live Show Preference",
+    "8. Food & Dining Preference",
+    "9. Shopping Preference",
+    "10. Relaxation Area Preference",
+    "11. Top Visit Priorities",
+    "12. Max Wait Time Tolerance",
+    "13. Walking Willingness",
+    "14. Break Preferences",
+    "15. Overall Rating",
+    "16. Comments"
+]
 
-st.markdown("---")
+st.subheader("📝 Your Questionnaire Responses")
+
+for label, answer in zip(question_labels, questionnaire_answers):
+    st.markdown(f"**{label}:** {answer if answer else '_Not Answered_'}")
 
 # -----------------------
 # 5. PDF Generator
