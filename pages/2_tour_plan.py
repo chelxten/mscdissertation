@@ -677,6 +677,7 @@ zone_emojis = {
 plan_text_lines = []
 total_time_used = 0
 previous_location = (0, 0)
+entrance_location = (250, 250) 
 start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
 show_details_block = st.checkbox("Show detailed time breakdown", value=False)
