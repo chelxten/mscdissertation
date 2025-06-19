@@ -681,13 +681,12 @@ total_time_used = 0
 entrance_location = (250, 250)
 previous_location = entrance_location
 start_time = datetime.strptime("10:00", "%H:%M")
+walking_speed = 67  # meters/min
 
 show_details_block = st.checkbox("Show detailed time breakdown", value=False)
 
 with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Entrance**")
-    total_time_used = 0
-    previous_location = entrance_location
     plan_text_lines.append("Entrance")
 
     for stop in final_plan:
@@ -699,39 +698,40 @@ with st.expander("The Fun Starts Here", expanded=True):
         attraction_loc = attraction_coordinates[stop]
         walk_dist = calculate_distance(previous_location, attraction_loc)
         walk_time = max(1, int(walk_dist / walking_speed))
-        total_duration = int(ride_time + wait_time + walk_time)
+        total_duration = ride_time + wait_time + walk_time
 
         if total_time_used + total_duration > visit_duration + 15:
             break
 
         zone = next(z for z, a in zones.items() if stop in a)
-        emoji = "" if zone in ["relaxation", "food"] else zone_emojis.get(zone, "📍")
+        emoji = "" if zone in ["relaxation", "food"] else zone_emojis.get(zone, "")
 
-        # Determine formatted name
+        # Special formatting
         if zone == "relaxation":
             display_name = f"🌿 [Rest Stop]  {stop}"
             save_name = f"[Rest Stop] {stop}"
+            st.markdown("---")
         elif zone == "food":
             display_name = f"🍽️ [Meal Break]  {stop}"
             save_name = f"[Meal Break] {stop}"
+            st.markdown("---")
         else:
             display_name = f"{emoji}  {stop}"
             save_name = stop
 
-        # Show display
-        line_display = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
-        line_save = f"{formatted_time} — {save_name} — {total_duration} minutes"
-
-        st.markdown("---") if zone in ["relaxation", "food"] else None
-        st.markdown(line_display)
-        st.markdown("---") if zone in ["relaxation", "food"] else None
+        # Display to screen
+        display_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
+        st.markdown(display_line)
 
         if show_details_block:
-            detail = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
-            st.markdown(detail)
+            detail_line = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
+            st.markdown(detail_line)
 
-        # Always save detail version
-        plan_text_lines.append(line_save)
+        if zone in ["relaxation", "food"]:
+            st.markdown("---")
+
+        # Always save safe text version (for export or Sheets)
+        plan_text_lines.append(f"{formatted_time} — {save_name} — {total_duration} minutes")
         plan_text_lines.append(f"Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
 
         total_time_used += total_duration
@@ -740,16 +740,13 @@ with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Exit**")
     plan_text_lines.append("Exit")
 
-# 🧾 Final time info
+# Final time info
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
-# ✅ Save to session & Google Sheet
+# Store for Sheets or Download
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
-
-uid = st.session_state.get("unique_id")
-sheet = get_consent_worksheet()
 
 cell = sheet.find(uid, in_column=2)
 if cell:
