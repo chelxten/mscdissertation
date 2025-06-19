@@ -499,9 +499,6 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 # 7. Break Insertion
 # ------------------------------------------
 
-user_age_group = data.get("age", "Adult")  # fallback to "Adult"
-energy_settings = age_energy_scaling[user_age_group]
-
 # 🧠 Automatically reorder medium-intensity zones for rhythm
 def reorder_medium_intensity(route):
     medium_stops = []
