@@ -679,41 +679,52 @@ total_time_used = 0
 previous_location = (0, 0)
 start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
+show_wait = st.checkbox("Show wait times", value=False)
+show_walk = st.checkbox("Show walking durations", value=False)
+
 with st.expander("🗺️ Your Route", expanded=True):
+    st.markdown("🏁 **Entrance**\n")
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
         formatted_time = scheduled_time.strftime("%I:%M %p")
 
-        # Determine ride/wait/walk times
         ride_time = attraction_durations[stop]
         wait_time = attraction_wait_times[stop]
         attraction_loc = attraction_coordinates[stop]
         walk_dist = calculate_distance(previous_location, attraction_loc)
-        walk_time = walk_dist / walking_speed
-        display_walk = max(1, int(walk_time))
-        added_time = ride_time + wait_time + walk_time
+        walk_time = max(1, int(walk_dist / walking_speed))
 
-        # Check if still within time window (+15 mins overflow allowed)
+        added_time = ride_time + wait_time + walk_time
         if total_time_used + added_time > visit_duration + 15:
             break
 
-        # Zone + emoji
         zone = next(z for z, a in zones.items() if stop in a)
-        emoji = zone_emojis[zone]
+        emoji = zone_emojis.get(zone, "📍")
 
-        # 👇 Identify relaxation-based "Break"
-        is_break_spot = zone == "relaxation" and break_pref != "None" and stop in zones["relaxation"]
-        title_note = " — Rest Stop" if is_break_spot else ""
+        # Label tags
+        tag = ""
+        if zone == "relaxation":
+            tag = " [Rest Stop]"
+        elif zone == "food":
+            tag = " [Meal Break]"
 
-        # Final display line
-        total = int(ride_time + wait_time + display_walk)
-        full_text = f"• {formatted_time} — {stop}{title_note} — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk = {total}m"
-        plan_text_lines.append(full_text)
-        st.markdown(f"{emoji} **{formatted_time} — {stop}{title_note}** — {ride_time}m ride + {wait_time}m wait + {display_walk}m walk")
+        # Duration summary
+        total = int(ride_time + wait_time + walk_time)
+        detail = ""
+        if show_wait:
+            detail += f" (+{wait_time}m wait)"
+        if show_walk:
+            detail += f" (+{walk_time}m walk)"
 
-        # Update
+        line = f"{emoji} **{formatted_time} — {stop}{tag} – {total} minutes**{detail}"
+        st.markdown(line)
+
+        # Store clean version
+        plan_text_lines.append(line)
         previous_location = attraction_loc
         total_time_used += added_time
+
+    st.markdown("\n🏁 **Exit**")
 
 # Final info
 leftover_time = visit_duration - total_time_used
