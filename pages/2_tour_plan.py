@@ -681,7 +681,7 @@ start_time = datetime.strptime("10:00", "%H:%M")  # park opening time
 
 show_details = st.checkbox("Show detailed time allocation", value=False)
 
-with st.expander("The Fun Starts Here", expanded=True):
+with st.expander("🎡 The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Entrance**")
     for stop in final_plan:
         scheduled_time = start_time + timedelta(minutes=total_time_used)
@@ -698,33 +698,35 @@ with st.expander("The Fun Starts Here", expanded=True):
             break
 
         zone = next(z for z, a in zones.items() if stop in a)
-        emoji = zone_emojis.get(zone, "📍")
+        emoji = zone_emojis.get(zone, "")
 
-        # Tagging special stops
-        tag = ""
+        # Skip emoji for food and relaxation
+        emoji = "" if zone in ["relaxation", "food"] else emoji
+
+        # Custom labeling
         if zone == "relaxation":
-            tag = " 🌿 **[Rest Stop]**"
+            tag = "🌿 **[Rest Stop]**"
+            display_name = f"{tag} {stop}"
             st.markdown("---")
         elif zone == "food":
-            tag = " 🍽️ **[Meal Break]**"
+            tag = "🍽️ **[Meal Break]**"
+            display_name = f"{tag} {stop}"
             st.markdown("---")
+        else:
+            display_name = stop
 
-        # Main itinerary line
-        main_line = f"**{formatted_time}** {emoji} — {stop}{tag} — **{total_duration} minutes**"
+        # Main display line (emoji comes after time)
+        main_line = f"**{formatted_time}** {emoji} — {display_name} — **{total_duration} minutes**"
         st.markdown(main_line)
 
-        # Detail breakdown (for all types)
+        # Detailed breakdown
         if show_details:
             st.markdown(f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
 
-        if zone in ["relaxation", "food"]:
-            st.markdown("---")
-
-        # Update state
         previous_location = attraction_loc
         total_time_used += total_duration
 
-    st.markdown("\n🏁 **Exit**")
+    st.markdown("🏁 **Exit**")
 
 # Final info
 leftover_time = visit_duration - total_time_used
