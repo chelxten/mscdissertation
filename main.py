@@ -5,7 +5,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import time
 from gspread.exceptions import APIError
-
+import base64
 
 # ✅ Google Sheets setup
 @st.cache_resource
@@ -30,6 +30,11 @@ def get_questionnaire_worksheet():
     st.error("Failed after multiple retries.")
     st.stop()
 
+# Generate base64-encoded PDF to embed as a hyperlink
+b64_pdf = base64.b64encode(pis_data).decode('utf-8')
+pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">📄 Download the Participant Information Sheet (PDF)</a>'
+
+
 # ✅ Generate unique ID
 def generate_unique_id():
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -43,8 +48,7 @@ st.title("Visitor Questionnaire")
 
 # ✅ Project Intro (exactly as SHU guideline requests)
 st.markdown("""
-You are being invited to participate in a research study titled **"The Search of Advanced AI-Powered Service Robots for Amusement Parks."**  
-This study is being conducted by **Cherry San** from the **Department of Computing, Sheffield Hallam University**.
+You are being invited to participate in a research study titled **"The Search of Advanced AI-Powered Service Robots for Amusement Parks."** This study is being conducted by **Cherry San** from the **Department of Computing, Sheffield Hallam University**.
 
 ---
 
@@ -67,9 +71,9 @@ There is no payment associated with participation.
 
 ### Participant Information Sheet
 
-Before starting, please download and read the full **Participant Information Sheet** (PIS) and retain it for your records:
+If you are interested in taking part, please download a copy of the participant
+information sheet here {pdf_link} and retain this for your records before starting the questionnaire.
 
-📄 [Download Participant Information Sheet](PISPCF.pdf)
 
 ---
 
@@ -87,7 +91,7 @@ If you have any questions, please contact **Cherry San** at:
 
 # ✅ Consent via Start Button
 # Consent Checkbox + Start Button
-consent_given = st.checkbox("✅ I have read the Participant Information Sheet and consent to participate.")
+consent_given = st.checkbox("✅ I have read the Participant Information Sheet and Consent to Participate.")
 
 start_clicked = st.button("🚀 Start Questionnaire")
 
