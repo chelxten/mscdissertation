@@ -127,6 +127,16 @@ attraction_wait_times = {
     "Relaxation Garden": 0, "Shaded Benches": 0, "Quiet Lake View": 0, "Zen Courtyard": 0, "Sky Deck": 0
 }
 
+zone_intensity = {
+    "thrill": 0.9,
+    "water": 0.75,
+    "family": 0.5,
+    "entertainment": 0.4,
+    "food": 0.2,
+    "shopping": 0.2,
+    "relaxation": 0.1
+}
+
 # ------------------------------------------
 # 4. Weighted Allocation System (Fuzzy Logic)
 # ------------------------------------------
@@ -142,6 +152,11 @@ priority_thrill = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_thrill')
 priority_food = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_food')
 priority_comfort = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_comfort')
 
+intensity_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'intensity')
+
+intensity_input['low'] = fuzz.trimf(intensity_input.universe, [0.0, 0.0, 0.4])
+intensity_input['medium'] = fuzz.trimf(intensity_input.universe, [0.3, 0.5, 0.7])
+intensity_input['high'] = fuzz.trimf(intensity_input.universe, [0.6, 1.0, 1.0])
 weight_output = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
 
 # -- Membership functions --
@@ -225,6 +240,11 @@ rules = [
 
     # 10. Priority: comfort=yes + poor accessibility → Medium weight (penalize access)
     ctrl.Rule(priority_comfort['yes'] & accessibility_input['poor'], weight_output['medium']),
+
+    ctrl.Rule(intensity_input['high'] & walking_input['long'], weight_output['medium']),
+    ctrl.Rule(intensity_input['high'] & wait_tolerance['low'], weight_output['medium']),
+    ctrl.Rule(intensity_input['high'] & preference_input['low'], weight_output['low']),
+    ctrl.Rule(intensity_input['low'], weight_output['medium'])  # light zones get neutral boost,
     ]
 
 food_interval_rules = [
@@ -304,6 +324,7 @@ zone_weights = {}
 for zone in zones:
     pref = preferences[zone]
     acc = accessibility_factors[zone]
+    intensity = zone_intensity[zone]
 
     weight_sim.input['preference'] = pref
     weight_sim.input['accessibility'] = acc
@@ -312,6 +333,7 @@ for zone in zones:
     weight_sim.input['priority_thrill'] = 1.0 if zone == "thrill" and priority_thrill_val else 0.0
     weight_sim.input['priority_food'] = 1.0 if zone == "food" and priority_food_val else 0.0
     weight_sim.input['priority_comfort'] = 1.0 if zone == "relaxation" and priority_comfort_val else 0.0
+    weight_sim.input['intensity'] = intensity
 
     weight_sim.compute()
     zone_weights[zone] = weight_sim.output['weight']
