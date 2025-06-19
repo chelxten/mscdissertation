@@ -51,6 +51,13 @@ leftover_time = sheet.cell(row_num, 21).value  # Column U
 # -----------------------
 
 def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent):
+    clean_lines = [
+        line.strip().replace("🎢", "").replace("💦", "").replace("👨‍👩‍👧‍👦", "")
+        .replace("🎭", "").replace("🍔", "").replace("🛍️", "").replace("🌳", "")
+        .replace("🌿", "").replace("🍽️", "")
+        for line in plan_text.split('\n') if line.strip()
+    ]
+
     html_content = f"""
     <html>
     <head>
@@ -65,14 +72,14 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
 
     <h1>Personalized Amusement Park Tour Report</h1>
 
-    {"<p>I confirm I have given consent to participate.</p>" if consent else ""}
+    {"<p><b>Consent:</b> I confirm I have given consent to participate.</p>" if consent else "<p><b>Consent:</b> Not provided.</p>"}
 
     <h2>Tour Plan Summary</h2>
     <ul>
     """
 
-    for line in plan_text.split('\n'):
-        html_content += f"<li>{line.strip()}</li>"
+    for line in clean_lines:
+        html_content += f"<li>{line}</li>"
 
     html_content += f"""
     </ul>
@@ -100,10 +107,8 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
 
 def merge_pdfs(master_path, generated_buffer):
     merger = PyPDF2.PdfMerger()
-
     with open(master_path, "rb") as master:
         merger.append(master)
-
     merger.append(generated_buffer)
     final_pdf = io.BytesIO()
     merger.write(final_pdf)
