@@ -54,17 +54,7 @@ st.set_page_config(page_title="Participant Information & Consent")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Welcome")
 
-# Custom styled checkbox label
-st.markdown("""
-    <style>
-    .consent-label {
-        font-size: 20px;
-        font-weight: 600;
-        padding: 10px 0;
-    }
-    </style>
-    <div class="consent-label">✅ I have read the Participant Information Sheet and Consent to Participate.</div>
-""", unsafe_allow_html=True)
+
 
 # ✅ Project Intro (exactly as SHU guideline requests)
 st.markdown(f"""
@@ -111,20 +101,14 @@ If you have any questions, please contact **Cherry San** at:
 # ✅ Consent via Start Button
 # Use st.checkbox with styled markdown inside label
 # Create columns to align checkbox with styled label
-col1, col2 = st.columns([0.1, 0.9])
+# Custom styled checkbox label
+st.markdown("""
+<div style='font-size: 20px; font-weight: bold; margin-bottom: 10px;'>
+✅ I have read the Participant Information Sheet and Consent to Participate.
+</div>
+""", unsafe_allow_html=True)
 
-with col1:
-    consent_given = st.checkbox("", key="consent_checkbox")
-
-with col2:
-    st.markdown(
-        """
-        <div style="font-size:18px; font-weight:600; padding-top:5px;">
-            I have read the Participant Information Sheet and Consent to Participate.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+consent_given = st.checkbox("I agree", key="consent_checkbox")
 
 start_clicked = st.button("🚀 Start Questionnaire")
 
