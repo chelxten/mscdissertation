@@ -569,6 +569,7 @@ import matplotlib.pyplot as plt
 energy = 100
 energy_timeline = [energy]
 time_timeline = [0]
+labels = []
 
 elapsed_time = 0
 
@@ -585,10 +586,23 @@ for stop in final_plan:
     elapsed_time += time_spent
     energy_timeline.append(energy)
     time_timeline.append(elapsed_time)
+    labels.append(f"{stop}\n{int(energy)}%")
 
-# 📊 Plot
-fig, ax = plt.subplots(figsize=(8, 4))
+# 📊 Plot with labels
+fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(time_timeline, energy_timeline, marker='o')
+
+for i in range(1, len(time_timeline)):
+    ax.annotate(
+        labels[i - 1],
+        (time_timeline[i], energy_timeline[i]),
+        textcoords="offset points",
+        xytext=(0, 8),
+        ha='center',
+        fontsize=8,
+        rotation=30
+    )
+
 ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
 ax.set_ylabel("Energy Level (%)")
