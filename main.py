@@ -109,9 +109,17 @@ If you have any questions, please contact **Cherry San** at:
 """, unsafe_allow_html=True)
 
 # ✅ Consent via Start Button
-# Consent Checkbox + Start Button
-# Now show the checkbox without label
-consent_given = st.checkbox("", key="consent_checkbox")
+# Use st.checkbox with styled markdown inside label
+consent_given = st.checkbox(
+    label=(
+        '<span style="font-size:18px; font-weight:600;">'
+        '✅ I have read the Participant Information Sheet and Consent to Participate.'
+        '</span>'
+    ),
+    value=False,
+    key="consent_checkbox",
+    unsafe_allow_html=True
+)
 
 start_clicked = st.button("🚀 Start Questionnaire")
 
