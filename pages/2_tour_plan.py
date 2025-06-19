@@ -710,7 +710,7 @@ with st.expander("The Fun Starts Here", expanded=True):
             st.markdown("---")
 
         # Main itinerary line
-        main_line = f"{emoji} **{formatted_time} — {stop}**{tag} — **{total_duration} minutes**"
+        main_line = f"**{formatted_time}** {emoji} — {stop}{tag} — **{total_duration} minutes**"
         st.markdown(main_line)
 
         # Detail breakdown (for all types)
