@@ -54,7 +54,7 @@ st.markdown("""
 You're about to fill out a short questionnaire that will help our AI system design a **personalized tour plan** just for you — based on your preferences, priorities, and comfort.
 """)
 
-st.image("static/imagedfgad.png", use_column_width=True)
+st.image("static/imagedfgad.png", use_container_width=True)
 
 
 # ✅ Inject Custom Styles
