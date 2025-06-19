@@ -48,11 +48,11 @@ b64_pdf = base64.b64encode(pis_data).decode('utf-8')
 pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">Participant Information Sheet (PDF)</a>'
 
 st.markdown("""
-### 🧭 Before You Begin
-
-*Imagine you're visiting an exciting amusement park like the one shown below.*  
-You're about to fill out a short questionnaire that will help our AI system design a **personalized tour plan** just for you — based on your preferences, priorities, and comfort.
-""")
+<div style="font-size: 16px; line-height: 1.6;">
+<p>Imagine you're visiting an exciting amusement park like the one shown below.</p>
+<p>You're about to complete a short questionnaire that will help our AI system generate a personalized tour plan for you — tailored to your preferences, priorities, and comfort.</p>
+</div>
+""", unsafe_allow_html=True)
 
 st.image("static/imagedfgad.png", use_container_width=True)
 
