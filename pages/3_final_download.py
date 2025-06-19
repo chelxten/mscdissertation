@@ -12,10 +12,10 @@ import PyPDF2
 
 st.set_page_config(page_title="Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
-st.title("📥 Final Summary & Document")
+st.title("📥 Final Summary & Download")
 
 # -----------------------
-# 2. Load from Session
+# 2. Load Session State
 # -----------------------
 
 unique_id = st.session_state.get("unique_id")
@@ -28,21 +28,21 @@ if not unique_id:
     st.stop()
 
 # -----------------------
-# 2. Thank You & Appreciation
+# 3. Thank You Message
 # -----------------------
 
 st.markdown("## 🎉 Thank You for Participating!")
 
 st.markdown("""
-We appreciate your time and valuable input in completing this study.
+We appreciate your time and thoughtful responses.
 
-Your personalized amusement park tour plan has been generated and combined with your consent form into a downloadable document below.
+Your personalized amusement park tour plan — combined with your consent form — is now ready to download.
 
-Please keep this for your records.
+Please keep the document for your records.
 """)
 
 # -----------------------
-# 3. Google Sheets Connection
+# 4. Google Sheets Access
 # -----------------------
 
 @st.cache_resource
@@ -54,12 +54,6 @@ def get_consent_worksheet():
     return client.open("Survey Responses").worksheet("Sheet1")
 
 sheet = get_consent_worksheet()
-
-unique_id = st.session_state.get("unique_id", "Unknown")
-consent = st.session_state.get("consent_agreed", False)
-rating = st.session_state.get("tour_rating", "Not Provided")
-feedback = st.session_state.get("tour_feedback", "No comments.")
-
 cell = sheet.find(unique_id, in_column=2)
 row_num = cell.row
 
@@ -68,7 +62,7 @@ total_time_used = sheet.cell(row_num, 20).value
 leftover_time = sheet.cell(row_num, 21).value
 
 # -----------------------
-# 4. PDF Generator
+# 5. Generate PDF
 # -----------------------
 
 def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent):
@@ -84,16 +78,16 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     </head>
     <body>
 
-    <h1>Personalized Amusement Park Tour Report</h1>
+    <h1>Amusement Park Tour Summary</h1>
 
-    {"<p><i>I confirm I have given consent to participate.</i></p>" if consent else ""}
+    {"<p><i>Consent confirmed by participant.</i></p>" if consent else ""}
 
     <h2>Tour Plan Summary</h2>
     """
 
     for line in plan_text.split('\n'):
         line = line.strip()
-        if line.lower() == "entrance" or line.lower() == "exit":
+        if line.lower() in ["entrance", "exit"]:
             html_content += f"<p><b>{line}</b></p>"
         elif line.lower().startswith("includes:"):
             html_content += f"<p style='margin-left: 10px; font-style: italic;'>{line}</p>"
@@ -119,7 +113,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     return pdf_buffer
 
 # -----------------------
-# 5. Merge with PISPCF
+# 6. Merge with Consent Form
 # -----------------------
 
 def merge_pdfs(master_path, generated_buffer):
@@ -133,16 +127,15 @@ def merge_pdfs(master_path, generated_buffer):
     return final_pdf
 
 # -----------------------
-# 6. Generate Download Button
+# 7. Auto-generate & Show Download
 # -----------------------
 
-if st.button("📄 Generate & Download PDF Report"):
-    dynamic_pdf = generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent)
-    final_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
+dynamic_pdf = generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent)
+final_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
-    st.download_button(
-        label="⬇️ Download Final Document",
-        data=final_pdf,
-        file_name=f"{unique_id}_FinalDocument.pdf",
-        mime="application/pdf"
-    )
+st.download_button(
+    label="⬇️ Download Final Document",
+    data=final_pdf,
+    file_name=f"{unique_id}_FinalDocument.pdf",
+    mime="application/pdf"
+)
