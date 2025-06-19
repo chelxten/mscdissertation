@@ -125,7 +125,8 @@ with st.form("questionnaire_form"):
     st.markdown("---")
     st.markdown(f"""
     ---
-    By clicking **‘Submit’**, you are consenting to participate in this study as described in the Participant Information Sheet.
+    By clicking  **‘Submit’** button below, you are consenting to participate in this study,as it is described in the participant information sheet, which you can download here
+    {pdf_link}. If you did not yet download and keep a copy of this document for your records, we recommend you do that now.
     If you have not downloaded it yet, please do so here: {pdf_link}
     """, unsafe_allow_html=True)
 
