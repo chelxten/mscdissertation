@@ -65,7 +65,7 @@ with st.form("questionnaire_form"):
     st.markdown('<div class="question-label">1. What is your age group?</div>', unsafe_allow_html=True)
     age = st.selectbox("", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"], key="age")
 
-    st.markdown('<div class="question-label">2. Do you have any accessibility needs? (Select all that apply)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="question-label">2. Do you have any accessibility needs? (Select all that apply)</div><br>', unsafe_allow_html=True)
     physical = st.checkbox("Physical", key="acc_physical")
     sensory = st.checkbox("Sensory", key="acc_sensory")
     cognitive = st.checkbox("Cognitive", key="acc_cognitive")
