@@ -127,7 +127,10 @@ with st.form("questionnaire_form"):
         '</div>', unsafe_allow_html=True
     )
 
-    submit = st.form_submit_button("📩 Submit")
+    if len(top_priorities) <= 3:
+        submit = st.form_submit_button("📩 Submit")
+    else:
+        st.warning("Please reduce your selections to 3 or fewer before submitting.")
 
 # ✅ Download button outside form
 st.download_button(
