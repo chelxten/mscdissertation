@@ -42,9 +42,7 @@ pis_data = load_pis_file()
 b64_pdf = base64.b64encode(pis_data).decode('utf-8')
 pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">Participant Information Sheet (PDF)</a>'
 
-# Load and encode the image
-with open("Sheffield-Hallam-University.png", "rb") as image_file:
-    encoded = base64.b64encode(image_file.read()).decode()
+
 
 # ✅ Generate unique ID
 def generate_unique_id():
@@ -54,11 +52,7 @@ def generate_unique_id():
 
 st.set_page_config(page_title="Participant Information & Consent")
 
-st.markdown(f"""
-    <div style='text-align: center;'>
-        <img src='data:image/png;base64,{encoded}' width='150'>
-    </div>
-""", unsafe_allow_html=True)
+
 
 st.image("static/headerq.png", use_container_width=True)
 
