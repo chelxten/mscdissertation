@@ -53,7 +53,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.image("static/imagedfgad.png", use_container_width=True)
+st.image("static/map.jpg", use_container_width=True)
 
 
 # ✅ Inject Custom Styles
