@@ -80,10 +80,13 @@ with st.form("questionnaire_form"):
 
     if accessibility_required == "Yes":
         st.markdown("Please specify (you may select more than one):")
-        physical = st.checkbox("Physical", key="acc_physical")
-        sensory = st.checkbox("Sensory", key="acc_sensory")
-        cognitive = st.checkbox("Cognitive", key="acc_cognitive")
-        prefer_not = st.checkbox("Prefer not to say", key="acc_prefer")
+        col1, col2 = st.columns(2)
+        with col1:
+            physical = st.checkbox("Physical", key="acc_physical")
+            sensory = st.checkbox("Sensory", key="acc_sensory")
+        with col2:
+            cognitive = st.checkbox("Cognitive", key="acc_cognitive")
+            prefer_not = st.checkbox("Prefer not to say", key="acc_prefer")
 
         if physical: accessibility_selected.append("Physical")
         if sensory: accessibility_selected.append("Sensory")
@@ -92,7 +95,7 @@ with st.form("questionnaire_form"):
 
         if not accessibility_selected:
             accessibility_selected = ["Not specified"]
-            
+
     else:
         accessibility_selected = ["No Accessibility Needs"]
 
