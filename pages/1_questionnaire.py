@@ -73,23 +73,29 @@ with st.form("questionnaire_form"):
     st.markdown('<div class="question-label">1. What is your age group?</div>', unsafe_allow_html=True)
     age = st.selectbox("", ["Under 12", "13–17", "18–30", "31–45", "46–60", "60+"], key="age")
 
-    st.markdown('<div class="question-label">2. Do you have any accessibility needs? (Select all that apply)</div><br>', unsafe_allow_html=True)
-    physical = st.checkbox("Physical", key="acc_physical")
-    sensory = st.checkbox("Sensory", key="acc_sensory")
-    cognitive = st.checkbox("Cognitive", key="acc_cognitive")
-    prefer_not = st.checkbox("Prefer not to say", key="acc_prefer")
-    no_accessibility = st.checkbox("No Accessibility Needs", key="acc_none")
-
-    if no_accessibility and (physical or sensory or cognitive or prefer_not):
-        st.warning("You cannot select 'No Accessibility Needs' together with other options.")
+    st.markdown('<div class="question-label">2. Do you have any accessibility needs?</div><br>', unsafe_allow_html=True)
+    accessibility_required = st.radio("", ["Yes", "No"], key="accessibility_radio")
 
     accessibility_selected = []
-    if physical: accessibility_selected.append("Physical")
-    if sensory: accessibility_selected.append("Sensory")
-    if cognitive: accessibility_selected.append("Cognitive")
-    if prefer_not: accessibility_selected.append("Prefer not to say")
-    if no_accessibility: accessibility_selected.append("No Accessibility Needs")
-    if not accessibility_selected: accessibility_selected = ["Not specified"]
+
+    if accessibility_required == "Yes":
+        st.markdown("Please specify (you may select more than one):")
+        physical = st.checkbox("Physical", key="acc_physical")
+        sensory = st.checkbox("Sensory", key="acc_sensory")
+        cognitive = st.checkbox("Cognitive", key="acc_cognitive")
+        prefer_not = st.checkbox("Prefer not to say", key="acc_prefer")
+
+        if physical: accessibility_selected.append("Physical")
+        if sensory: accessibility_selected.append("Sensory")
+        if cognitive: accessibility_selected.append("Cognitive")
+        if prefer_not: accessibility_selected.append("Prefer not to say")
+
+        if not accessibility_selected:
+            accessibility_selected = ["Not specified"]
+
+    else:
+        accessibility_selected = ["No Accessibility Needs"]
+
     accessibility_cleaned = ", ".join(accessibility_selected)
 
     st.markdown('<div class="question-label">3. How long do you plan to stay in the park today?</div>', unsafe_allow_html=True)
