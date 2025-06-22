@@ -56,8 +56,7 @@ st.set_page_config(page_title="Participant Information & Consent")
 
 st.markdown(f"""
     <div style='text-align: center;'>
-        <img src='data:image/png;base64,{encoded}' width='250'>
-        <h1>Welcome</h1>
+        <img src='data:image/png;base64,{encoded}' width='150'>
     </div>
 """, unsafe_allow_html=True)
 
