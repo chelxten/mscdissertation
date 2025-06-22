@@ -92,7 +92,7 @@ with st.form("questionnaire_form"):
 
         if not accessibility_selected:
             accessibility_selected = ["Not specified"]
-
+            
     else:
         accessibility_selected = ["No Accessibility Needs"]
 
