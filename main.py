@@ -51,8 +51,12 @@ def generate_unique_id():
 
 st.set_page_config(page_title="Participant Information & Consent")
 
-st.image("Sheffield-Hallam-University.png", width=250)
-st.title("Welcome")
+st.markdown("""
+    <div style='text-align: center;'>
+        <img src='Sheffield-Hallam-University.png' width='250'>
+        <h1>Welcome</h1>
+    </div>
+""", unsafe_allow_html=True)
 
 st.image("static/headerq.png", use_container_width=True)
 
