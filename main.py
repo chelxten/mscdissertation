@@ -54,7 +54,7 @@ st.set_page_config(page_title="Participant Information & Consent")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Welcome")
 
-st.image("static/map.jpg", use_container_width=True)
+st.image("static/headerq.png", use_container_width=True)
 
 # ✅ Project Intro (exactly as SHU guideline requests)
 st.markdown(f"""
