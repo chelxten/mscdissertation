@@ -79,7 +79,7 @@ with st.form("questionnaire_form"):
     accessibility_selected = []
 
     if accessibility_required == "Yes":
-        st.markdown("Please specify (you may select more than one):")
+        st.markdown("If Yes, Please specify (you may select more than one):")
         col1, col2 = st.columns(2)
         with col1:
             physical = st.checkbox("Physical", key="acc_physical")
