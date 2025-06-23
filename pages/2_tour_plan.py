@@ -791,7 +791,7 @@ ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
 ax.set_ylabel("Energy Level (%)")
 ax.grid(True)
-#st.pyplot(fig)
+st.pyplot(fig)
 
 # ------------------------------------------
 # 8. Display & Time Calculation with Walks
