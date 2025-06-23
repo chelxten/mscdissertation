@@ -499,20 +499,24 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
+# 🚿 Build wet ride block
 def build_wet_block(route, wet_rides):
     wet_block = [a for a in route if a in wet_rides]
     if not wet_block:
         return []
 
+    # Add change stop after wet rides
     change_stop = "[Clothing Change] Shower & Changing Room"
     if change_stop not in wet_block:
         wet_block.append(change_stop)
 
     return wet_block
 
+# 🧼 Strip wet rides & change from original route
 def strip_wet_block(route, wet_rides):
     return [a for a in route if a not in wet_rides and not a.startswith("[Clothing Change]")]
 
+# 🔁 Inject wet rides in middle
 def insert_wet_block(route, wet_block):
     if not wet_block:
         return route
@@ -703,23 +707,21 @@ def insert_breaks(route):
 
 # 🚦 Final plan construction
 # Step 1: Initial attractions & greedy layout
+# 1️⃣ Create initial optimized route
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
 
-# Step 2: Build & strip wet rides
-wet_block = build_wet_block(final_route, wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"})
-dry_route = strip_wet_block(final_route, wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"})
+# 2️⃣ Wet logic — lock in block early
+wet_ride_names = {"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"}
+wet_block = build_wet_block(final_route, wet_ride_names)
+dry_route = strip_wet_block(final_route, wet_ride_names)
 
-# Step 3: Reorder medium-intensity zones (on dry only)
+# 3️⃣ Proceed with dry route planning
 dry_route = reorder_medium_intensity(dry_route)
-
-# Step 4: Insert breaks & meals (on dry only)
 dry_with_breaks = insert_breaks(dry_route)
+dry_cleaned = no_consecutive_food_or_break(dry_with_breaks, zones)
 
-# Step 5: Enforce no consecutive food/break
-cleaned_dry = no_consecutive_food_or_break(dry_with_breaks, zones)
-
-# Step 6: Final reinsertion of wet block in the middle
-final_plan = insert_wet_block(cleaned_dry, wet_block)
+# 4️⃣ Final merge
+final_plan = insert_wet_block(dry_cleaned, wet_block)
 
 
 
