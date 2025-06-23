@@ -560,6 +560,9 @@ def reorder_medium_intensity(route):
     reordered += medium_stops[m_idx:]
     return reordered
 
+
+meal_break_count = 0
+max_meals = 3
 walking_speed = 67  # meters/min
 def insert_breaks(route):
     updated = []
@@ -619,13 +622,15 @@ def insert_breaks(route):
                 last_break_time = total_elapsed_time
 
         # 🍔 Food logic
-        if elapsed_since_food >= preferred_food_gap:
+        # 🍔 Food logic with meal cap
+        if elapsed_since_food >= preferred_food_gap and meal_break_count < max_meals:
             options = [f for f in zones["food"] if f not in used_food_spots]
             if options:
                 best = min(options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
                 updated.append(best)
                 used_food_spots.add(best)
                 elapsed_since_food = 0
+                meal_break_count += 1  # 👈 Increment the counter
                 energy_level = min(100, energy_level + energy_settings['food_boost'])
 
         current_location = attraction_coordinates[stop]
