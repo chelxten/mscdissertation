@@ -496,6 +496,35 @@ food_interval_sim.compute()
 preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 240))  # cap between 1h and 4h
 
 # ------------------------------------------
+# 7. No Consecutive Break
+# ------------------------------------------
+
+def no_consecutive_food_or_break(attractions, zones):
+    final = []
+    prev_type = None
+
+    for item in attractions:
+        # Identify the zone type of current item
+        zone = next((z for z, items in zones.items() if item in items), None)
+
+        # If current is food or relaxation, avoid back-to-back repetition
+        if zone in ["food", "relaxation"]:
+            if prev_type == zone:
+                # Find alternate attraction not of same type
+                alt = next((a for a in attractions if a not in final and next((z2 for z2, i2 in zones.items() if a in i2), None) not in [prev_type]), None)
+                if alt:
+                    final.append(alt)
+                    prev_type = next((z for z, items in zones.items() if alt in items), None)
+                    continue
+            else:
+                prev_type = zone
+        else:
+            prev_type = None  # reset when not food/break
+
+        final.append(item)
+    return final
+    
+# ------------------------------------------
 # 7. Break Insertion
 # ------------------------------------------
 
@@ -597,7 +626,8 @@ def insert_breaks(route):
 
 # 🚦 Final plan construction
 final_route = reorder_medium_intensity(final_route)
-final_plan = insert_breaks(final_route)
+final_plan_with_breaks = insert_breaks(final_route)
+final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
 
 import matplotlib.pyplot as plt
 
