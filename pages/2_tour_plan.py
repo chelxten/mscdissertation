@@ -146,7 +146,7 @@ zone_intensity = {
     "relaxation": 0.1       # Passive resting (benches, gardens)
 }
 
-wet_rides = {"Water Slide", "Wave Pool", "Splash Battle"}
+wet_ride_names = {"Water Slide", "Wave Pool", "Splash Battle"}
 
 # ------------------------------------------
 # 4. Weighted Allocation System (Fuzzy Logic)
