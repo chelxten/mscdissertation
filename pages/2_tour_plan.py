@@ -499,51 +499,42 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
-# 🚿 Build wet ride block
-def build_wet_block(route, wet_rides):
-    wet_block = [a for a in route if a in wet_rides]
-    if not wet_block:
-        return []
-
-    # Add change stop after wet rides
-    change_stop = "[Clothing Change] Shower & Changing Room"
-    if change_stop not in wet_block:
-        wet_block.append(change_stop)
-
-    return wet_block
-
-# 🧼 Strip wet rides & change from original route
-def strip_wet_block(route, wet_rides):
-    return [a for a in route if a not in wet_rides and not a.startswith("[Clothing Change]")]
-
-# 🔁 Inject wet rides in middle
-def insert_wet_block(route, wet_block):
-    if not wet_block:
-        return route
-    mid = len(route) // 2
-    return route[:mid] + wet_block + route[mid:]
-    
 def schedule_wet_rides_midday(route, wet_rides, zones):
     """
-    Forces all wet rides to be grouped and moved to the middle of the route,
-    followed by a clothing change stop.
+    Moves all wet rides to the middle of the route, followed by [Clothing Change],
+    and injects 1–2 medium-intensity fillers between wet rides and food/rest zones.
     """
     wet_block = [a for a in route if a in wet_rides]
     dry_block = [a for a in route if a not in wet_rides and not a.startswith("[Clothing Change]")]
 
     if not wet_block:
-        return route  # no wet rides, nothing to do
+        return route
 
-    # Insert [Clothing Change] if not already present
+    # Insert clothing change after wet rides
     change_stop = "[Clothing Change] Shower & Changing Room"
     if change_stop not in wet_block:
         wet_block.append(change_stop)
 
-    # Inject wet_block into middle of dry_block
+    # Insert wet block into middle of dry block
     insert_pos = len(dry_block) // 2
-    new_route = dry_block[:insert_pos] + wet_block + dry_block[insert_pos:]
+    merged = dry_block[:insert_pos] + wet_block + dry_block[insert_pos:]
 
-    return new_route
+    # ➕ After wet block, insert 1–2 medium zones (family/entertainment) before next break
+    last_wet_idx = merged.index(wet_block[-1])
+    after_wet = merged[last_wet_idx + 1:]
+
+    fillers = [a for a in after_wet if any(a in zones[z] for z in ["family", "entertainment"])]
+    filler_count = 2 if len(fillers) >= 2 else 1 if fillers else 0
+    selected_fillers = fillers[:filler_count]
+
+    # Remove fillers from original location
+    merged = [a for a in merged if a not in selected_fillers]
+
+    # Re-insert fillers right after wet block
+    insert_pos = merged.index(wet_block[-1]) + 1
+    merged = merged[:insert_pos] + selected_fillers + merged[insert_pos:]
+
+    return merged
     
 
 food_pref = preferences["food"]
@@ -563,34 +554,20 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 def no_consecutive_food_or_break(attractions, zones):
     final = []
     prev_zone = None
-    used_items = set()
-
     for i, item in enumerate(attractions):
-        if item in used_items:
-            continue  # Skip exact duplicates
+        zone = next((z for z, a in zones.items() if item in a), None)
 
-        current_zone = next((z for z, items in zones.items() if item in items), None)
-
-        # Prevent consecutive food or break zones, regardless of type
-        if current_zone in ["food", "relaxation"] and prev_zone in ["food", "relaxation"]:
-            # Try to find an alternative that is not food/relaxation and not used yet
-            alt = next(
-                (a for a in attractions[i+1:] if a not in used_items and 
-                 next((z2 for z2, i2 in zones.items() if a in i2), None) not in ["food", "relaxation"]),
-                None
-            )
-            if alt:
-                final.append(alt)
-                used_items.add(alt)
-                prev_zone = next((z for z, i2 in zones.items() if alt in i2), None)
-                continue
-            else:
-                continue  # No suitable replacement found, skip this
-        else:
+        if item.startswith("[Clothing Change]"):
             final.append(item)
-            used_items.add(item)
-            prev_zone = current_zone
+            prev_zone = "change"
+            continue
 
+        # Skip if same zone type as previous and both are soft
+        if zone in ["food", "relaxation"] and prev_zone in ["food", "relaxation"]:
+            continue
+
+        final.append(item)
+        prev_zone = zone
     return final
     
 # ------------------------------------------
@@ -701,27 +678,22 @@ def insert_breaks(route):
                 meal_break_count += 1  # 👈 Increment the counter
                 energy_level = min(100, energy_level + energy_settings['food_boost'])
 
+        # Prevent inserting break immediately after wet rides
+        if stop in wet_ride_names and i+1 < len(route):
+            next_stop = route[i+1]
+            next_zone = next((z for z, a in zones.items() if next_stop in a), None)
+            if next_zone in ["relaxation", "food"]:
+                continue  # skip inserting break
+
         current_location = attraction_coordinates[stop]
 
     return updated
 
 # 🚦 Final plan construction
-# Step 1: Initial attractions & greedy layout
-# 1️⃣ Create initial optimized route
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-
-# 2️⃣ Wet logic — lock in block early
-wet_ride_names = {"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"}
-wet_block = build_wet_block(final_route, wet_ride_names)
-dry_route = strip_wet_block(final_route, wet_ride_names)
-
-# 3️⃣ Proceed with dry route planning
-dry_route = reorder_medium_intensity(dry_route)
-dry_with_breaks = insert_breaks(dry_route)
-dry_cleaned = no_consecutive_food_or_break(dry_with_breaks, zones)
-
-# 4️⃣ Final merge
-final_plan = insert_wet_block(dry_cleaned, wet_block)
+routed_with_breaks = insert_breaks(final_route)
+cleaned_route = no_consecutive_food_or_break(routed_with_breaks, zones)
+final_plan = schedule_wet_rides_midday(cleaned_route, wet_ride_names, zones)
 
 
 
