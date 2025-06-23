@@ -501,26 +501,26 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 def schedule_wet_rides_midday(route, wet_rides, zones):
     """
-    Group all wet rides together in the middle of the route,
-    followed immediately by a clothing change stop.
+    Enforce all wet rides are placed together in the middle of the route
+    followed by a clothing change, with no interruptions.
     """
 
-    # Clean any previously inserted clothing change stop
+    # Remove any previous clothing change if inserted
     route = [r for r in route if r != "[Clothing Change] Shower & Changing Room"]
 
-    # Separate wet and non-wet attractions
+    # Identify wet and dry rides
     wet = [a for a in route if a in wet_rides]
     dry = [a for a in route if a not in wet_rides]
 
     if not wet:
-        return route  # No need to alter if no wet rides
+        return route  # No wet rides
 
-    # Mid-point of dry attractions
-    mid_index = len(dry) // 2
-    before = dry[:mid_index]
-    after = dry[mid_index:]
+    # Choose mid-point in dry part
+    mid = len(dry) // 2
+    before = dry[:mid]
+    after = dry[mid:]
 
-    # Insert wet rides and clothing change
+    # Final enforced order
     return before + wet + ["[Clothing Change] Shower & Changing Room"] + after
     
 
@@ -684,24 +684,19 @@ def insert_breaks(route):
     return updated
 
 # 🚦 Final plan construction
-# 1. Build base route
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
 
-# 2. Group wet rides in the middle
+# Group wet rides correctly
 final_route = schedule_wet_rides_midday(
     final_route,
-    wet_rides={"Water Slide", "Wave Pool", "Splash Battle", "Lazy River"},
+    wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"},
     zones=zones
 )
 
-# 3. Reorder medium-intensity for rhythm
+# Then do:
 final_route = reorder_medium_intensity(final_route)
-
-# 4. Insert breaks and food
-final_plan_with_breaks = insert_breaks(final_route)
-
-# 5. Remove consecutive food/breaks
-final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
+final_with_breaks = insert_breaks(final_route)
+final_plan = no_consecutive_food_or_break(final_with_breaks, zones)
 
 if st.checkbox("🔍 Debug Mode"):
     st.write("Final Route:", final_route)
