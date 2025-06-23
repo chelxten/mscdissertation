@@ -618,7 +618,9 @@ def insert_breaks(route):
 
     for i, stop in enumerate(route):
         updated.append(stop)
-        zone = next(z for z, a in zones.items() if stop in a)
+        zone = next((z for z, a in zones.items() if stop in a), None)
+        if zone is None:
+            continue  # Skip unknown utility stops like [Clothing Change]
 
         duration = attraction_durations[stop]
         wait = attraction_wait_times[stop]
