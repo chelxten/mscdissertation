@@ -578,8 +578,12 @@ def reorder_medium_intensity(route):
     other_stops = []
 
     for stop in route:
-        zone = next(z for z, a in zones.items() if stop in a)
-        intensity = zone_intensity[zone]
+        zone = next((z for z, a in zones.items() if stop in a), None)
+        if zone is None:
+            other_stops.append(stop)
+            continue
+
+        intensity = zone_intensity.get(zone, 0)
         if 0.3 <= intensity <= 0.7:
             medium_stops.append(stop)
         else:
