@@ -499,6 +499,26 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
+def build_wet_block(route, wet_rides):
+    wet_block = [a for a in route if a in wet_rides]
+    if not wet_block:
+        return []
+
+    change_stop = "[Clothing Change] Shower & Changing Room"
+    if change_stop not in wet_block:
+        wet_block.append(change_stop)
+
+    return wet_block
+
+def strip_wet_block(route, wet_rides):
+    return [a for a in route if a not in wet_rides and not a.startswith("[Clothing Change]")]
+
+def insert_wet_block(route, wet_block):
+    if not wet_block:
+        return route
+    mid = len(route) // 2
+    return route[:mid] + wet_block + route[mid:]
+    
 def schedule_wet_rides_midday(route, wet_rides, zones):
     """
     Forces all wet rides to be grouped and moved to the middle of the route,
@@ -682,11 +702,24 @@ def insert_breaks(route):
     return updated
 
 # 🚦 Final plan construction
+# Step 1: Initial attractions & greedy layout
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"}, zones=zones)
-final_route = reorder_medium_intensity(final_route)
-final_plan_with_breaks = insert_breaks(final_route)
-final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
+
+# Step 2: Build & strip wet rides
+wet_block = build_wet_block(final_route, wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"})
+dry_route = strip_wet_block(final_route, wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"})
+
+# Step 3: Reorder medium-intensity zones (on dry only)
+dry_route = reorder_medium_intensity(dry_route)
+
+# Step 4: Insert breaks & meals (on dry only)
+dry_with_breaks = insert_breaks(dry_route)
+
+# Step 5: Enforce no consecutive food/break
+cleaned_dry = no_consecutive_food_or_break(dry_with_breaks, zones)
+
+# Step 6: Final reinsertion of wet block in the middle
+final_plan = insert_wet_block(cleaned_dry, wet_block)
 
 if st.checkbox("🔍 Debug Mode"):
     st.write("Final Route:", final_route)
