@@ -55,12 +55,14 @@ zones = {
     "entertainment": ["Live Stage", "Street Parade", "Magic Show", "Circus Tent", "Musical Fountain"],
     "food": ["Food Court", "Snack Bar", "Ice Cream Kiosk", "Pizza Plaza", "Smoothie Station"],
     "shopping": ["Souvenir Shop", "Candy Store", "Photo Booth", "Gift Emporium", "Toy World"],
-    "relaxation": ["Relaxation Garden", "Shaded Benches", "Quiet Lake View", "Zen Courtyard", "Sky Deck"]
+    "relaxation": ["Relaxation Garden", "Shaded Benches", "Quiet Lake View", "Zen Courtyard", "Sky Deck"],
+    "change":["Shower & Changing Room"]
 }
 
 zone_coordinates = {
     "thrill": (100, 400), "water": (400, 400), "family": (100, 100),
-    "entertainment": (400, 100), "food": (250, 250), "shopping": (300, 300), "relaxation": (200, 200)
+    "entertainment": (400, 100), "food": (250, 250), "shopping": (300, 300), "relaxation": (200, 200),
+    "change": (450, 250)
 }
 
 attraction_coordinates = {}
@@ -491,32 +493,19 @@ for a in zones[first_preference_zone]:
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
 def schedule_wet_rides_midday(route, wet_rides, zones):
-    """
-    Repositions wet rides to the middle of the route and appends a relaxation/change stop after them.
-    """
     wet = [a for a in route if a in wet_rides]
     dry = [a for a in route if a not in wet_rides]
 
-    if not wet:
-        return route  # No wet rides present, no change needed
+    if not wet or "change" not in zones or not zones["change"]:
+        return route  # No wet rides or no change facility
 
     mid_index = len(dry) // 2
     before = dry[:mid_index]
     after = dry[mid_index:]
 
-    # Choose nearest available relaxation spot after wet rides
-    change_spot = None
-    for relax in zones["relaxation"]:
-        if relax not in before + wet + after:
-            change_spot = relax
-            break
+    change_spot = zones["change"][0]  # Use the first changing room
 
-    # Assemble final route
-    new_route = before + wet
-    if change_spot:
-        new_route.append(change_spot)
-    new_route += after
-
+    new_route = before + wet + [f"[Clothing Change] {change_spot}"] + after
     return new_route
     
 
@@ -680,8 +669,10 @@ final_route = reorder_medium_intensity(final_route)
 final_plan_with_breaks = insert_breaks(final_route)
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
 
-st.write("Before enforcement:", final_plan_with_breaks)
-st.write("After enforcement:", final_plan)
+if st.checkbox("🔍 Debug Mode"):
+    st.write("Final Route:", final_route)
+    st.write("With Breaks:", final_plan_with_breaks)
+    st.write("Final Plan:", final_plan)
 
 import matplotlib.pyplot as plt
 
@@ -757,7 +748,7 @@ ax.grid(True)
 # ------------------------------------------
 zone_emojis = {
     "thrill": "🎢", "water": "💦", "family": "👨‍👩‍👧‍👦",
-    "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳"
+    "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳", "change": "👕"
 }
 
 plan_text_lines = []
@@ -813,6 +804,16 @@ with st.expander("The Fun Starts Here", expanded=True):
 
         if zone in ["relaxation", "food"]:
             st.markdown("---")
+
+        if stop.startswith("[Clothing Change]"):
+            display_name = f"👕 {stop}"
+            save_name = stop
+            st.markdown("---")
+            energy += 10
+            zone = "change"
+            stop_name = stop[18:]
+        else:
+            zone = next(z for z, a in zones.items() if stop in a)
 
         # Always save safe text version (for export or Sheets)
         plan_text_lines.append(f"{formatted_time} — {save_name} — {total_duration} minutes")
