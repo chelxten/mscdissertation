@@ -686,17 +686,21 @@ def insert_breaks(route):
 # 🚦 Final plan construction
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
 
-# Group wet rides correctly
+# ✅ Move wet rides to middle and append clothing change
 final_route = schedule_wet_rides_midday(
     final_route,
     wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"},
     zones=zones
 )
 
-# Then do:
+# ✅ Reorder medium-intensity rides
 final_route = reorder_medium_intensity(final_route)
-final_with_breaks = insert_breaks(final_route)
-final_plan = no_consecutive_food_or_break(final_with_breaks, zones)
+
+# ✅ Insert breaks and food
+final_plan_with_breaks = insert_breaks(final_route)
+
+# ✅ Enforce no consecutive food/rest
+final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
 
 if st.checkbox("🔍 Debug Mode"):
     st.write("Final Route:", final_route)
