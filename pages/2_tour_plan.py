@@ -499,25 +499,29 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
-def schedule_wet_rides_midday(route, wet_rides):
+def schedule_wet_rides_midday(route, wet_rides, zones):
     """
-    Group wet rides together and insert them around the midpoint of the route.
-    Add a clothing change stop afterward. Avoid placing them at start or end.
+    Move all wet rides to the middle of the route and insert clothing change after them.
     """
+    # Separate wet and non-wet attractions
     wet = [a for a in route if a in wet_rides]
-    dry = [a for a in route if a not in wet_rides]
+    non_wet = [a for a in route if a not in wet_rides]
 
     if not wet:
-        return route  # No wet rides, return as is
+        return route
 
-    # Avoid placing too early or too late
-    if len(dry) >= 4:
-        insert_point = len(dry) // 2
-    else:
-        insert_point = 1  # safe default for short lists
+    # Insert wet rides at the midpoint of non-wet attractions
+    mid_index = len(non_wet) // 2
+    before = non_wet[:mid_index]
+    after = non_wet[mid_index:]
 
-    # Construct new route with wet rides grouped in the middle
-    new_route = dry[:insert_point] + wet + [f"[Clothing Change] {change_location}"] + dry[insert_point:]
+    # Avoid adding [Clothing Change] twice if already added
+    change_stop = "[Clothing Change] Shower & Changing Room"
+    if change_stop in before + wet + after:
+        return before + wet + after
+
+    # Build the new route
+    new_route = before + wet + [change_stop] + after
     return new_route
     
 
@@ -682,7 +686,7 @@ def insert_breaks(route):
 
 # 🚦 Final plan construction
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Wave Pool", "Splash Battle"})
+final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Wave Pool", "Splash Battle"}, zones=zones)
 final_route = reorder_medium_intensity(final_route)
 final_plan_with_breaks = insert_breaks(final_route)
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
