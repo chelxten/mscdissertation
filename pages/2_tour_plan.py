@@ -137,7 +137,7 @@ zone_intensity = {
     "relaxation": 0.1       # Passive resting (benches, gardens)
 }
 
-
+wet_rides = {"Water Slide", "Wave Pool", "Splash Battle"}
 
 # ------------------------------------------
 # 4. Weighted Allocation System (Fuzzy Logic)
@@ -431,6 +431,7 @@ for attraction in all_candidates:
     else:
         break
 
+
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
@@ -485,7 +486,39 @@ for a in zones[first_preference_zone]:
         first_pref_attraction = a
         break
 
-final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
+
+# ------------------------------------------
+# Nearest Relaxation Spot for Break Time 
+# ------------------------------------------
+def schedule_wet_rides_midday(route, wet_rides, zones):
+    """
+    Repositions wet rides to the middle of the route and appends a relaxation/change stop after them.
+    """
+    wet = [a for a in route if a in wet_rides]
+    dry = [a for a in route if a not in wet_rides]
+
+    if not wet:
+        return route  # No wet rides present, no change needed
+
+    mid_index = len(dry) // 2
+    before = dry[:mid_index]
+    after = dry[mid_index:]
+
+    # Choose nearest available relaxation spot after wet rides
+    change_spot = None
+    for relax in zones["relaxation"]:
+        if relax not in before + wet + after:
+            change_spot = relax
+            break
+
+    # Assemble final route
+    new_route = before + wet
+    if change_spot:
+        new_route.append(change_spot)
+    new_route += after
+
+    return new_route
+    
 
 food_pref = preferences["food"]
 
@@ -494,6 +527,8 @@ food_interval_sim.input['priority_food'] = priority_food_val
 food_interval_sim.compute()
 
 preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 240))  # cap between 1h and 4h
+
+
 
 # ------------------------------------------
 # 7. No Consecutive Break
@@ -639,6 +674,8 @@ def insert_breaks(route):
     return updated
 
 # 🚦 Final plan construction
+final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
+final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Wave Pool", "Splash Battle"}, zones=zones)
 final_route = reorder_medium_intensity(final_route)
 final_plan_with_breaks = insert_breaks(final_route)
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
