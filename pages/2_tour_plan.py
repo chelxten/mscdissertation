@@ -721,10 +721,7 @@ cleaned_dry = no_consecutive_food_or_break(dry_with_breaks, zones)
 # Step 6: Final reinsertion of wet block in the middle
 final_plan = insert_wet_block(cleaned_dry, wet_block)
 
-if st.checkbox("🔍 Debug Mode"):
-    st.write("Final Route:", final_route)
-    st.write("With Breaks:", final_plan_with_breaks)
-    st.write("Final Plan:", final_plan)
+
 
 import matplotlib.pyplot as plt
 
