@@ -704,7 +704,9 @@ total_time_check = 0
 previous_location = (0, 0)
 
 for stop in final_plan:
-    zone = next(z for z, a in zones.items() if stop in a)
+    zone = next((z for z, a in zones.items() if stop in a), None)
+    if zone is None:
+        continue 
     duration = attraction_durations[stop]
     wait = attraction_wait_times[stop]
     time_spent = duration + wait
@@ -783,6 +785,17 @@ with st.expander("The Fun Starts Here", expanded=True):
     plan_text_lines.append("Entrance")
 
     for stop in final_plan:
+        zone = next((z for z, a in zones.items() if stop in a), None)
+        if zone is None:
+            if stop.startswith("[Clothing Change]"):
+                display_name = f"👕 {stop}"
+                save_name = stop
+                st.markdown("---")
+                zone = "change"
+                emoji = zone_emojis.get(zone, "")
+            else:
+                continue  # skip unknowns
+                
         scheduled_time = start_time + timedelta(minutes=total_time_used)
         formatted_time = scheduled_time.strftime("%I:%M %p")
 
@@ -796,7 +809,6 @@ with st.expander("The Fun Starts Here", expanded=True):
         if total_time_used + total_duration > visit_duration + 15:
             break
 
-        zone = next(z for z, a in zones.items() if stop in a)
         emoji = "" if zone in ["relaxation", "food"] else zone_emojis.get(zone, "")
 
         # Special formatting
