@@ -629,6 +629,9 @@ final_route = reorder_medium_intensity(final_route)
 final_plan_with_breaks = insert_breaks(final_route)
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
 
+st.write("Before enforcement:", final_plan_with_breaks)
+st.write("After enforcement:", final_plan)
+
 import matplotlib.pyplot as plt
 
 energy = 100
