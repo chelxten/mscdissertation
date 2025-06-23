@@ -561,8 +561,7 @@ def reorder_medium_intensity(route):
     return reordered
 
 
-meal_break_count = 0
-max_meals = 3
+
 walking_speed = 67  # meters/min
 def insert_breaks(route):
     updated = []
@@ -574,6 +573,8 @@ def insert_breaks(route):
     energy_level = 100
     current_location = (0, 0)
     total_elapsed_time = 0
+    meal_break_count = 0
+    max_meals = 3
 
     for i, stop in enumerate(route):
         updated.append(stop)
