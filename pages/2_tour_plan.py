@@ -766,9 +766,12 @@ ax.grid(True)
 # ------------------------------------------
 # 8. Display & Time Calculation with Walks
 # ------------------------------------------
+CLOTHING_CHANGE_DURATION = 10  # minutes
+
 zone_emojis = {
     "thrill": "🎢", "water": "💦", "family": "👨‍👩‍👧‍👦",
-    "entertainment": "🎭", "food": "🍔", "shopping": "🛍️", "relaxation": "🌳", "change": "👕"
+    "entertainment": "🎭", "food": "🍔", "shopping": "🛍️",
+    "relaxation": "🌳", "change": "👕"
 }
 
 plan_text_lines = []
@@ -785,19 +788,22 @@ with st.expander("The Fun Starts Here", expanded=True):
     plan_text_lines.append("Entrance")
 
     for stop in final_plan:
+        if stop.startswith("[Clothing Change]"):
+            display_name = "👕 [Clothing Change] Shower & Changing Room"
+            save_name = stop
+            formatted_time = (start_time + timedelta(minutes=total_time_used)).strftime("%I:%M %p")
+            st.markdown(f"**{formatted_time} — {display_name} — {CLOTHING_CHANGE_DURATION} minutes**")
+            if show_details_block:
+                st.markdown("• Includes: 10m clothing change time")
+            plan_text_lines.append(f"{formatted_time} — {save_name} — {CLOTHING_CHANGE_DURATION} minutes")
+            plan_text_lines.append("Includes: 10m clothing change time")
+            total_time_used += CLOTHING_CHANGE_DURATION
+            st.markdown("---")
+            continue
+
         zone = next((z for z, a in zones.items() if stop in a), None)
         if zone is None:
-            if stop.startswith("[Clothing Change]"):
-                display_name = f"👕 {stop}"
-                save_name = stop
-                st.markdown("---")
-                zone = "change"
-                emoji = zone_emojis.get(zone, "")
-            else:
-                continue  # skip unknowns
-                
-        scheduled_time = start_time + timedelta(minutes=total_time_used)
-        formatted_time = scheduled_time.strftime("%I:%M %p")
+            continue  # skip unknowns
 
         ride_time = attraction_durations[stop]
         wait_time = attraction_wait_times[stop]
@@ -809,22 +815,23 @@ with st.expander("The Fun Starts Here", expanded=True):
         if total_time_used + total_duration > visit_duration + 15:
             break
 
-        emoji = "" if zone in ["relaxation", "food"] else zone_emojis.get(zone, "")
+        scheduled_time = start_time + timedelta(minutes=total_time_used)
+        formatted_time = scheduled_time.strftime("%I:%M %p")
+        emoji = zone_emojis.get(zone, "")
 
         # Special formatting
         if zone == "relaxation":
-            display_name = f"🌿 [Rest Stop]  {stop}"
+            display_name = f"🌿 [Rest Stop] {stop}"
             save_name = f"[Rest Stop] {stop}"
             st.markdown("---")
         elif zone == "food":
-            display_name = f"🍽️ [Meal Break]  {stop}"
+            display_name = f"🍽️ [Meal Break] {stop}"
             save_name = f"[Meal Break] {stop}"
             st.markdown("---")
         else:
-            display_name = f"{emoji}  {stop}"
+            display_name = f"{emoji} {stop}"
             save_name = stop
 
-        # Display to screen
         display_line = f"**{formatted_time} — {display_name} — {total_duration} minutes**"
         st.markdown(display_line)
 
@@ -835,15 +842,6 @@ with st.expander("The Fun Starts Here", expanded=True):
         if zone in ["relaxation", "food"]:
             st.markdown("---")
 
-        if stop.startswith("[Clothing Change]"):
-            display_name = f"👕 [Clothing Change] Shower & Changing Room"
-            save_name = stop
-            st.markdown("---")
-            energy += 10  # Optional bonus
-            zone = "utility"  # skip fuzzy / emoji
-            stop_name = stop[len("[Clothing Change] "):]
-
-        # Always save safe text version (for export or Sheets)
         plan_text_lines.append(f"{formatted_time} — {save_name} — {total_duration} minutes")
         plan_text_lines.append(f"Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk")
 
@@ -853,24 +851,23 @@ with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Exit**")
     plan_text_lines.append("Exit")
 
-# Final time info
+# ⏱ Final time info
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
-# Store for Sheets or Download
+# 🗂 Save Plan
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
 
+# 🧾 Save to Sheet
 uid = st.session_state.get("unique_id")
 sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
 if cell:
     row_num = cell.row
-
-    # Update clean plan
-    sheet.update_cell(row_num, 19, final_clean_plan)  # Column S
-    sheet.update_cell(row_num, 20, str(int(total_time_used)))  # Column T
-    sheet.update_cell(row_num, 21, str(int(leftover_time)))    # Column U
+    sheet.update_cell(row_num, 19, final_clean_plan)
+    sheet.update_cell(row_num, 20, str(int(total_time_used)))
+    sheet.update_cell(row_num, 21, str(int(leftover_time)))
 else:
     st.warning("⚠️ Could not save tour plan. User ID not found in the sheet.")
 
