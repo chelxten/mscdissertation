@@ -501,28 +501,27 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 def schedule_wet_rides_midday(route, wet_rides, zones):
     """
-    Move all wet rides to the middle of the route and insert clothing change after them.
+    Group all wet rides together in the middle of the route,
+    followed immediately by a clothing change stop.
     """
+
+    # Clean any previously inserted clothing change stop
+    route = [r for r in route if r != "[Clothing Change] Shower & Changing Room"]
+
     # Separate wet and non-wet attractions
     wet = [a for a in route if a in wet_rides]
-    non_wet = [a for a in route if a not in wet_rides]
+    dry = [a for a in route if a not in wet_rides]
 
     if not wet:
-        return route
+        return route  # No need to alter if no wet rides
 
-    # Insert wet rides at the midpoint of non-wet attractions
-    mid_index = len(non_wet) // 2
-    before = non_wet[:mid_index]
-    after = non_wet[mid_index:]
+    # Mid-point of dry attractions
+    mid_index = len(dry) // 2
+    before = dry[:mid_index]
+    after = dry[mid_index:]
 
-    # Avoid adding [Clothing Change] twice if already added
-    change_stop = "[Clothing Change] Shower & Changing Room"
-    if change_stop in before + wet + after:
-        return before + wet + after
-
-    # Build the new route
-    new_route = before + wet + [change_stop] + after
-    return new_route
+    # Insert wet rides and clothing change
+    return before + wet + ["[Clothing Change] Shower & Changing Room"] + after
     
 
 food_pref = preferences["food"]
@@ -685,10 +684,23 @@ def insert_breaks(route):
     return updated
 
 # 🚦 Final plan construction
+# 1. Build base route
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Wave Pool", "Splash Battle"}, zones=zones)
+
+# 2. Group wet rides in the middle
+final_route = schedule_wet_rides_midday(
+    final_route,
+    wet_rides={"Water Slide", "Wave Pool", "Splash Battle", "Lazy River"},
+    zones=zones
+)
+
+# 3. Reorder medium-intensity for rhythm
 final_route = reorder_medium_intensity(final_route)
+
+# 4. Insert breaks and food
 final_plan_with_breaks = insert_breaks(final_route)
+
+# 5. Remove consecutive food/breaks
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
 
 if st.checkbox("🔍 Debug Mode"):
