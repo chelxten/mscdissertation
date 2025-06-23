@@ -501,27 +501,35 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 
 def no_consecutive_food_or_break(attractions, zones):
     final = []
-    prev_type = None
+    prev_zone = None
+    used_items = set()
 
-    for item in attractions:
-        # Identify the zone type of current item
-        zone = next((z for z, items in zones.items() if item in items), None)
+    for i, item in enumerate(attractions):
+        if item in used_items:
+            continue  # Skip exact duplicates
 
-        # If current is food or relaxation, avoid back-to-back repetition
-        if zone in ["food", "relaxation"]:
-            if prev_type == zone:
-                # Find alternate attraction not of same type
-                alt = next((a for a in attractions if a not in final and next((z2 for z2, i2 in zones.items() if a in i2), None) not in [prev_type]), None)
-                if alt:
-                    final.append(alt)
-                    prev_type = next((z for z, items in zones.items() if alt in items), None)
-                    continue
+        current_zone = next((z for z, items in zones.items() if item in items), None)
+
+        # Prevent consecutive food or break zones, regardless of type
+        if current_zone in ["food", "relaxation"] and prev_zone in ["food", "relaxation"]:
+            # Try to find an alternative that is not food/relaxation and not used yet
+            alt = next(
+                (a for a in attractions[i+1:] if a not in used_items and 
+                 next((z2 for z2, i2 in zones.items() if a in i2), None) not in ["food", "relaxation"]),
+                None
+            )
+            if alt:
+                final.append(alt)
+                used_items.add(alt)
+                prev_zone = next((z for z, i2 in zones.items() if alt in i2), None)
+                continue
             else:
-                prev_type = zone
+                continue  # No suitable replacement found, skip this
         else:
-            prev_type = None  # reset when not food/break
+            final.append(item)
+            used_items.add(item)
+            prev_zone = current_zone
 
-        final.append(item)
     return final
     
 # ------------------------------------------
