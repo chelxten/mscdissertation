@@ -55,15 +55,15 @@ zones = {
     "entertainment": ["Live Stage", "Street Parade", "Magic Show", "Circus Tent", "Musical Fountain"],
     "food": ["Food Court", "Snack Bar", "Ice Cream Kiosk", "Pizza Plaza", "Smoothie Station"],
     "shopping": ["Souvenir Shop", "Candy Store", "Photo Booth", "Gift Emporium", "Toy World"],
-    "relaxation": ["Relaxation Garden", "Shaded Benches", "Quiet Lake View", "Zen Courtyard", "Sky Deck"],
-    "change":["Shower & Changing Room"]
+    "relaxation": ["Relaxation Garden", "Shaded Benches", "Quiet Lake View", "Zen Courtyard", "Sky Deck"]
 }
 
 zone_coordinates = {
     "thrill": (100, 400), "water": (400, 400), "family": (100, 100),
-    "entertainment": (400, 100), "food": (250, 250), "shopping": (300, 300), "relaxation": (200, 200),
-    "change": (450, 250)
+    "entertainment": (400, 100), "food": (250, 250), "shopping": (300, 300), "relaxation": (200, 200)
 }
+
+
 
 attraction_coordinates = {}
 for zone, attractions in zones.items():
@@ -74,6 +74,13 @@ for zone, attractions in zones.items():
         offset_y = int(radius * np.sin(angle))
         zone_x, zone_y = zone_coordinates[zone]
         attraction_coordinates[attraction] = (zone_x + offset_x, zone_y + offset_y)
+
+# 🧼 Changing Room (Utility location)
+change_location = "Shower & Changing Room"
+change_coordinates = (450, 250)  # or wherever it should be on the map
+
+# Add it to attraction_coordinates
+attraction_coordinates[change_location] = change_coordinates
 
 # ------------------------------------------
 # 3. Accessibility, Duration & Wait Times
@@ -492,20 +499,25 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
-def schedule_wet_rides_midday(route, wet_rides, zones):
+def schedule_wet_rides_midday(route, wet_rides):
+    """
+    Group wet rides together and insert them around the midpoint of the route.
+    Add a clothing change stop afterward. Avoid placing them at start or end.
+    """
     wet = [a for a in route if a in wet_rides]
     dry = [a for a in route if a not in wet_rides]
 
-    if not wet or "change" not in zones or not zones["change"]:
-        return route  # No wet rides or no change facility
+    if not wet:
+        return route  # No wet rides, return as is
 
-    mid_index = len(dry) // 2
-    before = dry[:mid_index]
-    after = dry[mid_index:]
+    # Avoid placing too early or too late
+    if len(dry) >= 4:
+        insert_point = len(dry) // 2
+    else:
+        insert_point = 1  # safe default for short lists
 
-    change_spot = zones["change"][0]  # Use the first changing room
-
-    new_route = before + wet + [f"[Clothing Change] {change_spot}"] + after
+    # Construct new route with wet rides grouped in the middle
+    new_route = dry[:insert_point] + wet + [f"[Clothing Change] {change_location}"] + dry[insert_point:]
     return new_route
     
 
@@ -664,7 +676,7 @@ def insert_breaks(route):
 
 # 🚦 Final plan construction
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Wave Pool", "Splash Battle"}, zones=zones)
+final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Wave Pool", "Splash Battle"})
 final_route = reorder_medium_intensity(final_route)
 final_plan_with_breaks = insert_breaks(final_route)
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
@@ -806,14 +818,12 @@ with st.expander("The Fun Starts Here", expanded=True):
             st.markdown("---")
 
         if stop.startswith("[Clothing Change]"):
-            display_name = f"👕 {stop}"
+            display_name = f"👕 [Clothing Change] Shower & Changing Room"
             save_name = stop
             st.markdown("---")
-            energy += 10
-            zone = "change"
-            stop_name = stop[18:]
-        else:
-            zone = next(z for z, a in zones.items() if stop in a)
+            energy += 10  # Optional bonus
+            zone = "utility"  # skip fuzzy / emoji
+            stop_name = stop[len("[Clothing Change] "):]
 
         # Always save safe text version (for export or Sheets)
         plan_text_lines.append(f"{formatted_time} — {save_name} — {total_duration} minutes")
