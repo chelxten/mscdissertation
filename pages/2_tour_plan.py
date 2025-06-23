@@ -501,27 +501,25 @@ for a in zones[first_preference_zone]:
 # ------------------------------------------
 def schedule_wet_rides_midday(route, wet_rides, zones):
     """
-    Enforce all wet rides are placed together in the middle of the route
-    followed by a clothing change, with no interruptions.
+    Forces all wet rides to be grouped and moved to the middle of the route,
+    followed by a clothing change stop.
     """
+    wet_block = [a for a in route if a in wet_rides]
+    dry_block = [a for a in route if a not in wet_rides and not a.startswith("[Clothing Change]")]
 
-    # Remove any previous clothing change if inserted
-    route = [r for r in route if r != "[Clothing Change] Shower & Changing Room"]
+    if not wet_block:
+        return route  # no wet rides, nothing to do
 
-    # Identify wet and dry rides
-    wet = [a for a in route if a in wet_rides]
-    dry = [a for a in route if a not in wet_rides]
+    # Insert [Clothing Change] if not already present
+    change_stop = "[Clothing Change] Shower & Changing Room"
+    if change_stop not in wet_block:
+        wet_block.append(change_stop)
 
-    if not wet:
-        return route  # No wet rides
+    # Inject wet_block into middle of dry_block
+    insert_pos = len(dry_block) // 2
+    new_route = dry_block[:insert_pos] + wet_block + dry_block[insert_pos:]
 
-    # Choose mid-point in dry part
-    mid = len(dry) // 2
-    before = dry[:mid]
-    after = dry[mid:]
-
-    # Final enforced order
-    return before + wet + ["[Clothing Change] Shower & Changing Room"] + after
+    return new_route
     
 
 food_pref = preferences["food"]
@@ -685,21 +683,9 @@ def insert_breaks(route):
 
 # 🚦 Final plan construction
 final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-
-# ✅ Move wet rides to middle and append clothing change
-final_route = schedule_wet_rides_midday(
-    final_route,
-    wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"},
-    zones=zones
-)
-
-# ✅ Reorder medium-intensity rides
+final_route = schedule_wet_rides_midday(final_route, wet_rides={"Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"}, zones=zones)
 final_route = reorder_medium_intensity(final_route)
-
-# ✅ Insert breaks and food
 final_plan_with_breaks = insert_breaks(final_route)
-
-# ✅ Enforce no consecutive food/rest
 final_plan = no_consecutive_food_or_break(final_plan_with_breaks, zones)
 
 if st.checkbox("🔍 Debug Mode"):
