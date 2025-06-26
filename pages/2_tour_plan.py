@@ -1093,7 +1093,7 @@ def build_rhythm_route(start_location, attractions, duration_limit):
     current_location = start_location
     last_intensity = 0.5  # assume medium as neutral start
 
-    while remaining and elapsed < total_time_limit:
+    while remaining and elapsed < duration_limit:
         next_type = get_next_attraction_type(energy, elapsed, last_intensity)
         next_stop = pick_nearest_of_type(current_location, next_type, remaining)
 
