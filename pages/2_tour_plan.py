@@ -220,6 +220,8 @@ food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
 # 5C. Fuzzy Rules: Inputs → Weight Output
 # ------------------------------------------
 
+top_zone = max(preferences, key=preferences.get)
+
 rules = []
 
 
