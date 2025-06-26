@@ -730,22 +730,7 @@ def reorder_medium_intensity(route):
     reordered += medium_stops[m_idx:]
     return reordered
 
-def compute_energy_loss(intensity, walk_time, age_factor):
-    try:
-        # Clamp values to valid fuzzy input ranges
-        intensity = min(max(intensity, 0.0), 1.0)
-        walk_time = min(max(walk_time, 0), 15)
-        age_factor = min(max(age_factor, 0.8), 1.4)
 
-        energy_loss_sim.input['intensity'] = intensity
-        energy_loss_sim.input['walk_time'] = walk_time
-        energy_loss_sim.input['age_sensitivity'] = age_factor
-        energy_loss_sim.compute()
-
-        return energy_loss_sim.output['energy_loss']
-    except Exception as e:
-        print(f"⚠️ Energy loss fallback due to: {e}")
-        return 8  # Safe default
 
 walking_speed = 67  # meters/min
 def insert_breaks(route):
@@ -792,7 +777,15 @@ def insert_breaks(route):
         intensity_val = zone_intensity.get(zone, 1.0)
         age_sens = energy_settings['loss_factor']
 
-        energy_loss = compute_energy_loss(intensity_val, walk_time, age_sens)
+        try:
+            energy_loss_sim.input['intensity'] = intensity_val
+            energy_loss_sim.input['walk_time'] = walk_time
+            energy_loss_sim.input['age_sensitivity'] = age_sens
+            energy_loss_sim.compute()
+            energy_loss = energy_loss_sim.output['energy_loss']
+        except Exception as e:
+            print("⚠️ Fuzzy energy_loss fallback:", e)
+            energy_loss = 8
 
         energy_level = max(0, energy_level - energy_loss)
 
