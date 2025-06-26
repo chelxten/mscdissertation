@@ -1084,7 +1084,7 @@ def insert_rest_and_meals(route, preferred_food_gap, energy_settings):
 
     return updated
     
-def build_rhythm_route(start_point, available_attractions, total_time_limit=360):
+def build_rhythm_route(start_location, attractions, duration_limit):
     route = []
     remaining = available_attractions.copy()
     energy = 100
