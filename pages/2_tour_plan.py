@@ -898,6 +898,7 @@ wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zon
 final_route = insert_breaks(wet_scheduled)
 final_route = no_consecutive_food_or_break(final_route, zones)
 
+final_route = list(dict.fromkeys(final_route))
 
 final_plan = final_route
 
