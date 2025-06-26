@@ -194,9 +194,9 @@ for priority in [priority_thrill, priority_food, priority_comfort]:
     priority['no'] = fuzz.trimf(priority.universe, [0, 0, 1])
     priority['yes'] = fuzz.trimf(priority.universe, [0, 1, 1])
 
-weight_output['low'] = fuzz.trimf(weight_output.universe, [0, 0, 5])
-weight_output['medium'] = fuzz.trimf(weight_output.universe, [2, 5, 8])
-weight_output['high'] = fuzz.trimf(weight_output.universe, [5, 10, 10])
+weight_output['low'] = fuzz.trimf(weight_output.universe, [0, 0, 4])
+weight_output['medium'] = fuzz.trimf(weight_output.universe, [3, 5, 7])
+weight_output['high'] = fuzz.trimf(weight_output.universe, [6, 10, 10])
 
 food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
 
@@ -204,59 +204,89 @@ food_interval['short'] = fuzz.trimf(food_interval.universe, [60, 90, 120])
 food_interval['medium'] = fuzz.trimf(food_interval.universe, [100, 135, 170])
 food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
 
-# -- Define fuzzy rules --
-rules = [
-    ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high']),
-    ctrl.Rule(preference_input['medium'] & accessibility_input['moderate'], weight_output['medium']),
-    ctrl.Rule(preference_input['low'] | accessibility_input['poor'], weight_output['low']),
-    ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['high']),
-    ctrl.Rule(preference_input['medium'] & accessibility_input['good'], weight_output['high']),
 
+# -------------------------------
+# Fuzzy System Definition Starts
+# -------------------------------
+
+# -- Define fuzzy rules --
+rules = []
+
+# -------------------------------
+# A. Core: Preference × Accessibility
+# -------------------------------
+rules += [
+    ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high']),
+    ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['medium']),
+    ctrl.Rule(preference_input['high'] & accessibility_input['poor'], weight_output['medium']),
+
+    ctrl.Rule(preference_input['medium'] & accessibility_input['good'], weight_output['medium']),
+    ctrl.Rule(preference_input['medium'] & accessibility_input['moderate'], weight_output['medium']),
+    ctrl.Rule(preference_input['medium'] & accessibility_input['poor'], weight_output['low']),
+
+    ctrl.Rule(preference_input['low'], weight_output['low']),
+]
+
+# -------------------------------
+# B. User Attributes: Walk & Wait
+# -------------------------------
+rules += [
     ctrl.Rule(wait_tolerance['low'], weight_output['low']),
     ctrl.Rule(wait_tolerance['high'], weight_output['high']),
-
-    ctrl.Rule(walking_input['long'], weight_output['high']),
     ctrl.Rule(walking_input['short'], weight_output['low']),
+    ctrl.Rule(walking_input['long'], weight_output['high']),
+]
 
+# -------------------------------
+# C. User Priorities
+# -------------------------------
+rules += [
     ctrl.Rule(priority_thrill['yes'], weight_output['high']),
-    ctrl.Rule(priority_food['yes'], weight_output['high']),
-    ctrl.Rule(priority_comfort['yes'], weight_output['high']),
+    ctrl.Rule(priority_food['yes'], weight_output['medium']),
+    ctrl.Rule(priority_comfort['yes'], weight_output['medium']),
+]
 
-    # 1. High preference + long walking + moderate wait → High weight
-    ctrl.Rule(preference_input['high'] & walking_input['long'] & wait_tolerance['medium'], weight_output['high']),
-
-    # 2. Medium preference + short walking + good accessibility → Medium weight
-    ctrl.Rule(preference_input['medium'] & walking_input['short'] & accessibility_input['good'], weight_output['medium']),
-
-    # 3. High preference + poor accessibility → Medium weight (penalize access)
-    ctrl.Rule(preference_input['high'] & accessibility_input['poor'], weight_output['medium']),
-    
-    # 4. Low preference + poor accessibility → Low weight
-    ctrl.Rule(preference_input['low'] & accessibility_input['poor'], weight_output['low']),
-
-    # 5. High preference + low wait tolerance → Medium weight (conflict)
-    ctrl.Rule(preference_input['high'] & wait_tolerance['low'], weight_output['medium']),
-
-    # 6. High preference + high wait tolerance + long walking → High weight
-    ctrl.Rule(preference_input['high'] & wait_tolerance['high'] & walking_input['long'], weight_output['high']),
-
-    # 7. Medium preference + moderate accessibility + short walking → Medium weight
-    ctrl.Rule(preference_input['medium'] & accessibility_input['moderate'] & walking_input['short'], weight_output['medium']),
-
-    # 8. Priority: thrill=yes + low wait tolerance → High weight
-    ctrl.Rule(priority_thrill['yes'] & wait_tolerance['low'], weight_output['high']),
-
-    # 9. Priority: food=yes + short walking → High weight (comfort focus)
-    ctrl.Rule(priority_food['yes'] & walking_input['short'], weight_output['high']),
-
-    # 10. Priority: comfort=yes + poor accessibility → Medium weight (penalize access)
-    ctrl.Rule(priority_comfort['yes'] & accessibility_input['poor'], weight_output['medium']),
-
-    ctrl.Rule(intensity_input['high'] & walking_input['long'], weight_output['medium']),
-    ctrl.Rule(intensity_input['high'] & wait_tolerance['low'], weight_output['medium']),
+# -------------------------------
+# D. Zone Intensity Adjustment
+# -------------------------------
+rules += [
+    ctrl.Rule(intensity_input['high'] & preference_input['high'], weight_output['medium']),
     ctrl.Rule(intensity_input['high'] & preference_input['low'], weight_output['low']),
-    ctrl.Rule(intensity_input['low'], weight_output['medium'])  # light zones get neutral boost,
+    ctrl.Rule(intensity_input['low'], weight_output['medium']),
+]
+
+# -------------------------------
+# E. Top-Zone Reinforcement
+# -------------------------------
+reinforcement_rules = []
+if top_zone == "thrill":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & priority_thrill['yes'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & wait_tolerance['medium'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
     ]
+elif top_zone == "family":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
+    ]
+elif top_zone == "water":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & wait_tolerance['high'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
+    ]
+elif top_zone == "entertainment":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & wait_tolerance['medium'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
+    ]
+elif top_zone == "shopping":
+    reinforcement_rules += [
+        ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
+        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
+    ]
+
+rules += reinforcement_rules
 
 food_interval_rules = [
     ctrl.Rule(preference_input['high'] & priority_food['yes'], food_interval['short']),
@@ -267,44 +297,50 @@ food_interval_rules = [
 food_interval_ctrl = ctrl.ControlSystem(food_interval_rules)
 food_interval_sim = ctrl.ControlSystemSimulation(food_interval_ctrl)
 
-# Special reinforcement for top preference zone
-reinforcement_rules = []
+# -------------------------------
+# Fuzzy Energy Loss Estimation
+# -------------------------------
+intensity_input_energy = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'intensity')
+walk_time_input = ctrl.Antecedent(np.arange(0, 16, 1), 'walk_time')  # up to 15 minutes walk
+age_sensitivity_input = ctrl.Antecedent(np.arange(0.8, 1.4, 0.1), 'age_sensitivity')
 
-if top_zone == "thrill":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & priority_thrill['yes'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & wait_tolerance['medium'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
-    ]
+energy_loss_output = ctrl.Consequent(np.arange(0, 21, 1), 'energy_loss')  # 0–20 points per stop
 
-elif top_zone == "family":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
-    ]
+# Intensity
+intensity_input_energy['low'] = fuzz.trimf(intensity_input_energy.universe, [0.0, 0.0, 0.4])
+intensity_input_energy['medium'] = fuzz.trimf(intensity_input_energy.universe, [0.3, 0.5, 0.7])
+intensity_input_energy['high'] = fuzz.trimf(intensity_input_energy.universe, [0.6, 1.0, 1.0])
 
-elif top_zone == "water":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & wait_tolerance['high'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & walking_input['medium'], weight_output['high'])
-    ]
+# Walk time
+walk_time_input['short'] = fuzz.trimf(walk_time_input.universe, [0, 0, 5])
+walk_time_input['medium'] = fuzz.trimf(walk_time_input.universe, [3, 7, 11])
+walk_time_input['long'] = fuzz.trimf(walk_time_input.universe, [10, 15, 15])
 
-elif top_zone == "entertainment":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & wait_tolerance['medium'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
-    ]
+# Age sensitivity
+age_sensitivity_input['low'] = fuzz.trimf(age_sensitivity_input.universe, [0.8, 0.8, 1.0])
+age_sensitivity_input['medium'] = fuzz.trimf(age_sensitivity_input.universe, [0.9, 1.1, 1.2])
+age_sensitivity_input['high'] = fuzz.trimf(age_sensitivity_input.universe, [1.1, 1.3, 1.4])
 
-elif top_zone == "shopping":
-    reinforcement_rules += [
-        ctrl.Rule(preference_input['high'] & walking_input['short'], weight_output['high']),
-        ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high'])
-    ]
+# Energy loss
+energy_loss_output['low'] = fuzz.trimf(energy_loss_output.universe, [0, 0, 8])
+energy_loss_output['medium'] = fuzz.trimf(energy_loss_output.universe, [5, 10, 15])
+energy_loss_output['high'] = fuzz.trimf(energy_loss_output.universe, [12, 20, 20])
 
-# Combine with main rules
-rules += reinforcement_rules
+energy_loss_rules = [
+    ctrl.Rule(intensity_input_energy['high'] & walk_time_input['long'] & age_sensitivity_input['high'], energy_loss_output['high']),
+    ctrl.Rule(intensity_input_energy['high'] & walk_time_input['medium'], energy_loss_output['medium']),
+    ctrl.Rule(intensity_input_energy['medium'] & walk_time_input['medium'], energy_loss_output['medium']),
+    ctrl.Rule(intensity_input_energy['low'] & walk_time_input['short'], energy_loss_output['low']),
+    ctrl.Rule(age_sensitivity_input['low'] & intensity_input_energy['low'], energy_loss_output['low']),
+    ctrl.Rule(intensity_input_energy['medium'] & walk_time_input['long'], energy_loss_output['high']),
+    ctrl.Rule(walk_time_input['long'] & age_sensitivity_input['high'], energy_loss_output['high']),
+    ctrl.Rule(intensity_input_energy['high'] & age_sensitivity_input['low'], energy_loss_output['medium']),
+]
 
-# Build system
+energy_loss_ctrl = ctrl.ControlSystem(energy_loss_rules)
+energy_loss_sim = ctrl.ControlSystemSimulation(energy_loss_ctrl)
+
+
 weight_ctrl = ctrl.ControlSystem(rules)
 weight_sim = ctrl.ControlSystemSimulation(weight_ctrl)
 
@@ -381,7 +417,10 @@ for zone in ["food", "relaxation"]:
 
 # Normalize weights
 total_weight = sum(zone_weights.values())
-normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
+if total_weight > 0:
+    normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
+else:
+    normalized_weights = {z: 1 / len(zone_weights) for z in zone_weights}  # equal weighting
 
 # Optional: Remove intense thrill rides for young children
 if data["age"] == "Under 12":
@@ -392,53 +431,91 @@ if data["age"] == "Under 12":
                 zone_list.remove(ride)
                 
 # ------------------------------------------
-# 5. Initial Attraction Allocation
+# 5. Attraction Scoring Based on Fuzzy Output
 # ------------------------------------------
-# Sort zones by normalized fuzzy weights
-sorted_zones = sorted(normalized_weights, key=lambda z: normalized_weights[z], reverse=True)
 
-ride_zones = ["thrill", "water", "family", "entertainment"]
-ride_zones_present = [z for z in preferences if z in ride_zones]
+# Parameters for scoring (you can tune these)
+WAIT_PENALTY_FACTOR = 0.02     # reduces score if wait is high
+INTENSITY_COMFORT_FACTOR = 0.2 # bonus for low intensity zones
 
-if ride_zones_present:
-    top_pref_zone = max(ride_zones_present, key=lambda z: preferences[z])
-else:
-    top_pref_zone = "family"  # fallback to safe zone
+attraction_scores = {}
 
-# Guarantee its inclusion in the initial attractions
+for zone, attractions in zones.items():
+    zone_weight = normalized_weights.get(zone, 0)
+    user_pref = preferences.get(zone, 5) / 10.0  # Normalize to 0–1
+    intensity = zone_intensity.get(zone, 0.5)
+
+    for attraction in attractions:
+        wait_time = attraction_wait_times.get(attraction, 0)
+        duration = attraction_durations.get(attraction, 5)
+
+        is_wet = attraction in wet_ride_names
+        comfort_penalty = 1.0
+        if is_wet and priority_comfort_val and wet_time_pct < 35:
+            comfort_penalty = 0.7  # reduce score by 30%
+
+        score = (
+            zone_weight
+            * user_pref
+            * (1 - WAIT_PENALTY_FACTOR * wait_time)
+            * (1 + INTENSITY_COMFORT_FACTOR * (1 - intensity))
+            * comfort_penalty
+        )
+
+        attraction_scores[attraction] = score
+        
+
+# Sort all attractions based on score (high to low)
+sorted_attractions = sorted(attraction_scores, key=lambda a: attraction_scores[a], reverse=True)
+
+# ------------------------------------------
+# 6. Balanced Initial Attractions Selection
+# ------------------------------------------
+
 initial_attractions = []
-if top_pref_zone in zones and zones[top_pref_zone]:
-    initial_attractions.append(zones[top_pref_zone][0])
+time_budget = visit_duration + 15
+current_time_used = 0
 
-# Now fill remaining attractions from top-weighted zones (excluding already included one)
-for zone in sorted_zones:
-    if zone != top_pref_zone:
-        for attraction in zones[zone]:
-            if attraction not in initial_attractions:
-                initial_attractions.append(attraction)
-                break  # Only one from each zone
-    if len(initial_attractions) >= 4:
-        break
+# Categorize rides by intensity
+high_rides = []
+medium_rides = []
+low_rides = []
 
-# Calculate remaining time
-remaining_time = visit_duration - sum([
-    attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
-])
+for attraction in sorted_attractions:
+    zone = next((z for z, a_list in zones.items() if attraction in a_list), None)
+    if not zone:
+        continue
 
-# Add more attractions if time allows (respects fuzzy ranking)
-all_candidates = [a for zone in sorted_zones for a in zones[zone] if a not in initial_attractions]
+    ride_time = attraction_durations.get(attraction, 0)
+    wait_time = attraction_wait_times.get(attraction, 0)
+    time_required = ride_time + wait_time
 
-for attraction in all_candidates:
-    time_needed = attraction_durations[attraction] + attraction_wait_times[attraction]
-    projected_time = sum(
-        attraction_durations[a] + attraction_wait_times[a] for a in initial_attractions
-    ) + time_needed
+    if current_time_used + time_required > time_budget:
+        continue
 
-    # Allow up to +15 mins overflow
-    if projected_time <= visit_duration + 15:
-        initial_attractions.append(attraction)
+    intensity = zone_intensity.get(zone, 0.5)
+
+    if intensity >= 0.7:
+        high_rides.append(attraction)
+    elif 0.3 <= intensity < 0.7:
+        medium_rides.append(attraction)
     else:
-        break
+        low_rides.append(attraction)
+
+    current_time_used += time_required
+
+# Interleave rides for balanced pacing
+h, m, l = 0, 0, 0
+while h < len(high_rides) or m < len(medium_rides) or l < len(low_rides):
+    if h < len(high_rides):
+        initial_attractions.append(high_rides[h])
+        h += 1
+    if m < len(medium_rides):
+        initial_attractions.append(medium_rides[m])
+        m += 1
+    if l < len(low_rides) and (len(initial_attractions) % 3 == 0):
+        initial_attractions.append(low_rides[l])
+        l += 1
 
 
 # ------------------------------------------
@@ -455,15 +532,26 @@ def nearest_relaxation_spot(from_attraction):
 # 6. Greedy Route Optimization
 # ------------------------------------------
 def calculate_distance(point_a, point_b):
-    # point_a or point_b can be either attraction name or coordinates
     if isinstance(point_a, str):
         point_a = attraction_coordinates[point_a]
     if isinstance(point_b, str):
         point_b = attraction_coordinates[point_b]
-
     x1, y1 = point_a
     x2, y2 = point_b
     return math.hypot(x2 - x1, y2 - y1)
+
+def reorder_by_distance(route, start_location=(0, 0)):
+    reordered = []
+    current = start_location
+    remaining = [r for r in route if r in attraction_coordinates]
+
+    while remaining:
+        next_stop = min(remaining, key=lambda r: calculate_distance(current, attraction_coordinates[r]))
+        reordered.append(next_stop)
+        current = attraction_coordinates[next_stop]
+        remaining.remove(next_stop)
+
+    return reordered
 
 def greedy_route(attractions, start_with=None):
     route = []
@@ -496,6 +584,40 @@ for a in zones[first_preference_zone]:
         break
 
 
+wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  # from preference score
+comfort_priority = ctrl.Antecedent(np.arange(0, 2, 1), 'comfort_priority')  # binary yes/no
+
+wet_time_position = ctrl.Consequent(np.arange(0, 101, 1), 'wet_time_position')  # % of tour duration
+
+wet_ride_pref['low'] = fuzz.trimf(wet_ride_pref.universe, [0, 0, 5])
+wet_ride_pref['medium'] = fuzz.trimf(wet_ride_pref.universe, [3, 5, 7])
+wet_ride_pref['high'] = fuzz.trimf(wet_ride_pref.universe, [5, 10, 10])
+
+comfort_priority['no'] = fuzz.trimf(comfort_priority.universe, [0, 0, 1])
+comfort_priority['yes'] = fuzz.trimf(comfort_priority.universe, [0, 1, 1])
+
+wet_time_position['early'] = fuzz.trimf(wet_time_position.universe, [0, 0, 30])
+wet_time_position['mid'] = fuzz.trimf(wet_time_position.universe, [25, 50, 75])
+wet_time_position['late'] = fuzz.trimf(wet_time_position.universe, [70, 100, 100])
+
+wet_ride_rules = [
+    ctrl.Rule(wet_ride_pref['high'] & comfort_priority['no'], wet_time_position['early']),
+    ctrl.Rule(wet_ride_pref['medium'], wet_time_position['mid']),
+    ctrl.Rule(comfort_priority['yes'], wet_time_position['late']),
+]
+
+wet_time_ctrl = ctrl.ControlSystem(wet_ride_rules)
+wet_time_sim = ctrl.ControlSystemSimulation(wet_time_ctrl)
+
+# Inputs
+wet_pref_val = preferences.get("water", 5)
+wet_time_sim.input['wet_ride_pref'] = wet_pref_val
+wet_time_sim.input['comfort_priority'] = 1.0 if priority_comfort_val else 0.0
+wet_time_sim.compute()
+
+wet_time_pct = wet_time_sim.output['wet_time_position']  # e.g., 52%
+
+
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
 # ------------------------------------------
@@ -512,14 +634,15 @@ def schedule_wet_rides_midday(route, wet_rides, zones):
 
     # Insert clothing change after wet rides
     change_stop = "[Clothing Change] Shower & Changing Room"
-    if change_stop not in wet_block:
+    if change_stop not in wet_block and change_stop not in dry_block:
         wet_block.append(change_stop)
 
     # Insert wet block into middle of dry block
-    insert_pos = len(dry_block) // 2
+    insert_pos = int((wet_time_pct / 100) * len(dry_block))
+    insert_pos = min(max(1, insert_pos), len(dry_block)-1)
     merged = dry_block[:insert_pos] + wet_block + dry_block[insert_pos:]
 
-    # ➕ After wet block, insert 1–2 medium zones (family/entertainment) before next break
+    # ➕ Insert relaxing fillers after wet rides to help dry off before next food/rest zone
     last_wet_idx = merged.index(wet_block[-1])
     after_wet = merged[last_wet_idx + 1:]
 
@@ -636,7 +759,16 @@ def insert_breaks(route):
         elapsed_since_food += total_this_stop
 
         # 🔋 Energy loss
-        energy_loss = zone_intensity.get(zone, 1) * energy_settings['loss_factor'] * 6
+        intensity_val = zone_intensity.get(zone, 1.0)
+        age_sens = energy_settings['loss_factor']  # e.g., 1.2
+
+        # Walk time already calculated above as walk_time
+        energy_loss_sim.input['intensity'] = intensity_val
+        energy_loss_sim.input['walk_time'] = walk_time
+        energy_loss_sim.input['age_sensitivity'] = age_sens
+        energy_loss_sim.compute()
+
+        energy_loss = energy_loss_sim.output['energy_loss']
         energy_level = max(0, energy_level - energy_loss)
 
         # 🌳 Dynamic rest
@@ -657,10 +789,11 @@ def insert_breaks(route):
             (break_pref == "After every big ride" and stop in {"Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"})
         )
         if needs_break and energy_level >= 40 and (total_elapsed_time - last_break_time) > 10:
-            relax = [s for s in zones["relaxation"] if s not in used_break_spots]
+            relax = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
             if relax:
                 best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
-                updated.append(best)
+                if stop != best:
+                    updated.append(best)
                 used_break_spots.add(best)
                 elapsed_since_break = 0
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
@@ -689,13 +822,27 @@ def insert_breaks(route):
 
     return updated
 
-# 🚦 Final plan construction
-final_route = greedy_route(initial_attractions, start_with=first_pref_attraction)
-routed_with_breaks = insert_breaks(final_route)
-cleaned_route = no_consecutive_food_or_break(routed_with_breaks, zones)
-final_plan = schedule_wet_rides_midday(cleaned_route, wet_ride_names, zones)
+# Optional: start with top zone attraction
+first_preference_zone = max(preferences, key=preferences.get)
+first_pref_attraction = next(
+    (a for a in zones[first_preference_zone] if a in initial_attractions),
+    None
+)
+
+# Apply distance optimization
+optimized_initial = reorder_by_distance(
+    initial_attractions,
+    start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
+)
+
+# Schedule wet rides mid-tour if needed
+wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
+
+# Insert breaks and food stops
+final_route = insert_breaks(wet_scheduled)
 
 
+final_plan = final_route
 
 import matplotlib.pyplot as plt
 
