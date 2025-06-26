@@ -170,6 +170,8 @@ intensity_input      = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'intensity')
 
 weight_output        = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
 
+zone_repeat_count = ctrl.Antecedent(np.arange(0, 4, 1), 'zone_repeat_count')  # 0–3 recent repeats
+
 food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
 
 # ------------------------------------------
@@ -215,6 +217,10 @@ food_interval['short'] = fuzz.trimf(food_interval.universe, [60, 90, 120])
 food_interval['medium'] = fuzz.trimf(food_interval.universe, [100, 135, 170])
 food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
 
+zone_repeat_count['none'] = fuzz.trimf(zone_repeat_count.universe, [0, 0, 1])
+zone_repeat_count['few'] = fuzz.trimf(zone_repeat_count.universe, [0, 1, 2])
+zone_repeat_count['many'] = fuzz.trimf(zone_repeat_count.universe, [1, 3, 3])
+
 
 # ------------------------------------------
 # 5C. Fuzzy Rules: Inputs → Weight Output
@@ -258,6 +264,12 @@ rules += [
     ctrl.Rule(intensity_input['high'] & preference_input['high'], weight_output['medium']),
     ctrl.Rule(intensity_input['high'] & preference_input['low'], weight_output['low']),
     ctrl.Rule(intensity_input['low'], weight_output['medium']),
+]
+
+rules += [
+    ctrl.Rule(zone_repeat_count['many'], weight_output['low']),
+    ctrl.Rule(zone_repeat_count['few'], weight_output['medium']),
+    ctrl.Rule(zone_repeat_count['none'], weight_output['high']),
 ]
 
 # V. Top-Zone Reinforcement
@@ -424,10 +436,13 @@ def compute_energy_loss(intensity, walk_time, age_factor):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 zone_weights = {}
+
 for zone in zones:
     pref = preferences[zone]
     acc = accessibility_factors[zone]
     intensity = zone_intensity[zone]
+
+    repeat_count = 0  # Fallback for now unless using real sequencing context
 
     weight_sim.input['preference'] = pref
     weight_sim.input['accessibility'] = acc
@@ -437,10 +452,11 @@ for zone in zones:
     weight_sim.input['priority_food'] = 1.0 if zone == "food" and priority_food_val else 0.0
     weight_sim.input['priority_comfort'] = 1.0 if zone == "relaxation" and priority_comfort_val else 0.0
     weight_sim.input['intensity'] = intensity
+    weight_sim.input['zone_repeat_count'] = repeat_count
 
     weight_sim.compute()
     zone_weights[zone] = weight_sim.output['weight']
-
+        
 # Cap passive zones
 for zone in ["food", "relaxation"]:
     if zone in zone_weights:
@@ -462,53 +478,61 @@ if data["age"] == "Under 12":
                 zone_list.remove(ride)
                 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 7. Attraction Scoring Based on Zone Weights
+# 7. Attraction Scoring Based on Zone Weights + Rhythm
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Parameters for scoring (you can tune these)
 WAIT_PENALTY_FACTOR = 0.02     # reduces score if wait is high
 INTENSITY_COMFORT_FACTOR = 0.2 # bonus for low intensity zones
 
-# Maintain memory of last 2 zones for rhythm adjustment
+attraction_scores = {}
 recent_zones = []
 
-attraction_scores = {}
-
 for zone, attractions in zones.items():
-    zone_weight = normalized_weights.get(zone, 0)
-    user_pref = preferences.get(zone, 5) / 10.0  # Normalize to 0–1
-    intensity = zone_intensity.get(zone, 0.5)
-
     for attraction in attractions:
+        # Get base values
         wait_time = attraction_wait_times.get(attraction, 0)
         duration = attraction_durations.get(attraction, 5)
-
+        intensity = zone_intensity.get(zone, 0.5)
+        acc = accessibility_factors.get(zone, 1.0)
+        pref = preferences.get(zone, 5)
+        user_pref = pref / 10.0
         is_wet = attraction in wet_ride_names
+
+        # Comfort penalty if wet and user dislikes discomfort
         comfort_penalty = 1.0
         if is_wet and priority_comfort_val and wet_time_pct < 35:
-            comfort_penalty = 0.7  # reduce score by 30%
+            comfort_penalty = 0.7
 
-        base_score = (
-            zone_weight *
+        # 🧠 Rhythm-aware fuzzy scoring
+        repeat_count = recent_zones.count(zone)
+        repeat_count = min(repeat_count, 3)  # Clamp to fuzzy input range
+
+        # Set fuzzy inputs
+        weight_sim.input['preference'] = pref
+        weight_sim.input['accessibility'] = acc
+        weight_sim.input['wait_tolerance'] = wait_val
+        weight_sim.input['walking'] = walking_val
+        weight_sim.input['priority_thrill'] = 1.0 if zone == "thrill" and priority_thrill_val else 0.0
+        weight_sim.input['priority_food'] = 1.0 if zone == "food" and priority_food_val else 0.0
+        weight_sim.input['priority_comfort'] = 1.0 if zone == "relaxation" and priority_comfort_val else 0.0
+        weight_sim.input['intensity'] = intensity
+        weight_sim.input['zone_repeat_count'] = repeat_count
+
+        weight_sim.compute()
+        fuzzy_weight = weight_sim.output['weight']
+
+        # Final attraction score (with comfort and wait considered)
+        score = (
+            fuzzy_weight *
             user_pref *
             (1 - WAIT_PENALTY_FACTOR * wait_time) *
             (1 + INTENSITY_COMFORT_FACTOR * (1 - intensity)) *
             comfort_penalty
         )
 
-        # 🧠 Smart rhythm adjustment
-        rhythm_penalty = 1.0
-        if recent_zones[-1:] == [zone]:
-            rhythm_penalty = 0.85  # slightly penalize back-to-back
-        elif recent_zones[-2:] == [zone, zone]:
-            rhythm_penalty = 0.7  # stronger penalty for 3 in a row
-
-        adjusted_score = base_score * rhythm_penalty
-        attraction_scores[attraction] = adjusted_score
-
-        # Update recent zones memory
+        attraction_scores[attraction] = score
         recent_zones.append(zone)
-        if len(recent_zones) > 3:
+        if len(recent_zones) > 4:
             recent_zones.pop(0)
         
 
@@ -516,19 +540,18 @@ for zone, attractions in zones.items():
 sorted_attractions = sorted(attraction_scores, key=lambda a: attraction_scores[a], reverse=True)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 8. Balanced Initial Attraction Selection
+# 8. Smart Initial Attraction Selection with Rhythm
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 initial_attractions = []
 time_budget = visit_duration + 15
 current_time_used = 0
+recent_zones = []
 
-# Categorize rides by intensity
-high_rides = []
-medium_rides = []
-low_rides = []
+# Sort attractions by fuzzy-enhanced score (high to low)
+ranked_attractions = sorted(attraction_scores, key=lambda a: attraction_scores[a], reverse=True)
 
-for attraction in sorted_attractions:
+for attraction in ranked_attractions:
     zone = next((z for z, a_list in zones.items() if attraction in a_list), None)
     if not zone:
         continue
@@ -540,29 +563,19 @@ for attraction in sorted_attractions:
     if current_time_used + time_required > time_budget:
         continue
 
-    intensity = zone_intensity.get(zone, 0.5)
+    # 🧠 Rhythm control: avoid same zone 3+ times in a row
+    if recent_zones[-2:] == [zone, zone]:
+        continue
 
-    if intensity >= 0.7:
-        high_rides.append(attraction)
-    elif 0.3 <= intensity < 0.7:
-        medium_rides.append(attraction)
-    else:
-        low_rides.append(attraction)
-
+    # Accept attraction
+    initial_attractions.append(attraction)
     current_time_used += time_required
+    recent_zones.append(zone)
 
-# Interleave rides for balanced pacing
-h, m, l = 0, 0, 0
-while h < len(high_rides) or m < len(medium_rides) or l < len(low_rides):
-    if h < len(high_rides):
-        initial_attractions.append(high_rides[h])
-        h += 1
-    if m < len(medium_rides):
-        initial_attractions.append(medium_rides[m])
-        m += 1
-    if l < len(low_rides) and (len(initial_attractions) % 3 == 0):
-        initial_attractions.append(low_rides[l])
-        l += 1
+    # Trim memory
+    if len(recent_zones) > 4:
+        recent_zones.pop(0)
+
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
