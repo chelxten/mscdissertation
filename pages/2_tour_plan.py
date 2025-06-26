@@ -810,7 +810,7 @@ def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
     elapsed_since_food = 0
-    MIN_FOOD_GAP = 90  
+    MIN_FOOD_GAP = 120  
     last_break_time = -999
     used_break_spots = set()
     used_food_spots = set()
