@@ -808,73 +808,106 @@ def reorder_medium_intensity(route):
 walking_speed = 67  # meters/min
 def insert_breaks(route):
     updated = []
+    elapsed_since_break = 0
+    elapsed_since_food = 0
+    last_break_time = -999
+    total_elapsed_time = 0
     energy_level = 100
     current_location = (0, 0)
-    total_elapsed_time = 0
-    hunger_accumulator = 0
-    activities_since_meal = 0
+
+    used_break_spots = set()
+    used_food_spots = set()
     meal_break_count = 0
     max_meals = 2
-    used_food_spots = set()
-    used_rest_spots = set()
-    last_break_time = -999
-    elapsed_since_break = 0
+
+    MIN_FOOD_GAP_MINUTES = 90  # time spacing
+    MIN_FOOD_GAP_ACTIVITIES = 3  # activity spacing
+    last_meal_index = -999
+
+    # Detect wet ride block range
+    wet_start = None
+    wet_end = None
+    for i, stop in enumerate(route):
+        if stop in wet_ride_names or stop.startswith("[Clothing Change]"):
+            if wet_start is None:
+                wet_start = i
+            wet_end = i
 
     for i, stop in enumerate(route):
+        in_wet_block = wet_start is not None and wet_start <= i <= wet_end
         updated.append(stop)
 
         zone = next((z for z, a in zones.items() if stop in a), None)
         if zone is None:
             continue
 
-        duration = attraction_durations.get(stop, 0)
-        wait = attraction_wait_times.get(stop, 0)
+        duration = attraction_durations[stop]
+        wait = attraction_wait_times[stop]
         walk_dist = calculate_distance(current_location, attraction_coordinates[stop])
         walk_time = max(1, int(walk_dist / walking_speed))
-
         total_this_stop = duration + wait + walk_time
+
         total_elapsed_time += total_this_stop
         elapsed_since_break += total_this_stop
+        elapsed_since_food += total_this_stop
 
-        # ⚡ Energy depletion
-        intensity = zone_intensity.get(zone, 0.5)
-        energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
+        intensity_val = zone_intensity.get(zone, 1.0)
+        age_sens = energy_settings['loss_factor']
+        energy_loss = compute_energy_loss(intensity_val, walk_time, age_sens)
         energy_level = max(0, energy_level - energy_loss)
 
-        # 🍔 Accumulate hunger over time
-        hunger_accumulator += intensity * 0.5
-        activities_since_meal += 1
+        if in_wet_block:
+            current_location = attraction_coordinates[stop]
+            continue
 
-        # 🍽️ Meal Break Insertion
+        # 💤 REST INSERTION
         if (
-            meal_break_count < max_meals
-            and activities_since_meal >= 4
-            and hunger_accumulator >= 3.5
-            and not (zone in ["food", "relaxation"])
+            energy_level < 40 and
+            elapsed_since_break > 10 and
+            (total_elapsed_time - last_break_time) > 15 and
+            zone not in ["relaxation", "food"]
         ):
-            food_options = [f for f in zones["food"] if f not in used_food_spots]
-            if food_options:
-                best = min(food_options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
+            relax = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
+            if relax:
+                best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
+                updated.append(best)
+                used_break_spots.add(best)
+                elapsed_since_break = 0
+                energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                last_break_time = total_elapsed_time
+
+        # 😴 SCHEDULED BREAKS (if preferred)
+        needs_break = (
+            (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
+            (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
+            (break_pref == "After every big ride" and stop in {"Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"})
+        )
+        if needs_break and energy_level >= 40 and (total_elapsed_time - last_break_time) > 10:
+            relax = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
+            if relax and zone not in ["relaxation", "food"]:
+                best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
+                updated.append(best)
+                used_break_spots.add(best)
+                elapsed_since_break = 0
+                energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                last_break_time = total_elapsed_time
+
+        # 🍽️ MEAL BREAKS (max 2, spaced)
+        if (
+            elapsed_since_food >= MIN_FOOD_GAP_MINUTES and
+            (i - last_meal_index) >= MIN_FOOD_GAP_ACTIVITIES and
+            meal_break_count < max_meals and
+            zone not in ["relaxation", "food"]
+        ):
+            options = [f for f in zones["food"] if f not in used_food_spots and f not in updated]
+            if options:
+                best = min(options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
                 updated.append(best)
                 used_food_spots.add(best)
+                elapsed_since_food = 0
                 meal_break_count += 1
-                hunger_accumulator = 0
-                activities_since_meal = 0
+                last_meal_index = i
                 energy_level = min(100, energy_level + energy_settings['food_boost'])
-
-        # 🛋️ Rest Stop Insertion (if energy is low)
-        if (
-            energy_level < 40
-            and elapsed_since_break > 30
-            and zone not in ["food", "relaxation"]
-        ):
-            rest_options = [r for r in zones["relaxation"] if r not in used_rest_spots]
-            if rest_options:
-                best = min(rest_options, key=lambda r: calculate_distance(attraction_coordinates[stop], attraction_coordinates[r]))
-                updated.append(best)
-                used_rest_spots.add(best)
-                energy_level = min(100, energy_level + energy_settings['rest_boost'])
-                elapsed_since_break = 0
 
         current_location = attraction_coordinates[stop]
 
