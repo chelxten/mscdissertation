@@ -11,6 +11,22 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 from datetime import timedelta, datetime
 
+from functools import lru_cache
+
+@lru_cache(maxsize=None)
+def get_fuzzy_weight(preference, accessibility, wait_tol, walking, priority_thrill, priority_food, priority_comfort, intensity, repeat_count):
+    weight_sim.input['preference'] = preference
+    weight_sim.input['accessibility'] = accessibility
+    weight_sim.input['wait_tolerance'] = wait_tol
+    weight_sim.input['walking'] = walking
+    weight_sim.input['priority_thrill'] = priority_thrill
+    weight_sim.input['priority_food'] = priority_food
+    weight_sim.input['priority_comfort'] = priority_comfort
+    weight_sim.input['intensity'] = intensity
+    weight_sim.input['zone_repeat_count'] = repeat_count
+    weight_sim.compute()
+    return weight_sim.output['weight']
+
 @st.cache_resource
 def get_consent_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -507,20 +523,14 @@ for zone, attractions in zones.items():
         repeat_count = recent_zones.count(zone)
         repeat_count = min(repeat_count, 3)  # Clamp to fuzzy input range
 
-        # Set fuzzy inputs
-        weight_sim.input['preference'] = pref
-        weight_sim.input['accessibility'] = acc
-        weight_sim.input['wait_tolerance'] = wait_val
-        weight_sim.input['walking'] = walking_val
-        weight_sim.input['priority_thrill'] = 1.0 if zone == "thrill" and priority_thrill_val else 0.0
-        weight_sim.input['priority_food'] = 1.0 if zone == "food" and priority_food_val else 0.0
-        weight_sim.input['priority_comfort'] = 1.0 if zone == "relaxation" and priority_comfort_val else 0.0
-        weight_sim.input['intensity'] = intensity
-        weight_sim.input['zone_repeat_count'] = repeat_count
+    
 
-        weight_sim.compute()
-        fuzzy_weight = weight_sim.output['weight']
-
+        fuzzy_weight = get_fuzzy_weight(pref, acc, wait_val, walking_val,
+                                1.0 if zone == "thrill" and priority_thrill_val else 0.0,
+                                1.0 if zone == "food" and priority_food_val else 0.0,
+                                1.0 if zone == "relaxation" and priority_comfort_val else 0.0,
+                                intensity, repeat_count)
+        
         # Final attraction score (with comfort and wait considered)
         score = (
             fuzzy_weight *
