@@ -7,6 +7,7 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 from datetime import timedelta, datetime
+from collections import defaultdict
 
 # ✅ Google Sheets function for feedback update
 @st.cache_resource
@@ -469,55 +470,53 @@ for zone, attractions in zones.items():
 # Sort all attractions based on score (high to low)
 sorted_attractions = sorted(attraction_scores, key=lambda a: attraction_scores[a], reverse=True)
 
+def cluster_attractions_by_zone(attractions, zones):
+    zone_clusters = defaultdict(list)
+    for a in attractions:
+        for zone, items in zones.items():
+            if a in items:
+                zone_clusters[zone].append(a)
+                break
+    return zone_clusters
+
+def interleave_clusters(clusters, priority_order):
+    interleaved = []
+    zone_iterators = {z: iter(clusters[z]) for z in clusters}
+    while any(clusters[z] for z in clusters if z in zone_iterators):
+        for zone in priority_order:
+            if zone in zone_iterators:
+                try:
+                    interleaved.append(next(zone_iterators[zone]))
+                except StopIteration:
+                    continue
+    return interleaved
+
 # ------------------------------------------
-# 6. Balanced Initial Attractions Selection
+# 6. Smart Clustered Initial Attractions Selection
 # ------------------------------------------
 
+# Derive zone priority based on user preferences
+priority_order = sorted(preferences, key=preferences.get, reverse=True)
+
+# Cluster attractions by zone
+zone_clusters = cluster_attractions_by_zone(sorted_attractions, zones)
+
+# Interleave across high-to-low preference zones
+interleaved_attractions = interleave_clusters(zone_clusters, priority_order)
+
+# Enforce total time budget
 initial_attractions = []
 time_budget = visit_duration + 15
 current_time_used = 0
 
-# Categorize rides by intensity
-high_rides = []
-medium_rides = []
-low_rides = []
-
-for attraction in sorted_attractions:
-    zone = next((z for z, a_list in zones.items() if attraction in a_list), None)
-    if not zone:
-        continue
-
+for attraction in interleaved_attractions:
     ride_time = attraction_durations.get(attraction, 0)
     wait_time = attraction_wait_times.get(attraction, 0)
-    time_required = ride_time + wait_time
-
-    if current_time_used + time_required > time_budget:
-        continue
-
-    intensity = zone_intensity.get(zone, 0.5)
-
-    if intensity >= 0.7:
-        high_rides.append(attraction)
-    elif 0.3 <= intensity < 0.7:
-        medium_rides.append(attraction)
-    else:
-        low_rides.append(attraction)
-
-    current_time_used += time_required
-
-# Interleave rides for balanced pacing
-h, m, l = 0, 0, 0
-while h < len(high_rides) or m < len(medium_rides) or l < len(low_rides):
-    if h < len(high_rides):
-        initial_attractions.append(high_rides[h])
-        h += 1
-    if m < len(medium_rides):
-        initial_attractions.append(medium_rides[m])
-        m += 1
-    if l < len(low_rides) and (len(initial_attractions) % 3 == 0):
-        initial_attractions.append(low_rides[l])
-        l += 1
-
+    total_time = ride_time + wait_time
+    if current_time_used + total_time > time_budget:
+        break
+    initial_attractions.append(attraction)
+    current_time_used += total_time
 
 # ------------------------------------------
 # Nearest Relaxation Spot for Break Time 
@@ -583,6 +582,8 @@ for a in zones[first_preference_zone]:
     if a in initial_attractions:
         first_pref_attraction = a
         break
+
+
 
 
 wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  # from preference score
