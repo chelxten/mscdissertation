@@ -774,7 +774,7 @@ def insert_breaks(route):
             print("⚠️ Fuzzy energy_loss fallback:", e)
             energy_loss = 8  # Moderate default
 
-        energy_loss = energy_loss_sim.output['energy_loss']
+        
         energy_level = max(0, energy_level - energy_loss)
 
         # 🌳 Dynamic rest
