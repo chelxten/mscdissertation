@@ -810,6 +810,7 @@ def insert_breaks(route):
     updated = []
     elapsed_since_break = 0
     elapsed_since_food = 0
+    MIN_FOOD_GAP = 90  
     last_break_time = -999
     used_break_spots = set()
     used_food_spots = set()
@@ -892,6 +893,7 @@ def insert_breaks(route):
         # 🍔 Food logic (avoid back-to-back with rest or food)
         if (
             elapsed_since_food >= preferred_food_gap
+            and elapsed_since_food >= MIN_FOOD_GAP  # ✅ Enforce spacing
             and meal_break_count < max_meals
             and not (updated and next((z for z, a in zones.items() if updated[-1] in a), None) in ["food", "relaxation"])
         ):
