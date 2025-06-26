@@ -469,6 +469,9 @@ if data["age"] == "Under 12":
 WAIT_PENALTY_FACTOR = 0.02     # reduces score if wait is high
 INTENSITY_COMFORT_FACTOR = 0.2 # bonus for low intensity zones
 
+# Maintain memory of last 2 zones for rhythm adjustment
+recent_zones = []
+
 attraction_scores = {}
 
 for zone, attractions in zones.items():
@@ -485,15 +488,28 @@ for zone, attractions in zones.items():
         if is_wet and priority_comfort_val and wet_time_pct < 35:
             comfort_penalty = 0.7  # reduce score by 30%
 
-        score = (
-            zone_weight
-            * user_pref
-            * (1 - WAIT_PENALTY_FACTOR * wait_time)
-            * (1 + INTENSITY_COMFORT_FACTOR * (1 - intensity))
-            * comfort_penalty
+        base_score = (
+            zone_weight *
+            user_pref *
+            (1 - WAIT_PENALTY_FACTOR * wait_time) *
+            (1 + INTENSITY_COMFORT_FACTOR * (1 - intensity)) *
+            comfort_penalty
         )
 
-        attraction_scores[attraction] = score
+        # 🧠 Smart rhythm adjustment
+        rhythm_penalty = 1.0
+        if recent_zones[-1:] == [zone]:
+            rhythm_penalty = 0.85  # slightly penalize back-to-back
+        elif recent_zones[-2:] == [zone, zone]:
+            rhythm_penalty = 0.7  # stronger penalty for 3 in a row
+
+        adjusted_score = base_score * rhythm_penalty
+        attraction_scores[attraction] = adjusted_score
+
+        # Update recent zones memory
+        recent_zones.append(zone)
+        if len(recent_zones) > 3:
+            recent_zones.pop(0)
         
 
 # Sort all attractions based on score (high to low)
