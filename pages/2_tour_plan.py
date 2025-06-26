@@ -817,7 +817,7 @@ def insert_breaks(route):
     current_location = (0, 0)
     total_elapsed_time = 0
     meal_break_count = 0
-    max_meals = 3
+    max_meals = 2
 
     # 🔒 Detect wet ride block range
     wet_start = None
