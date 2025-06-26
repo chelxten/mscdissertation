@@ -153,6 +153,11 @@ zone_intensity = {
 # Tag wet rides for special scheduling logic
 wet_ride_names = {"Water Slide", "Wave Pool", "Splash Battle"}
 
+type_to_attractions = defaultdict(list)
+for zone, attraction_list in zones.items():
+    for attraction in attraction_list:
+        type_to_attractions[zone].append(attraction)
+
 # ------------------------------------------
 # 5A. Fuzzy inputs (user traits and ride traits)
 # ------------------------------------------
@@ -215,6 +220,30 @@ food_interval['short'] = fuzz.trimf(food_interval.universe, [60, 90, 120])
 food_interval['medium'] = fuzz.trimf(food_interval.universe, [100, 135, 170])
 food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 5F. Smart Rhythm Style Inference (No User Input)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def infer_rhythm_style(preferences, priorities):
+    thrill_score = preferences.get("thrill", 0)
+    comfort_score = preferences.get("relaxation", 0) + preferences.get("entertainment", 0)
+    
+    thrill_priority = 1 if "Enjoying high-intensity rides" in priorities else 0
+    comfort_priority = 1 if "Staying comfortable throughout the visit" in priorities else 0
+    food_priority = 1 if "Having regular food and rest breaks" in priorities else 0
+
+    total_soft = comfort_score + comfort_priority + food_priority
+    total_thrill = thrill_score + thrill_priority
+
+    if total_thrill >= total_soft + 3:
+        return "clustered"
+    elif total_soft > total_thrill + 3:
+        return "varied"
+    else:
+        return "moderate"
+
+# Automatically assign to data dict
+data["rhythm_pref"] = infer_rhythm_style(preferences, priorities)
 
 # ------------------------------------------
 # 5C. Fuzzy Rules: Inputs → Weight Output
@@ -259,6 +288,20 @@ rules += [
     ctrl.Rule(intensity_input['high'] & preference_input['low'], weight_output['low']),
     ctrl.Rule(intensity_input['low'], weight_output['medium']),
 ]
+
+rhythm_rules = [
+    ctrl.Rule(rhythm_energy['high'] & rhythm_intensity['low'] & rhythm_time['early'], next_type['thrill']),
+    ctrl.Rule(rhythm_energy['medium'] & rhythm_intensity['medium'], next_type['family']),
+    ctrl.Rule(rhythm_energy['low'], next_type['relaxation']),
+    ctrl.Rule(rhythm_energy['low'] & rhythm_time['mid'], next_type['food']),
+    ctrl.Rule(rhythm_energy['medium'] & rhythm_time['late'], next_type['entertainment']),
+    ctrl.Rule(rhythm_energy['high'] & rhythm_time['mid'], next_type['thrill']),
+    ctrl.Rule(rhythm_energy['medium'] & rhythm_intensity['high'], next_type['relaxation']),
+    ctrl.Rule(rhythm_energy['high'] & rhythm_intensity['medium'] & rhythm_time['early'], next_type['family']),
+]
+rhythm_ctrl = ctrl.ControlSystem(rhythm_rules)
+rhythm_sim = ctrl.ControlSystemSimulation(rhythm_ctrl)
+
 
 # V. Top-Zone Reinforcement
 
@@ -350,7 +393,37 @@ energy_loss_ctrl = ctrl.ControlSystem(energy_loss_rules)
 energy_loss_sim = ctrl.ControlSystemSimulation(energy_loss_ctrl)
 
 # ------------------------------------------
-# 5F. Fuzzy Controller Setup and User Mappings
+# 5F. Fuzzy Subsystem: Rhythm Decision Engine
+# ------------------------------------------
+
+rhythm_energy = ctrl.Antecedent(np.arange(0, 101, 1), 'energy')
+rhythm_time = ctrl.Antecedent(np.arange(0, 601, 10), 'elapsed_minutes')  # up to 10 hours
+rhythm_intensity = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'last_intensity')
+
+next_type = ctrl.Consequent(np.arange(0, 5, 1), 'next_type')  # 0=thrill, 1=family, 2=entertainment, 3=relaxation, 4=food
+
+# Membership functions
+rhythm_energy['low'] = fuzz.trimf(rhythm_energy.universe, [0, 0, 40])
+rhythm_energy['medium'] = fuzz.trimf(rhythm_energy.universe, [30, 50, 70])
+rhythm_energy['high'] = fuzz.trimf(rhythm_energy.universe, [60, 100, 100])
+
+rhythm_time['early'] = fuzz.trimf(rhythm_time.universe, [0, 0, 120])
+rhythm_time['mid'] = fuzz.trimf(rhythm_time.universe, [90, 180, 270])
+rhythm_time['late'] = fuzz.trimf(rhythm_time.universe, [240, 360, 600])
+
+rhythm_intensity['low'] = fuzz.trimf(rhythm_intensity.universe, [0, 0, 0.4])
+rhythm_intensity['medium'] = fuzz.trimf(rhythm_intensity.universe, [0.3, 0.5, 0.7])
+rhythm_intensity['high'] = fuzz.trimf(rhythm_intensity.universe, [0.6, 1.0, 1.0])
+
+next_type['thrill'] = fuzz.trimf(next_type.universe, [0, 0, 1])
+next_type['family'] = fuzz.trimf(next_type.universe, [1, 1, 2])
+next_type['entertainment'] = fuzz.trimf(next_type.universe, [2, 2, 3])
+next_type['relaxation'] = fuzz.trimf(next_type.universe, [3, 3, 4])
+next_type['food'] = fuzz.trimf(next_type.universe, [4, 4, 4])
+
+
+# ------------------------------------------
+# 5G. Fuzzy Controller Setup and User Mappings
 # ------------------------------------------
 
 weight_ctrl = ctrl.ControlSystem(rules)
@@ -419,6 +492,36 @@ def compute_energy_loss(intensity, walk_time, age_factor):
         print(f"⚠️ Energy loss fallback due to: {e}")
         return 8  # Safe default
 
+def get_next_attraction_type(energy, elapsed_time, last_intensity):
+    try:
+        rhythm_sim.input['energy'] = energy
+        rhythm_sim.input['elapsed_minutes'] = elapsed_time
+        rhythm_sim.input['last_intensity'] = last_intensity
+        rhythm_sim.compute()
+
+        output = round(rhythm_sim.output['next_type'])
+
+        return ["thrill", "family", "entertainment", "relaxation", "food"][output]
+    except Exception as e:
+        print(f"⚠️ Rhythm fallback: {e}")
+        return "family"  # safe default
+
+def pick_nearest_of_type(current_location, attraction_type, remaining_pool):
+    candidates = [
+        a for a in type_to_attractions.get(attraction_type, [])
+        if a in remaining_pool and a in attraction_coordinates
+    ]
+    if not candidates:
+        return None
+
+    nearest = min(
+        candidates,
+        key=lambda a: calculate_distance(current_location, attraction_coordinates[a])
+    )
+    return nearest
+
+
+        
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 6. Fuzzy Weight Evaluation and Zone Scoring
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -731,6 +834,108 @@ def no_consecutive_food_or_break(attractions, zones):
         prev_soft = is_soft
 
     return final
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 11. Smart Rhythm-Based Planning (Fuzzy Selector)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Rhythm input and mapping
+rhythm_style_input = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'rhythm_style')
+next_zone_output = ctrl.Consequent(np.arange(0, 6, 1), 'next_zone')  # 0: thrill, 1: family, 2: entertainment, 3: water, 4: relaxation, 5: food
+
+# Rhythm membership
+rhythm_style_input['clustered'] = fuzz.trimf(rhythm_style_input.universe, [0.0, 0.0, 0.4])
+rhythm_style_input['moderate'] = fuzz.trimf(rhythm_style_input.universe, [0.3, 0.5, 0.7])
+rhythm_style_input['varied'] = fuzz.trimf(rhythm_style_input.universe, [0.6, 1.0, 1.0])
+
+# Output: which type of zone to choose next
+next_zone_output['thrill'] = fuzz.trimf(next_zone_output.universe, [0, 0, 0.5])
+next_zone_output['family'] = fuzz.trimf(next_zone_output.universe, [1, 1, 1.5])
+next_zone_output['entertainment'] = fuzz.trimf(next_zone_output.universe, [2, 2, 2.5])
+next_zone_output['water'] = fuzz.trimf(next_zone_output.universe, [3, 3, 3.5])
+next_zone_output['relaxation'] = fuzz.trimf(next_zone_output.universe, [4, 4, 4.5])
+next_zone_output['food'] = fuzz.trimf(next_zone_output.universe, [5, 5, 5.5])
+
+# Rhythm-to-zone diversity rules
+rhythm_rules = [
+    ctrl.Rule(rhythm_style_input['clustered'], next_zone_output['thrill']),
+    ctrl.Rule(rhythm_style_input['clustered'], next_zone_output['family']),
+
+    ctrl.Rule(rhythm_style_input['moderate'], next_zone_output['thrill']),
+    ctrl.Rule(rhythm_style_input['moderate'], next_zone_output['family']),
+    ctrl.Rule(rhythm_style_input['moderate'], next_zone_output['entertainment']),
+
+    ctrl.Rule(rhythm_style_input['varied'], next_zone_output['thrill']),
+    ctrl.Rule(rhythm_style_input['varied'], next_zone_output['family']),
+    ctrl.Rule(rhythm_style_input['varied'], next_zone_output['entertainment']),
+    ctrl.Rule(rhythm_style_input['varied'], next_zone_output['relaxation']),
+    ctrl.Rule(rhythm_style_input['varied'], next_zone_output['food']),
+]
+
+# Create control system
+rhythm_ctrl = ctrl.ControlSystem(rhythm_rules)
+rhythm_sim = ctrl.ControlSystemSimulation(rhythm_ctrl)
+
+# Map rhythm label to value
+rhythm_value_map = {
+    "clustered": 0.0,
+    "moderate": 0.5,
+    "varied": 1.0
+}
+
+# Map fuzzy zone outputs to zone strings
+zone_index_map = {
+    0: "thrill",
+    1: "family",
+    2: "entertainment",
+    3: "water",
+    4: "relaxation",
+    5: "food"
+}
+
+def build_rhythm_route(start_location, attractions, duration_limit):
+    route = []
+    visited = set()
+    current_location = start_location
+    elapsed = 0
+
+    # Estimate total available time
+    rhythm_value = rhythm_value_map.get(data.get("rhythm_pref", "moderate"), 0.5)
+
+    while elapsed < duration_limit:
+        # Fuzzy rhythm type → zone
+        try:
+            rhythm_sim.input['rhythm_style'] = rhythm_value
+            rhythm_sim.compute()
+            zone_idx = int(round(rhythm_sim.output['next_zone']))
+            target_zone = zone_index_map.get(zone_idx, None)
+        except:
+            target_zone = "thrill"  # fallback
+
+        if not target_zone or target_zone not in zones:
+            break
+
+        # Filter unvisited attractions in zone
+        candidates = [a for a in zones[target_zone] if a in attractions and a not in visited]
+        if not candidates:
+            break
+
+        # Pick closest one
+        best = min(candidates, key=lambda a: calculate_distance(current_location, attraction_coordinates[a]))
+
+        ride_time = attraction_durations.get(best, 0)
+        wait_time = attraction_wait_times.get(best, 0)
+        total_time = ride_time + wait_time + int(calculate_distance(current_location, attraction_coordinates[best]) / walking_speed)
+
+        if elapsed + total_time > duration_limit:
+            break
+
+        route.append(best)
+        visited.add(best)
+        elapsed += total_time
+        current_location = attraction_coordinates[best]
+
+    return route
     
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 12. Break and Meal Insertion Logic
@@ -767,7 +972,8 @@ def reorder_medium_intensity(route):
 
 
 walking_speed = 67  # meters/min
-def insert_breaks(route):
+
+def insert_rest_and_meals(route, preferred_food_gap, energy_settings):
     updated = []
     elapsed_since_break = 0
     elapsed_since_food = 0
@@ -797,8 +1003,8 @@ def insert_breaks(route):
         if zone is None:
             continue
 
-        duration = attraction_durations[stop]
-        wait = attraction_wait_times[stop]
+        duration = attraction_durations.get(stop, 0)
+        wait = attraction_wait_times.get(stop, 0)
         time_spent = duration + wait
         walk_dist = calculate_distance(current_location, attraction_coordinates[stop])
         walk_time = max(1, int(walk_dist / walking_speed))
@@ -808,20 +1014,23 @@ def insert_breaks(route):
         elapsed_since_break += total_this_stop
         elapsed_since_food += total_this_stop
 
+        # 🧠 Energy loss from this leg
         intensity_val = zone_intensity.get(zone, 1.0)
         age_sens = energy_settings['loss_factor']
-
-        energy_loss = compute_energy_loss(intensity_val, walk_time, age_sens)
-        
+        try:
+            energy_loss = compute_energy_loss(intensity_val, walk_time, age_sens)
+        except Exception as e:
+            print(f"⚠️ Energy loss fallback due to: {e}")
+            energy_loss = 8
 
         energy_level = max(0, energy_level - energy_loss)
 
-        # 🚫 Skip any inserts if we're in the wet block
+        # 🚫 Skip inserts inside wet ride block
         if in_wet_block:
             current_location = attraction_coordinates[stop]
             continue
 
-        # 🌳 Dynamic rest
+        # 🌿 Insert dynamic rest if low energy
         if energy_level < 40 and elapsed_since_break > 10:
             relax = [s for s in zones["relaxation"] if s not in used_break_spots]
             if relax:
@@ -832,7 +1041,7 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
 
-        # 😴 Scheduled rest
+        # 🕐 Scheduled rest break logic
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
@@ -842,19 +1051,20 @@ def insert_breaks(route):
             relax = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
             if relax:
                 last_zone = next((z for z, a in zones.items() if updated[-1] in a), None) if updated else None
-            if last_zone not in {"relaxation", "food"}:
-                best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
-                updated.append(best)
-                used_break_spots.add(best)
-                elapsed_since_break = 0
-                energy_level = min(100, energy_level + energy_settings['rest_boost'])
-                last_break_time = total_elapsed_time
+                if last_zone not in {"relaxation", "food"}:
+                    best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
+                    updated.append(best)
+                    used_break_spots.add(best)
+                    elapsed_since_break = 0
+                    energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                    last_break_time = total_elapsed_time
 
-        # 🍔 Food logic (avoid back-to-back with rest or food)
+        # 🍽️ Insert food break if needed (avoid consecutive soft zones)
+        last_zone = next((z for z, a in zones.items() if updated[-1] in a), None) if updated else None
         if (
-            elapsed_since_food >= preferred_food_gap
-            and meal_break_count < max_meals
-            and not (updated and next((z for z, a in zones.items() if updated[-1] in a), None) in ["food", "relaxation"])
+            elapsed_since_food >= preferred_food_gap and
+            meal_break_count < max_meals and
+            last_zone not in ["food", "relaxation"]
         ):
             options = [f for f in zones["food"] if f not in used_food_spots]
             if options:
@@ -865,9 +1075,9 @@ def insert_breaks(route):
                 meal_break_count += 1
                 energy_level = min(100, energy_level + energy_settings['food_boost'])
 
-        # ⛔ Prevent inserting break right after wet ride
-        if stop in wet_ride_names and i+1 < len(route):
-            next_stop = route[i+1]
+        # ⛔ Prevent placing soft zone *after* wet ride
+        if stop in wet_ride_names and i + 1 < len(route):
+            next_stop = route[i + 1]
             next_zone = next((z for z, a in zones.items() if next_stop in a), None)
             if next_zone in ["relaxation", "food"]:
                 continue
@@ -875,33 +1085,93 @@ def insert_breaks(route):
         current_location = attraction_coordinates[stop]
 
     return updated
+    
+def build_rhythm_route(start_point, available_attractions, total_time_limit=360):
+    route = []
+    remaining = available_attractions.copy()
+    energy = 100
+    elapsed = 0
+    last_type = "family"
+    current_location = start_point
+    last_intensity = 0.5  # assume medium as neutral start
 
+    while remaining and elapsed < total_time_limit:
+        next_type = get_next_attraction_type(energy, elapsed, last_intensity)
+        next_stop = pick_nearest_of_type(current_location, next_type, remaining)
+
+        if not next_stop:
+            break
+
+        route.append(next_stop)
+        remaining.remove(next_stop)
+
+        # Time bookkeeping
+        walk_time = calculate_distance(current_location, attraction_coordinates[next_stop]) / 20  # speed = 20 units/min
+        ride_time = attraction_durations.get(next_stop, 0)
+        wait_time = attraction_wait_times.get(next_stop, 0)
+        total_stop_time = ride_time + wait_time + round(walk_time)
+
+        elapsed += total_stop_time
+        current_location = attraction_coordinates[next_stop]
+
+        # Update rhythm context
+        zone = next((z for z, lst in zones.items() if next_stop in lst), None)
+        last_type = zone
+        last_intensity = zone_intensity.get(zone, 0.5)
+
+        # Optional: update energy
+        age_factor = energy_settings['loss_factor']
+        energy_loss = compute_energy_loss(last_intensity, walk_time, age_factor)
+        energy = max(0, energy - energy_loss)
+
+    return route
+    
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Final Route Optimization and Tweaks
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Step 1: Determine the user's top preference zone
 first_preference_zone = max(preferences, key=preferences.get)
 first_pref_attraction = next(
     (a for a in zones[first_preference_zone] if a in initial_attractions),
     None
 )
 
-# Apply distance optimization
+# Step 2: Optimize starting point based on preference
 optimized_initial = reorder_by_distance(
     initial_attractions,
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
 
-# Schedule wet rides mid-tour if needed
-wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
+# Step 3: Apply smart rhythm-based sequencing (fuzzy-driven)
+smart_rhythm_route = build_rhythm_route(
+    start_location=(0, 0),
+    attractions=initial_attractions,
+    duration_limit=visit_duration
+)
 
-# Insert breaks and food stops
-final_route = insert_breaks(wet_scheduled)
+# Step 4: Handle wet rides (optional midday repositioning)
+wet_scheduled = schedule_wet_rides_midday(
+    smart_rhythm_route,
+    wet_ride_names,
+    zones
+)
+
+# Step 5: Insert rest stops and meals dynamically
+final_route = insert_rest_and_meals(
+    route=wet_scheduled,
+    preferred_food_gap=preferred_food_gap,
+    energy_settings=energy_settings
+)
+
+# Step 6: Ensure no soft-zone duplicates (e.g., back-to-back food/rest)
 final_route = no_consecutive_food_or_break(final_route, zones)
 
+# Step 7: Remove any duplicate attractions (while preserving order)
 final_route = list(dict.fromkeys(final_route))
 
+# ✅ Final route is now ready for rendering or output
 final_plan = final_route
-
 import matplotlib.pyplot as plt
 
 energy = 100
