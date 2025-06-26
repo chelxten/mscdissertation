@@ -814,9 +814,9 @@ def insert_breaks(route):
             relax = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
             if relax:
                 last_zone = next((z for z, a in zones.items() if updated[-1] in a), None) if updated else None
-                if last_zone not in {"relaxation", "food"}:
-                    best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
-                    updated.append(best)
+            if last_zone not in {"relaxation", "food"}:
+                best = min(relax, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
+                updated.append(best)
                 used_break_spots.add(best)
                 elapsed_since_break = 0
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
