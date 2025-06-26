@@ -321,6 +321,11 @@ age_sensitivity_input['low'] = fuzz.trimf(age_sensitivity_input.universe, [0.8, 
 age_sensitivity_input['medium'] = fuzz.trimf(age_sensitivity_input.universe, [0.9, 1.1, 1.2])
 age_sensitivity_input['high'] = fuzz.trimf(age_sensitivity_input.universe, [1.1, 1.3, 1.4])
 
+energy_loss_sim.input['intensity'] = intensity_val
+energy_loss_sim.input['walk_time'] = walk_time
+energy_loss_sim.input['age_sensitivity'] = age_sens
+energy_loss_sim.compute()
+
 # Energy loss
 energy_loss_output['low'] = fuzz.trimf(energy_loss_output.universe, [0, 0, 8])
 energy_loss_output['medium'] = fuzz.trimf(energy_loss_output.universe, [5, 10, 15])
