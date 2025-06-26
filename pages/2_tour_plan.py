@@ -321,10 +321,6 @@ age_sensitivity_input['low'] = fuzz.trimf(age_sensitivity_input.universe, [0.8, 
 age_sensitivity_input['medium'] = fuzz.trimf(age_sensitivity_input.universe, [0.9, 1.1, 1.2])
 age_sensitivity_input['high'] = fuzz.trimf(age_sensitivity_input.universe, [1.1, 1.3, 1.4])
 
-energy_loss_sim.input['intensity'] = intensity_val
-energy_loss_sim.input['walk_time'] = walk_time
-energy_loss_sim.input['age_sensitivity'] = age_sens
-energy_loss_sim.compute()
 
 # Energy loss
 energy_loss_output['low'] = fuzz.trimf(energy_loss_output.universe, [0, 0, 8])
@@ -768,10 +764,15 @@ def insert_breaks(route):
         age_sens = energy_settings['loss_factor']  # e.g., 1.2
 
         # Walk time already calculated above as walk_time
-        energy_loss_sim.input['intensity'] = intensity_val
-        energy_loss_sim.input['walk_time'] = walk_time
-        energy_loss_sim.input['age_sensitivity'] = age_sens
-        energy_loss_sim.compute()
+        try:
+            energy_loss_sim.input['intensity'] = intensity_val
+            energy_loss_sim.input['walk_time'] = walk_time
+            energy_loss_sim.input['age_sensitivity'] = age_sens
+            energy_loss_sim.compute()
+            energy_loss = energy_loss_sim.output['energy_loss']
+        except Exception as e:
+            print("⚠️ Fuzzy energy_loss fallback:", e)
+            energy_loss = 8  # Moderate default
 
         energy_loss = energy_loss_sim.output['energy_loss']
         energy_level = max(0, energy_level - energy_loss)
