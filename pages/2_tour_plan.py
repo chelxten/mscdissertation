@@ -1090,7 +1090,7 @@ def build_rhythm_route(start_location, attractions, duration_limit):
     energy = 100
     elapsed = 0
     last_type = "family"
-    current_location = start_point
+    current_location = start_location
     last_intensity = 0.5  # assume medium as neutral start
 
     while remaining and elapsed < total_time_limit:
