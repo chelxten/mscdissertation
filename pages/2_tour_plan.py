@@ -1,3 +1,6 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 1. Imports and Setup
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -8,7 +11,6 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 from datetime import timedelta, datetime
 
-# ✅ Google Sheets function for feedback update
 @st.cache_resource
 def get_consent_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -22,16 +24,17 @@ st.set_page_config(page_title="Personalized Tour Plan")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Your Personalized Tour Plan")
 
-# ------------------------------------------
-# 1. Load Data from Session
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 2. Load questionnaire data from session
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 if "questionnaire" not in st.session_state:
     st.warning("❗ Please complete the questionnaire first.")
     st.stop()
 
 data = st.session_state["questionnaire"]
 
-# Extract user answers
+# Extract answers
 preference_ranks = {
     "thrill": data["thrill"], "family": data["family"], "water": data["water"],
     "entertainment": data["entertainment"], "food": data["food"],
@@ -42,12 +45,14 @@ priorities = data["priorities"]
 walking_pref = data["walking"]
 break_pref = data["break"]
 
+# Visit duration
 duration_map = {"<2 hrs": 90, "2–4 hrs": 180, "4–6 hrs": 300, "All day": 420}
 visit_duration = duration_map.get(data["duration"], 180)
 
-# ------------------------------------------
-# 2. Zones, Attractions & Coordinates Setup
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 3. Define zones and coordinates
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 zones = {
     "thrill": ["Roller Coaster", "Drop Tower", "Haunted Mine Train", "Spinning Vortex", "Freefall Cannon"],
     "water": ["Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"],
@@ -63,8 +68,7 @@ zone_coordinates = {
     "entertainment": (400, 100), "food": (250, 250), "shopping": (300, 300), "relaxation": (200, 200)
 }
 
-
-
+# Calculate coordinates for each attraction
 attraction_coordinates = {}
 for zone, attractions in zones.items():
     for idx, attraction in enumerate(attractions):
@@ -75,15 +79,13 @@ for zone, attractions in zones.items():
         zone_x, zone_y = zone_coordinates[zone]
         attraction_coordinates[attraction] = (zone_x + offset_x, zone_y + offset_y)
 
-# 🧼 Changing Room (Utility location)
+# Utility location
 change_location = "Shower & Changing Room"
-change_coordinates = (450, 250)  # or wherever it should be on the map
-
-# Add it to attraction_coordinates
+change_coordinates = (450, 250)  
 attraction_coordinates[change_location] = change_coordinates
 
 # ------------------------------------------
-# 3. Accessibility, Duration & Wait Times
+# 4. Ride durations, wait times, and accessibility levels
 # ------------------------------------------
 accessibility_factors = {
     "thrill": 0.7, "water": 0.8, "family": 1.0,
@@ -136,6 +138,7 @@ attraction_wait_times = {
     "Relaxation Garden": 0, "Shaded Benches": 0, "Quiet Lake View": 0, "Zen Courtyard": 0, "Sky Deck": 0
 }
 
+# Intensity used later for energy logic and pacing
 zone_intensity = {
     "thrill": 0.95,         # High energy demand (e.g. roller coasters)
     "water": 0.75,          # Swimming or flume-based attractions
@@ -146,75 +149,81 @@ zone_intensity = {
     "relaxation": 0.1       # Passive resting (benches, gardens)
 }
 
+
+# Tag wet rides for special scheduling logic
 wet_ride_names = {"Water Slide", "Wave Pool", "Splash Battle"}
 
 # ------------------------------------------
-# 4. Weighted Allocation System (Fuzzy Logic)
+# 5A. Fuzzy inputs (user traits and ride traits)
 # ------------------------------------------
 
+preference_input     = ctrl.Antecedent(np.arange(0, 11, 1), 'preference')        # 0–10: how much user likes the zone
+accessibility_input  = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'accessibility') # 0–1: ease of access
+wait_tolerance       = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'wait_tolerance')  # 0–1: patience for waiting
+walking_input        = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'walking')       # 0–1: walking comfort
 
-# -- Define fuzzy variables --
-preference_input = ctrl.Antecedent(np.arange(0, 11, 1), 'preference')
-accessibility_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'accessibility')
-wait_tolerance = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'wait_tolerance')
-walking_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'walking')
+priority_thrill      = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_thrill')
+priority_food        = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_food')
+priority_comfort     = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_comfort')
 
-priority_thrill = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_thrill')
-priority_food = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_food')
-priority_comfort = ctrl.Antecedent(np.arange(0, 2, 1), 'priority_comfort')
+intensity_input      = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'intensity')
 
-intensity_input = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'intensity')
+weight_output        = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
 
-intensity_input['low'] = fuzz.trimf(intensity_input.universe, [0.0, 0.0, 0.4])
-intensity_input['medium'] = fuzz.trimf(intensity_input.universe, [0.3, 0.5, 0.7])
-intensity_input['high'] = fuzz.trimf(intensity_input.universe, [0.6, 1.0, 1.0])
-weight_output = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
+food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
 
-# -- Membership functions --
+# ------------------------------------------
+# 5B. Membership functions
+# ------------------------------------------
+
+# Preference score from 0–10
 preference_input['low'] = fuzz.trimf(preference_input.universe, [0, 0, 5])
 preference_input['medium'] = fuzz.trimf(preference_input.universe, [2, 5, 8])
 preference_input['high'] = fuzz.trimf(preference_input.universe, [5, 10, 10])
 
-# Detect top preference zone
-top_zone = max(preferences, key=preferences.get)
-
+# Accessibility of the zone (0 = difficult, 1 = easy)
 accessibility_input['poor'] = fuzz.trimf(accessibility_input.universe, [0.0, 0.0, 0.5])
 accessibility_input['moderate'] = fuzz.trimf(accessibility_input.universe, [0.2, 0.5, 0.8])
 accessibility_input['good'] = fuzz.trimf(accessibility_input.universe, [0.5, 1.0, 1.0])
 
+# User’s wait tolerance
 wait_tolerance['low'] = fuzz.trimf(wait_tolerance.universe, [0.0, 0.0, 0.4])
 wait_tolerance['medium'] = fuzz.trimf(wait_tolerance.universe, [0.2, 0.5, 0.8])
 wait_tolerance['high'] = fuzz.trimf(wait_tolerance.universe, [0.6, 1.0, 1.0])
 
+# User’s walking tolerance
 walking_input['short'] = fuzz.trimf(walking_input.universe, [0.0, 0.0, 0.4])
 walking_input['medium'] = fuzz.trimf(walking_input.universe, [0.2, 0.5, 0.8])
 walking_input['long'] = fuzz.trimf(walking_input.universe, [0.6, 1.0, 1.0])
 
+# User priorities: thrill, food, comfort
 for priority in [priority_thrill, priority_food, priority_comfort]:
     priority['no'] = fuzz.trimf(priority.universe, [0, 0, 1])
     priority['yes'] = fuzz.trimf(priority.universe, [0, 1, 1])
 
+# Ride intensity (by zone)
+intensity_input['low'] = fuzz.trimf(intensity_input.universe, [0.0, 0.0, 0.4])
+intensity_input['medium'] = fuzz.trimf(intensity_input.universe, [0.3, 0.5, 0.7])
+intensity_input['high'] = fuzz.trimf(intensity_input.universe, [0.6, 1.0, 1.0])
+
+# Final weight score for each zone (0–10)
 weight_output['low'] = fuzz.trimf(weight_output.universe, [0, 0, 4])
 weight_output['medium'] = fuzz.trimf(weight_output.universe, [3, 5, 7])
 weight_output['high'] = fuzz.trimf(weight_output.universe, [6, 10, 10])
-
-food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
 
 food_interval['short'] = fuzz.trimf(food_interval.universe, [60, 90, 120])
 food_interval['medium'] = fuzz.trimf(food_interval.universe, [100, 135, 170])
 food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
 
 
-# -------------------------------
-# Fuzzy System Definition Starts
-# -------------------------------
+# ------------------------------------------
+# 5C. Fuzzy Rules: Inputs → Weight Output
+# ------------------------------------------
 
-# -- Define fuzzy rules --
 rules = []
 
-# -------------------------------
-# A. Core: Preference × Accessibility
-# -------------------------------
+
+# I. Core Logic: Preference × Accessibility
 rules += [
     ctrl.Rule(preference_input['high'] & accessibility_input['good'], weight_output['high']),
     ctrl.Rule(preference_input['high'] & accessibility_input['moderate'], weight_output['medium']),
@@ -227,9 +236,7 @@ rules += [
     ctrl.Rule(preference_input['low'], weight_output['low']),
 ]
 
-# -------------------------------
-# B. User Attributes: Walk & Wait
-# -------------------------------
+# II. User Profile Traits: Walk & Wait Tolerance
 rules += [
     ctrl.Rule(wait_tolerance['low'], weight_output['low']),
     ctrl.Rule(wait_tolerance['high'], weight_output['high']),
@@ -237,27 +244,22 @@ rules += [
     ctrl.Rule(walking_input['long'], weight_output['high']),
 ]
 
-# -------------------------------
-# C. User Priorities
-# -------------------------------
+# III. User Declared Priorities
 rules += [
     ctrl.Rule(priority_thrill['yes'], weight_output['high']),
     ctrl.Rule(priority_food['yes'], weight_output['medium']),
     ctrl.Rule(priority_comfort['yes'], weight_output['medium']),
 ]
 
-# -------------------------------
-# D. Zone Intensity Adjustment
-# -------------------------------
+# IV. Intensity Adjustment
 rules += [
     ctrl.Rule(intensity_input['high'] & preference_input['high'], weight_output['medium']),
     ctrl.Rule(intensity_input['high'] & preference_input['low'], weight_output['low']),
     ctrl.Rule(intensity_input['low'], weight_output['medium']),
 ]
 
-# -------------------------------
-# E. Top-Zone Reinforcement
-# -------------------------------
+# V. Top-Zone Reinforcement
+
 reinforcement_rules = []
 if top_zone == "thrill":
     reinforcement_rules += [
@@ -288,6 +290,10 @@ elif top_zone == "shopping":
 
 rules += reinforcement_rules
 
+# ------------------------------------------
+# 5D. Fuzzy Subsystem: Food Interval Estimation
+# ------------------------------------------
+
 food_interval_rules = [
     ctrl.Rule(preference_input['high'] & priority_food['yes'], food_interval['short']),
     ctrl.Rule(preference_input['medium'] & priority_food['yes'], food_interval['medium']),
@@ -297,36 +303,36 @@ food_interval_rules = [
 food_interval_ctrl = ctrl.ControlSystem(food_interval_rules)
 food_interval_sim = ctrl.ControlSystemSimulation(food_interval_ctrl)
 
-# -------------------------------
-# Fuzzy Energy Loss Estimation
-# -------------------------------
+# ------------------------------------------
+# 5E. Fuzzy Rules: Energy Loss Estimation
+# ------------------------------------------
+
+# Input: Ride intensity, walking time, age sensitivity
 intensity_input_energy = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'intensity')
 walk_time_input = ctrl.Antecedent(np.arange(0, 16, 1), 'walk_time')  # up to 15 minutes walk
 age_sensitivity_input = ctrl.Antecedent(np.arange(0.8, 1.4, 0.1), 'age_sensitivity')
 
+# Output: Energy lost per stop
 energy_loss_output = ctrl.Consequent(np.arange(0, 21, 1), 'energy_loss')  # 0–20 points per stop
 
-# Intensity
+# Membership functions
 intensity_input_energy['low'] = fuzz.trimf(intensity_input_energy.universe, [0.0, 0.0, 0.4])
 intensity_input_energy['medium'] = fuzz.trimf(intensity_input_energy.universe, [0.3, 0.5, 0.7])
 intensity_input_energy['high'] = fuzz.trimf(intensity_input_energy.universe, [0.6, 1.0, 1.0])
 
-# Walk time
 walk_time_input['short'] = fuzz.trimf(walk_time_input.universe, [0, 0, 5])
 walk_time_input['medium'] = fuzz.trimf(walk_time_input.universe, [3, 7, 11])
 walk_time_input['long'] = fuzz.trimf(walk_time_input.universe, [10, 15, 15])
 
-# Age sensitivity
 age_sensitivity_input['low'] = fuzz.trimf(age_sensitivity_input.universe, [0.8, 0.8, 1.0])
 age_sensitivity_input['medium'] = fuzz.trimf(age_sensitivity_input.universe, [0.9, 1.1, 1.2])
 age_sensitivity_input['high'] = fuzz.trimf(age_sensitivity_input.universe, [1.1, 1.3, 1.4])
 
-
-# Energy loss
 energy_loss_output['low'] = fuzz.trimf(energy_loss_output.universe, [0, 0, 8])
 energy_loss_output['medium'] = fuzz.trimf(energy_loss_output.universe, [5, 10, 15])
 energy_loss_output['high'] = fuzz.trimf(energy_loss_output.universe, [12, 20, 20])
 
+# Rules
 energy_loss_rules = [
     ctrl.Rule(intensity_input_energy['high'] & walk_time_input['long'] & age_sensitivity_input['high'], energy_loss_output['high']),
     ctrl.Rule(intensity_input_energy['high'] & walk_time_input['medium'], energy_loss_output['medium']),
@@ -341,22 +347,9 @@ energy_loss_rules = [
 energy_loss_ctrl = ctrl.ControlSystem(energy_loss_rules)
 energy_loss_sim = ctrl.ControlSystemSimulation(energy_loss_ctrl)
 
-def compute_energy_loss(intensity, walk_time, age_factor):
-    try:
-        # Clamp to valid fuzzy input ranges
-        intensity = min(max(intensity, 0.0), 1.0)
-        walk_time = min(max(walk_time, 0), 15)
-        age_factor = min(max(age_factor, 0.8), 1.4)
-
-        energy_loss_sim.input['intensity'] = intensity
-        energy_loss_sim.input['walk_time'] = walk_time
-        energy_loss_sim.input['age_sensitivity'] = age_factor
-        energy_loss_sim.compute()
-
-        return energy_loss_sim.output['energy_loss']
-    except Exception as e:
-        print(f"⚠️ Energy loss fallback due to: {e}")
-        return 8  # Safe default
+# ------------------------------------------
+# 5F. Fuzzy Controller Setup and User Mappings
+# ------------------------------------------
 
 weight_ctrl = ctrl.ControlSystem(rules)
 weight_sim = ctrl.ControlSystemSimulation(weight_ctrl)
@@ -406,9 +399,28 @@ age_group_map = {
 user_age_group = age_group_map.get(raw_age, "Adult")
 energy_settings = age_energy_scaling[user_age_group]
 
+# Helper: Compute fuzzy-based energy loss per stop
+def compute_energy_loss(intensity, walk_time, age_factor):
+    try:
+        # Clamp to valid fuzzy input ranges
+        intensity = min(max(intensity, 0.0), 1.0)
+        walk_time = min(max(walk_time, 0), 15)
+        age_factor = min(max(age_factor, 0.8), 1.4)
 
+        energy_loss_sim.input['intensity'] = intensity
+        energy_loss_sim.input['walk_time'] = walk_time
+        energy_loss_sim.input['age_sensitivity'] = age_factor
+        energy_loss_sim.compute()
 
-# Fuzzy weight computation
+        return energy_loss_sim.output['energy_loss']
+    except Exception as e:
+        print(f"⚠️ Energy loss fallback due to: {e}")
+        return 8  # Safe default
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 6. Fuzzy Weight Evaluation and Zone Scoring
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 zone_weights = {}
 for zone in zones:
     pref = preferences[zone]
@@ -427,7 +439,7 @@ for zone in zones:
     weight_sim.compute()
     zone_weights[zone] = weight_sim.output['weight']
 
-# Cap weight of food and relaxation zones to prevent domination
+# Cap passive zones
 for zone in ["food", "relaxation"]:
     if zone in zone_weights:
         zone_weights[zone] = min(zone_weights[zone], 4.5)  # limit to moderate level
@@ -439,7 +451,7 @@ if total_weight > 0:
 else:
     normalized_weights = {z: 1 / len(zone_weights) for z in zone_weights}  # equal weighting
 
-# Optional: Remove intense thrill rides for young children
+# Remove intense rides for children
 if data["age"] == "Under 12":
     intense_rides = {"Roller Coaster", "Drop Tower", "Freefall Cannon", "Spinning Vortex"}
     for ride in intense_rides:
@@ -447,9 +459,9 @@ if data["age"] == "Under 12":
             if ride in zone_list:
                 zone_list.remove(ride)
                 
-# ------------------------------------------
-# 5. Attraction Scoring Based on Fuzzy Output
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 7. Attraction Scoring Based on Zone Weights
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Parameters for scoring (you can tune these)
 WAIT_PENALTY_FACTOR = 0.02     # reduces score if wait is high
@@ -485,9 +497,9 @@ for zone, attractions in zones.items():
 # Sort all attractions based on score (high to low)
 sorted_attractions = sorted(attraction_scores, key=lambda a: attraction_scores[a], reverse=True)
 
-# ------------------------------------------
-# 6. Balanced Initial Attractions Selection
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 8. Balanced Initial Attraction Selection
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 initial_attractions = []
 time_budget = visit_duration + 15
@@ -535,9 +547,10 @@ while h < len(high_rides) or m < len(medium_rides) or l < len(low_rides):
         l += 1
 
 
-# ------------------------------------------
-# Nearest Relaxation Spot for Break Time 
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 9. Route Optimization and Wet Ride Scheduling
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 def nearest_relaxation_spot(from_attraction):
     last_loc = attraction_coordinates[from_attraction]
     return min(
@@ -546,7 +559,7 @@ def nearest_relaxation_spot(from_attraction):
     )
 
 # ------------------------------------------
-# 6. Greedy Route Optimization
+# 9A. Route Distance Functions
 # ------------------------------------------
 def calculate_distance(point_a, point_b):
     if isinstance(point_a, str):
@@ -600,6 +613,9 @@ for a in zones[first_preference_zone]:
         first_pref_attraction = a
         break
 
+# ------------------------------------------
+# 9B. Wet Ride Timing: Fuzzy Control Setup
+# ------------------------------------------
 
 wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  # from preference score
 comfort_priority = ctrl.Antecedent(np.arange(0, 2, 1), 'comfort_priority')  # binary yes/no
@@ -635,9 +651,6 @@ wet_time_sim.compute()
 wet_time_pct = wet_time_sim.output['wet_time_position']  # e.g., 52%
 
 
-# ------------------------------------------
-# Nearest Relaxation Spot for Break Time 
-# ------------------------------------------
 def schedule_wet_rides_midday(route, wet_rides, zones):
     """
     Moves all wet rides to the middle of the route, followed by [Clothing Change],
@@ -677,6 +690,10 @@ def schedule_wet_rides_midday(route, wet_rides, zones):
     return merged
     
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 10. Food Timing Estimation (Fuzzy)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 food_pref = preferences["food"]
 
 food_interval_sim.input['preference'] = food_pref
@@ -687,9 +704,9 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 
 
 
-# ------------------------------------------
-# 7. No Consecutive Break
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 11. Final Route Cleanup (No Consecutive Breaks)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def no_consecutive_food_or_break(attractions, zones):
     final = []
@@ -713,9 +730,9 @@ def no_consecutive_food_or_break(attractions, zones):
 
     return final
     
-# ------------------------------------------
-# 7. Break Insertion
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 12. Break and Meal Insertion Logic
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # 🧠 Automatically reorder medium-intensity zones for rhythm
 def reorder_medium_intensity(route):
@@ -857,7 +874,9 @@ def insert_breaks(route):
 
     return updated
 
-# Optional: start with top zone attraction
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 13. Final Route Optimization and Tweaks
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 first_preference_zone = max(preferences, key=preferences.get)
 first_pref_attraction = next(
     (a for a in zones[first_preference_zone] if a in initial_attractions),
@@ -927,7 +946,9 @@ for stop in final_plan:
 
     previous_location = current_location
 
-# 📊 Plot with annotated labels
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 14. Energy Visualization (Line Plot)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(time_timeline, energy_timeline, marker='o')
 
@@ -948,12 +969,9 @@ ax.set_ylabel("Energy Level (%)")
 ax.grid(True)
 st.pyplot(fig)
 
-# ------------------------------------------
-# 8. Display & Time Calculation with Walks
-# ------------------------------------------
-# ------------------------------------------
-# 8. Display & Time Calculation with Walks
-# ------------------------------------------
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 15. Final Schedule Display with Times
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CLOTHING_CHANGE_DURATION = 10  # minutes
 
 zone_emojis = {
@@ -1039,11 +1057,13 @@ with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Exit**")
     plan_text_lines.append("Exit")
 
-# ⏱ Final time info
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 16. Saving to Session and Google Sheet
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
-# 🗂 Save Plan
+# Save Plan
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
 
@@ -1059,9 +1079,9 @@ if cell:
 else:
     st.warning("⚠️ Could not save tour plan. User ID not found in the sheet.")
 
-# ------------------------------------------
-# 9. Feedback & Rating
-# ------------------------------------------
+
+#  Feedback & Rating
+
 st.subheader("⭐ Plan Feedback")
 rating = st.slider("How would you rate your personalized tour plan?", 1, 10, 8)
 feedback = st.text_area("Do you have any comments or suggestions?")
