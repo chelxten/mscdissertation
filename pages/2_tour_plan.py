@@ -178,6 +178,12 @@ weight_output        = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
 
 food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
 
+rhythm_energy = ctrl.Antecedent(np.arange(0, 101, 1), 'rhythm_energy')
+rhythm_intensity = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'rhythm_intensity')
+rhythm_time = ctrl.Antecedent(np.arange(0, 241, 1), 'rhythm_time')  # 0–240 minutes
+
+next_type = ctrl.Consequent(np.arange(0, 6, 1), 'next_type')
+
 # ------------------------------------------
 # 5B. Membership functions
 # ------------------------------------------
@@ -220,6 +226,25 @@ weight_output['high'] = fuzz.trimf(weight_output.universe, [6, 10, 10])
 food_interval['short'] = fuzz.trimf(food_interval.universe, [60, 90, 120])
 food_interval['medium'] = fuzz.trimf(food_interval.universe, [100, 135, 170])
 food_interval['long'] = fuzz.trimf(food_interval.universe, [160, 240, 240])
+
+rhythm_energy['low'] = fuzz.trimf(rhythm_energy.universe, [0, 0, 40])
+rhythm_energy['medium'] = fuzz.trimf(rhythm_energy.universe, [30, 50, 70])
+rhythm_energy['high'] = fuzz.trimf(rhythm_energy.universe, [60, 100, 100])
+
+rhythm_intensity['low'] = fuzz.trimf(rhythm_intensity.universe, [0.0, 0.0, 0.4])
+rhythm_intensity['medium'] = fuzz.trimf(rhythm_intensity.universe, [0.3, 0.5, 0.7])
+rhythm_intensity['high'] = fuzz.trimf(rhythm_intensity.universe, [0.6, 1.0, 1.0])
+
+rhythm_time['early'] = fuzz.trimf(rhythm_time.universe, [0, 0, 90])
+rhythm_time['mid'] = fuzz.trimf(rhythm_time.universe, [60, 120, 180])
+rhythm_time['late'] = fuzz.trimf(rhythm_time.universe, [150, 240, 240])
+
+next_type['thrill'] = fuzz.trimf(next_type.universe, [0, 0, 1])
+next_type['family'] = fuzz.trimf(next_type.universe, [1, 1, 2])
+next_type['entertainment'] = fuzz.trimf(next_type.universe, [2, 2, 3])
+next_type['water'] = fuzz.trimf(next_type.universe, [3, 3, 4])
+next_type['relaxation'] = fuzz.trimf(next_type.universe, [4, 4, 5])
+next_type['food'] = fuzz.trimf(next_type.universe, [5, 5, 5])
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 5F. Smart Rhythm Style Inference (No User Input)
@@ -393,34 +418,6 @@ energy_loss_rules = [
 energy_loss_ctrl = ctrl.ControlSystem(energy_loss_rules)
 energy_loss_sim = ctrl.ControlSystemSimulation(energy_loss_ctrl)
 
-# ------------------------------------------
-# 5F. Fuzzy Subsystem: Rhythm Decision Engine
-# ------------------------------------------
-
-rhythm_energy = ctrl.Antecedent(np.arange(0, 101, 1), 'energy')
-rhythm_time = ctrl.Antecedent(np.arange(0, 601, 10), 'elapsed_minutes')  # up to 10 hours
-rhythm_intensity = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'last_intensity')
-
-next_type = ctrl.Consequent(np.arange(0, 5, 1), 'next_type')  # 0=thrill, 1=family, 2=entertainment, 3=relaxation, 4=food
-
-# Membership functions
-rhythm_energy['low'] = fuzz.trimf(rhythm_energy.universe, [0, 0, 40])
-rhythm_energy['medium'] = fuzz.trimf(rhythm_energy.universe, [30, 50, 70])
-rhythm_energy['high'] = fuzz.trimf(rhythm_energy.universe, [60, 100, 100])
-
-rhythm_time['early'] = fuzz.trimf(rhythm_time.universe, [0, 0, 120])
-rhythm_time['mid'] = fuzz.trimf(rhythm_time.universe, [90, 180, 270])
-rhythm_time['late'] = fuzz.trimf(rhythm_time.universe, [240, 360, 600])
-
-rhythm_intensity['low'] = fuzz.trimf(rhythm_intensity.universe, [0, 0, 0.4])
-rhythm_intensity['medium'] = fuzz.trimf(rhythm_intensity.universe, [0.3, 0.5, 0.7])
-rhythm_intensity['high'] = fuzz.trimf(rhythm_intensity.universe, [0.6, 1.0, 1.0])
-
-next_type['thrill'] = fuzz.trimf(next_type.universe, [0, 0, 1])
-next_type['family'] = fuzz.trimf(next_type.universe, [1, 1, 2])
-next_type['entertainment'] = fuzz.trimf(next_type.universe, [2, 2, 3])
-next_type['relaxation'] = fuzz.trimf(next_type.universe, [3, 3, 4])
-next_type['food'] = fuzz.trimf(next_type.universe, [4, 4, 4])
 
 
 # ------------------------------------------
