@@ -912,6 +912,22 @@ def insert_breaks(route):
         current_location = attraction_coordinates[stop]
 
     return updated
+
+
+def enforce_max_two_meals(plan, max_meals=2):
+    meal_breaks = [i for i, stop in enumerate(plan) if stop in zones["food"]]
+    if len(meal_breaks) <= max_meals:
+        return plan  # No trimming needed
+
+    # Keep the first and the most spaced one
+    first = meal_breaks[0]
+    last = meal_breaks[-1]
+    keep = {first, last} if max_meals == 2 else {first}
+
+    cleaned = [stop for i, stop in enumerate(plan) if i not in meal_breaks or i in keep]
+    return cleaned
+
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Final Route Optimization and Tweaks
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -932,6 +948,7 @@ wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zon
 
 # Insert breaks and food stops
 final_route = insert_breaks(wet_scheduled)
+final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
 final_route = no_consecutive_food_or_break(final_route, zones)
 
 final_route = list(dict.fromkeys(final_route))
