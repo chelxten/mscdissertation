@@ -914,19 +914,13 @@ def insert_breaks(route):
     return updated
 
 
-def enforce_max_two_meals(plan, max_meals=2):
-    meal_breaks = [i for i, stop in enumerate(plan) if stop in zones["food"]]
-    if len(meal_breaks) <= max_meals:
-        return plan  # No trimming needed
-
-    # Keep the first and the most spaced one
-    first = meal_breaks[0]
-    last = meal_breaks[-1]
-    keep = {first, last} if max_meals == 2 else {first}
-
-    cleaned = [stop for i, stop in enumerate(plan) if i not in meal_breaks or i in keep]
-    return cleaned
-
+def enforce_max_two_meals(route):
+    meals = [i for i, stop in enumerate(route) if stop in zones["food"]]
+    if len(meals) <= 2:
+        return route
+    # Keep first and last meals
+    keep_indices = {meals[0], meals[-1]}
+    return [stop for i, stop in enumerate(route) if i not in meals or i in keep_indices]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Final Route Optimization and Tweaks
