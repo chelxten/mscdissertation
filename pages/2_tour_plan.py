@@ -942,9 +942,19 @@ wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zon
 
 # Insert breaks and food stops
 final_route = insert_breaks(wet_scheduled)
-print("Meals before enforcement:", [stop for stop in final_route if stop in zones["food"]])
+
+st.subheader("🍽️ Meal Break Debug Info")
+
+meals_before = [stop for stop in final_route if stop in zones["food"]]
+st.write(f"🔍 Meal Breaks Before Enforcement: {len(meals_before)}")
+st.write("🥗 Meals Included Before:", meals_before)
+
 final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
-print("Meals after enforcement:", [stop for stop in final_route if stop in zones["food"]])
+
+meals_after = [stop for stop in final_route if stop in zones["food"]]
+st.write(f"✅ Meal Breaks After Enforcement: {len(meals_after)}")
+st.write("🍴 Meals Included After:", meals_after)
+
 final_route = no_consecutive_food_or_break(final_route, zones)
 
 final_route = list(dict.fromkeys(final_route))
