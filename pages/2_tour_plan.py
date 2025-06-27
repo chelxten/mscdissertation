@@ -915,12 +915,19 @@ def insert_breaks(route):
 
 
 def enforce_max_two_meals(route):
-    meals = [i for i, stop in enumerate(route) if stop in zones["food"]]
-    if len(meals) <= 2:
-        return route
-    # Keep first and last meals
-    keep_indices = {meals[0], meals[-1]}
-    return [stop for i, stop in enumerate(route) if i not in meals or i in keep_indices]
+    cleaned = []
+    food_count = 0
+    for stop in route:
+        zone = next((z for z, a in zones.items() if stop in a), None)
+        if zone == "food":
+            if food_count < 2:
+                cleaned.append(stop)
+                food_count += 1
+            else:
+                continue  # Skip any extra food stops
+        else:
+            cleaned.append(stop)
+    return cleaned
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Final Route Optimization and Tweaks
@@ -943,17 +950,7 @@ wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zon
 # Insert breaks and food stops
 final_route = insert_breaks(wet_scheduled)
 
-st.subheader("🍽️ Meal Break Debug Info")
-
-meals_before = [stop for stop in final_route if stop in zones["food"]]
-st.write(f"🔍 Meal Breaks Before Enforcement: {len(meals_before)}")
-st.write("🥗 Meals Included Before:", meals_before)
-
 final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
-
-meals_after = [stop for stop in final_route if stop in zones["food"]]
-st.write(f"✅ Meal Breaks After Enforcement: {len(meals_after)}")
-st.write("🍴 Meals Included After:", meals_after)
 
 final_route = no_consecutive_food_or_break(final_route, zones)
 
