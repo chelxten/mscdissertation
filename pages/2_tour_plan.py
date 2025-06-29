@@ -843,12 +843,8 @@ def insert_breaks(route):
 
         duration = attraction_durations[stop]
         wait = attraction_wait_times[stop]
-        SCALE_FACTOR_METERS = 2.0  # Each unit in grid = 2 real meters
-
-        walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
-        walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS
-
-        walk_time = max(1, round(walk_dist_meters / walking_speed))
+        walk_dist = calculate_distance(previous_location, attraction_coordinates[stop])
+        walk_time = max(1, int(walk_dist / walking_speed))
         total_this_stop = duration + wait + walk_time
 
         total_elapsed_time += total_this_stop
