@@ -1155,8 +1155,8 @@ likert_options = [
 
 # 1️⃣ Spacing question
 st.markdown("""
-<span style='font-size:17px; font-weight:bold'>
-1️⃣ The spacing between activities, including breaks, felt balanced.
+<span style='font-size:17px; '>
+1. The spacing between activities, including breaks, felt balanced.
 </span>
 """, unsafe_allow_html=True)
 q_spacing = st.radio(
@@ -1170,8 +1170,8 @@ q_spacing = st.radio(
 
 # 2️⃣ Variety question
 st.markdown("""
-<span style='font-size:17px; font-weight:bold'>
-2️⃣ The variety of attractions matched my interests.
+<span style='font-size:17px; '>
+2. The variety of attractions matched my interests.
 </span>
 """, unsafe_allow_html=True)
 q_variety = st.radio(
@@ -1185,8 +1185,8 @@ q_variety = st.radio(
 
 # 3️⃣ Meal timing question
 st.markdown("""
-<span style='font-size:17px; font-weight:bold'>
-3️⃣ The timing of meal/rest breaks was well-distributed.
+<span style='font-size:17px; '>
+3. The timing of meal/rest breaks was well-distributed.
 </span>
 """, unsafe_allow_html=True)
 q_meal_timing = st.radio(
@@ -1200,8 +1200,8 @@ q_meal_timing = st.radio(
 
 # 4️⃣ Overall satisfaction
 st.markdown("""
-<span style='font-size:17px; font-weight:bold'>
-4️⃣ Overall, I’m satisfied with the personalized tour plan.
+<span style='font-size:17px; '>
+4. Overall, I’m satisfied with the personalized tour plan.
 </span>
 """, unsafe_allow_html=True)
 q_overall = st.radio(
