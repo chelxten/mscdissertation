@@ -1132,9 +1132,9 @@ sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
 if cell:
     row_num = cell.row
-    sheet.update_cell(row_num, 19, final_clean_plan)
-    sheet.update_cell(row_num, 20, str(int(total_time_used)))
-    sheet.update_cell(row_num, 21, str(int(leftover_time)))
+    sheet.update_cell(row_num, 17, final_clean_plan)
+    sheet.update_cell(row_num, 18, str(int(total_time_used)))
+    sheet.update_cell(row_num, 19, str(int(leftover_time)))
 else:
     st.warning("⚠️ Could not save tour plan. User ID not found in the sheet.")
 
@@ -1144,13 +1144,33 @@ else:
 st.subheader("⭐ Plan Feedback")
 rating = st.slider("How would you rate your personalized tour plan?", 1, 10, 8)
 feedback = st.text_area("Do you have any comments or suggestions?")
+st.subheader("⭐ Plan Feedback")
+
+st.markdown("Please rate the following aspects of your personalized plan (1 = Strongly Disagree, 5 = Strongly Agree):")
+
+q_spacing = st.slider(
+    "1️⃣ The spacing between activities (including breaks) felt balanced.", 1, 5, 3
+)
+q_variety = st.slider(
+    "2️⃣ The variety of attractions matched my interests.", 1, 5, 3
+)
+q_meal_timing = st.slider(
+    "3️⃣ The timing of meal/rest breaks was well-distributed.", 1, 5, 3
+)
+q_overall = st.slider(
+    "4️⃣ Overall, I’m satisfied with the personalized tour plan.", 1, 5, 4
+)
+
+feedback = st.text_area("💬 Additional comments or suggestions:")
 
 if st.button("Submit Feedback"):
     try:
-        sheet.update_cell(row_num, 17, str(rating))
-        sheet.update_cell(row_num, 18, feedback)
-        st.session_state.tour_rating = rating
-        st.session_state.tour_feedback = feedback
+        sheet.update_cell(row_num, 20, str(q_spacing))
+        sheet.update_cell(row_num, 21, str(q_variety))
+        sheet.update_cell(row_num, 22, str(q_meal_timing))
+        sheet.update_cell(row_num, 23, str(q_overall))
+        sheet.update_cell(row_num, 24, feedback)
+
         st.success("✅ Feedback saved!")
         time.sleep(1)
         st.switch_page("pages/3_final_download.py")
