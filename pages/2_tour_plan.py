@@ -1040,16 +1040,27 @@ for stop in final_plan:
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(time_timeline, energy_timeline, marker='o')
 
-for i in range(1, len(time_timeline)):
-    ax.annotate(
-        labels[i - 1],
-        (time_timeline[i], energy_timeline[i]),
-        textcoords="offset points",
-        xytext=(0, 8),
-        ha='center',
-        fontsize=8,
-        rotation=30
-    )
+# Label start
+ax.annotate(
+    labels[0],
+    (time_timeline[0], energy_timeline[0]),
+    textcoords="offset points",
+    xytext=(0, 8),
+    ha='center',
+    fontsize=10,
+    rotation=0
+)
+
+# Label end
+ax.annotate(
+    labels[-1],
+    (time_timeline[-1], energy_timeline[-1]),
+    textcoords="offset points",
+    xytext=(0, 8),
+    ha='center',
+    fontsize=10,
+    rotation=0
+)
 
 ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
