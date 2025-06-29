@@ -1055,8 +1055,14 @@ for stop in energy_plan_used:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 fig, ax = plt.subplots(figsize=(12, 8))
 
-# Plot the energy curve over time
-ax.plot(time_timeline, energy_timeline, color='blue', linewidth=1)
+# 1️⃣ Thinner line + dashed grid
+ax.plot(time_timeline, energy_timeline, color='blue', linewidth=1.5, linestyle='-')
+ax.grid(which='major', linestyle='--', alpha=0.4)
+
+# 2️⃣ Energy bands
+ax.axhspan(80, 100, color='green', alpha=0.1, label='High Energy (80–100%)')
+ax.axhspan(50, 80, color='yellow', alpha=0.1, label='Moderate Energy (50–80%)')
+ax.axhspan(0, 50, color='red', alpha=0.1, label='Low Energy (<50%)')
 
 # Entrance marker
 ax.scatter(time_timeline[0], 100, color='green', marker='o', s=60, zorder=3)
@@ -1069,27 +1075,53 @@ ax.annotate(
     fontsize=8
 )
 
-# One marker and label for each stop
-for i, (time_point, energy_level, stop_name) in enumerate(stop_label_points):
-    y_offset = 10 if i % 2 == 0 else -15  # alternate to avoid overlap
-    ax.scatter(time_point, energy_level, color='red', marker='o', s=60, zorder=3)
+# 3️⃣ Custom markers for food/relax/rides
+for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
+    # 4️⃣ Shorter labels: abbreviate
+    if len(stop_name) > 15:
+        label_text = f"{stop_name[:12]}…\n{int(energy_level)}%"
+    else:
+        label_text = f"{stop_name}\n{int(energy_level)}%"
+
+    # Marker by zone
+    if zone == "food":
+        marker_style = 's'
+        color = 'green'
+    elif zone == "relaxation":
+        marker_style = 'D'
+        color = 'darkgreen'
+    else:
+        marker_style = 'o'
+        color = 'blue'
+
+    y_offset = 10 if i % 2 == 0 else -15  # alternate offsets
+
+    ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
     ax.annotate(
-        f"{stop_name}\n{int(energy_level)}%",
+        label_text,
         (time_point, energy_level),
         textcoords="offset points",
         xytext=(0, y_offset),
         ha='center',
-        fontsize=6
+        fontsize=8
     )
 
-# Final cleanup
-ax.set_title("🧠 Energy Over Time")
-ax.set_xlabel("Minutes Since Start")
-ax.set_ylabel("Energy Level (%)")
-ax.set_ylim(0, 150)
-ax.grid(True)
-st.pyplot(fig)
+# 7️⃣ Legend
+ax.scatter([], [], marker='o', color='blue', label='Ride')
+ax.scatter([], [], marker='s', color='green', label='Meal Stop')
+ax.scatter([], [], marker='D', color='darkgreen', label='Rest Stop')
+ax.legend()
 
+# Titles and labels
+ax.set_title("🧠 Energy Over Time", fontsize=16)
+ax.set_xlabel("Minutes Since Start", fontsize=12)
+ax.set_ylabel("Energy Level (%)", fontsize=12)
+ax.set_ylim(0, 110)
+
+# 8️⃣ Tight layout
+fig.tight_layout()
+
+st.pyplot(fig)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 15. Final Schedule Display with Times
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
