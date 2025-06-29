@@ -14,16 +14,13 @@ st.set_page_config(page_title="Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Thank You for Participating!")
 
+
 # -----------------------
 # 2. Load Session State
 # -----------------------
 
 unique_id = st.session_state.get("unique_id")
-q_spacing = sheet.cell(row_num, 20).value
-q_variety = sheet.cell(row_num, 21).value
-q_meal_timing = sheet.cell(row_num, 22).value
-q_overall = sheet.cell(row_num, 23).value
-feedback = sheet.cell(row_num, 24).value
+
 consent = st.session_state.get("consent_agreed", False)
 
 if not unique_id:
@@ -63,6 +60,11 @@ row_num = cell.row
 plan_text = sheet.cell(row_num, 17).value  # Column S
 total_time_used = sheet.cell(row_num, 18).value
 leftover_time = sheet.cell(row_num, 19).value
+q_spacing = sheet.cell(row_num, 20).value
+q_variety = sheet.cell(row_num, 21).value
+q_meal_timing = sheet.cell(row_num, 22).value
+q_overall = sheet.cell(row_num, 23).value
+feedback = sheet.cell(row_num, 24).value
 
 # -----------------------
 # 5. Generate PDF
