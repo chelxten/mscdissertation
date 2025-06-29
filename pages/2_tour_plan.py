@@ -1050,88 +1050,7 @@ for stop in energy_plan_used:
 
     previous_location = attraction_coordinates[stop]
 
-show_energy_plot = st.checkbox("Show energy level graph", value=True)
 
-if show_energy_plot:
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 14. Energy Visualization (Line Plot)
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    fig, ax = plt.subplots(figsize=(12, 8))
-
-    # 1️⃣ Thinner line + dashed grid
-    ax.plot(time_timeline, energy_timeline, color='#2E86AB', linewidth=1.5, linestyle='-')
-    ax.grid(True, linestyle='--', alpha=0.5)
-    ax.set_facecolor('#f9f9f9')
-
-    # 2️⃣ Energy bands
-    ax.axhspan(80, 100, color='green', alpha=0.1, label='High Energy (80–100%)')
-    ax.axhspan(50, 80, color='yellow', alpha=0.1, label='Moderate Energy (50–80%)')
-    ax.axhspan(0, 50, color='red', alpha=0.1, label='Low Energy (<50%)')
-
-    # Entrance marker
-    ax.scatter(time_timeline[0], 100, color='green', marker='o', s=60, zorder=3)
-    ax.annotate(
-        "Entrance\n100%",
-        (time_timeline[0], 100),
-        textcoords="offset points",
-        xytext=(0, 10),
-        ha='center',
-        fontsize=8
-    )
-
-    # 3️⃣ Custom markers for food/relax/rides
-    last_time_point = None
-    for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
-        if len(stop_name) > 15:
-            label_text = f"{stop_name[:10]}…\n{int(energy_level)}%"
-        else:
-            label_text = f"{stop_name}\n{int(energy_level)}%"
-
-        if zone == "food":
-            marker_style = 's'
-            color = 'green'
-        elif zone == "relaxation":
-            marker_style = 'D'
-            color = 'darkgreen'
-        else:
-            marker_style = 'o'
-            color = 'blue'
-
-        # Dynamic offset
-        y_offset = 20
-        if last_time_point is not None:
-            if abs(time_point - last_time_point) < 5:
-                y_offset = 35 if (i % 2 == 0) else -40
-            else:
-                y_offset = 20 if (i % 2 == 0) else -25
-        last_time_point = time_point
-
-        ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
-        ax.annotate(
-            label_text,
-            (time_point, energy_level),
-            textcoords="offset points",
-            xytext=(0, y_offset),
-            ha='center',
-            fontsize=8,
-            rotation=0
-        )
-
-    # 7️⃣ Legend
-    ax.scatter([], [], marker='o', color='blue', label='Ride')
-    ax.scatter([], [], marker='s', color='green', label='Meal Stop')
-    ax.scatter([], [], marker='D', color='darkgreen', label='Rest Stop')
-    ax.legend()
-
-    # Titles and labels
-    ax.set_title("Visitor Energy Level Throughout the Day", fontsize=16, weight='bold')
-    ax.set_xlabel("Minutes Elapsed", fontsize=12)
-    ax.set_ylabel("Energy Level (%)", fontsize=12)
-    ax.set_ylim(40, 110)
-
-    # 8️⃣ Tight layout
-    fig.tight_layout()
-    st.pyplot(fig)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 15. Final Schedule Display with Times
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1222,6 +1141,99 @@ with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Exit**")
     plan_text_lines.append("Exit")
 
+st.markdown("""
+### 📈 Energy Level Graph
+This graph shows how your estimated energy level changes throughout the day based on your planned activities.
+- High-energy rides tend to reduce energy faster.
+- Meal and rest stops help recharge.
+- Walking time is also included in energy loss.
+
+Use this to see how well-paced your itinerary is, and where you might want to plan extra breaks!
+""")
+
+show_energy_plot = st.checkbox("Show energy level graph", value=True)
+
+if show_energy_plot:
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 14. Energy Visualization (Line Plot)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # 1️⃣ Thinner line + dashed grid
+    ax.plot(time_timeline, energy_timeline, color='#2E86AB', linewidth=1.5, linestyle='-')
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.set_facecolor('#f9f9f9')
+
+    # 2️⃣ Energy bands
+    ax.axhspan(80, 100, color='green', alpha=0.1, label='High Energy (80–100%)')
+    ax.axhspan(50, 80, color='yellow', alpha=0.1, label='Moderate Energy (50–80%)')
+    ax.axhspan(0, 50, color='red', alpha=0.1, label='Low Energy (<50%)')
+
+    # Entrance marker
+    ax.scatter(time_timeline[0], 100, color='green', marker='o', s=60, zorder=3)
+    ax.annotate(
+        "Entrance\n100%",
+        (time_timeline[0], 100),
+        textcoords="offset points",
+        xytext=(0, 10),
+        ha='center',
+        fontsize=8
+    )
+
+    # 3️⃣ Custom markers for food/relax/rides
+    last_time_point = None
+    for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
+        if len(stop_name) > 15:
+            label_text = f"{stop_name[:10]}…\n{int(energy_level)}%"
+        else:
+            label_text = f"{stop_name}\n{int(energy_level)}%"
+
+        if zone == "food":
+            marker_style = 's'
+            color = 'green'
+        elif zone == "relaxation":
+            marker_style = 'D'
+            color = 'darkgreen'
+        else:
+            marker_style = 'o'
+            color = 'blue'
+
+        # Dynamic offset
+        y_offset = 20
+        if last_time_point is not None:
+            if abs(time_point - last_time_point) < 5:
+                y_offset = 35 if (i % 2 == 0) else -40
+            else:
+                y_offset = 20 if (i % 2 == 0) else -25
+        last_time_point = time_point
+
+        ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
+        ax.annotate(
+            label_text,
+            (time_point, energy_level),
+            textcoords="offset points",
+            xytext=(0, y_offset),
+            ha='center',
+            fontsize=8,
+            rotation=0
+        )
+
+    # 7️⃣ Legend
+    ax.scatter([], [], marker='o', color='blue', label='Ride')
+    ax.scatter([], [], marker='s', color='green', label='Meal Stop')
+    ax.scatter([], [], marker='D', color='darkgreen', label='Rest Stop')
+    ax.legend()
+
+    # Titles and labels
+    ax.set_title("Visitor Energy Level Throughout the Day", fontsize=16, weight='bold')
+    ax.set_xlabel("Minutes Elapsed", fontsize=12)
+    ax.set_ylabel("Energy Level (%)", fontsize=12)
+    ax.set_ylim(40, 110)
+
+    # 8️⃣ Tight layout
+    fig.tight_layout()
+    st.pyplot(fig)
+    
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 16. Saving to Session and Google Sheet
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
