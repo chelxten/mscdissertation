@@ -70,7 +70,7 @@ feedback = sheet.cell(row_num, 24).value
 # 5. Generate PDF
 # -----------------------
 
-def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent):
+def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety, q_meal_timing, q_overall, feedback, consent):
     html_content = f"""
     <html>
     <head>
@@ -138,7 +138,11 @@ def merge_pdfs(master_path, generated_buffer):
 # 7. Auto-generate & Show Download
 # -----------------------
 
-dynamic_pdf = generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, consent)
+dynamic_pdf = generate_pdf(
+    plan_text, total_time_used, leftover_time,
+    q_spacing, q_variety, q_meal_timing, q_overall,
+    feedback, consent
+)
 final_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
 st.download_button(
