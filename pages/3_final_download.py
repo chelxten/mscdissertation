@@ -19,8 +19,11 @@ st.title("Thank You for Participating!")
 # -----------------------
 
 unique_id = st.session_state.get("unique_id")
-rating = st.session_state.get("tour_rating", "Not Provided")
-feedback = st.session_state.get("tour_feedback", "No comments.")
+q_spacing = sheet.cell(row_num, 20).value
+q_variety = sheet.cell(row_num, 21).value
+q_meal_timing = sheet.cell(row_num, 22).value
+q_overall = sheet.cell(row_num, 23).value
+feedback = sheet.cell(row_num, 24).value
 consent = st.session_state.get("consent_agreed", False)
 
 if not unique_id:
@@ -57,9 +60,9 @@ sheet = get_consent_worksheet()
 cell = sheet.find(unique_id, in_column=2)
 row_num = cell.row
 
-plan_text = sheet.cell(row_num, 19).value  # Column S
-total_time_used = sheet.cell(row_num, 20).value
-leftover_time = sheet.cell(row_num, 21).value
+plan_text = sheet.cell(row_num, 17).value  # Column S
+total_time_used = sheet.cell(row_num, 18).value
+leftover_time = sheet.cell(row_num, 19).value
 
 # -----------------------
 # 5. Generate PDF
@@ -99,7 +102,10 @@ def generate_pdf(plan_text, total_time_used, leftover_time, rating, feedback, co
     <p><b>Leftover Time:</b> {leftover_time} minutes</p>
 
     <h2>Participant Feedback</h2>
-    <p><b>Rating:</b> {rating}/10</p>
+    <p><b>1️⃣ Activity Spacing:</b> {q_spacing}/5</p>
+    <p><b>2️⃣ Attraction Variety:</b> {q_variety}/5</p>
+    <p><b>3️⃣ Meal/Rest Timing:</b> {q_meal_timing}/5</p>
+    <p><b>4️⃣ Overall Satisfaction:</b> {q_overall}/5</p>
     <p><b>Comments:</b> {feedback}</p>
 
     <p style="margin-top: 30px; font-size: 8pt;"><i>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>
