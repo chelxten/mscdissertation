@@ -1144,7 +1144,7 @@ else:
 st.subheader("⭐ Plan Feedback")
 
 st.markdown("""
-<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:400'>
+<span style='font-family:Inter, sans-serif; font-size:17px; font-weight:400'>
 Please rate the following aspects of your personalized plan:
 </span>
 """, unsafe_allow_html=True)
