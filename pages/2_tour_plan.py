@@ -1212,7 +1212,9 @@ q_overall = st.radio(
     key="overall",
     label_visibility="collapsed"
 )
-feedback = st.text_area("Do you have any comments or suggestions?")
+feedback = st.text_area("""<span style='font-size:17px; '>
+Do you have any comments or suggestions?
+</span>"" ")
 
 if st.button("Submit Feedback"):
     try:
