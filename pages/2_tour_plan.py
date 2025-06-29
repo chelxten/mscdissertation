@@ -1031,7 +1031,7 @@ for stop in energy_plan_used:
             energy_timeline.append(energy)
             time_timeline.append(elapsed_time)
         # Add *one* label
-        stop_label_points.append((elapsed_time, energy, stop))
+        stop_label_points.append((elapsed_time, energy, stop, zone))
     else:
         # Energy loss over entire total_this_stop
         energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
@@ -1046,7 +1046,7 @@ for stop in energy_plan_used:
             energy_timeline.append(energy)
             time_timeline.append(elapsed_time)
         # Add *one* label
-        stop_label_points.append((elapsed_time, energy, stop))
+        stop_label_points.append((elapsed_time, energy, stop, zone))
 
     previous_location = attraction_coordinates[stop]
 
@@ -1076,7 +1076,7 @@ ax.annotate(
 )
 
 # 3️⃣ Custom markers for food/relax/rides
-for i, (time_point, energy_level, stop_name) in enumerate(stop_label_points):
+for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
     # 4️⃣ Shorter labels: abbreviate
     if len(stop_name) > 15:
         label_text = f"{stop_name[:12]}…\n{int(energy_level)}%"
