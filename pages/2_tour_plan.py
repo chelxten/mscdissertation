@@ -1154,7 +1154,7 @@ likert_options = [
 ]
 
 st.markdown("""
-<span style='font-size:20px'>
+<span style='font-size:18px'>
 1. The spacing between activities (including breaks) felt balanced.
 </span>
 """, unsafe_allow_html=True)
