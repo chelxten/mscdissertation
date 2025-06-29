@@ -972,38 +972,63 @@ previous_location = (0, 0)
 for stop in final_plan:
     zone = next((z for z, a in zones.items() if stop in a), None)
     if zone is None:
-        continue 
-    duration = attraction_durations[stop]
-    wait = attraction_wait_times[stop]
-    time_spent = duration + wait
+        continue
 
-    # Walk distance
-    current_location = attraction_coordinates[stop]
-    walk_dist = calculate_distance(previous_location, current_location)
+    intensity = zone_intensity.get(zone, 1.0)
+    duration = attraction_durations.get(stop, 5)
+    wait = attraction_wait_times.get(stop, 0)
+    walk_dist = calculate_distance(previous_location, attraction_coordinates[stop])
     walk_time = max(1, int(walk_dist / walking_speed))
-    total_this_stop = time_spent + walk_time
+    total_this_stop = duration + wait + walk_time
 
-    # Check time cutoff
     if total_time_check + total_this_stop > visit_duration + 15:
         break
 
-    # Apply energy logic
+    # Energy loss fuzzy model
+    energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
+    loss_per_minute = energy_loss / max(1, total_this_stop)
+
+    # Age-adjusted boosts
+    adjusted_rest_boost = energy_settings['rest_boost'] * (2 - energy_settings['loss_factor'])
+    adjusted_food_boost = energy_settings['food_boost'] * (2 - energy_settings['loss_factor'])
+
+    # Per-minute simulation
+    for minute in range(total_this_stop):
+        energy -= loss_per_minute
+        # partial recovery during low-intensity rides
+        if intensity < 0.3:
+            energy += (adjusted_rest_boost * 0.2) / total_this_stop
+        energy = max(0, min(100, energy))
+        elapsed_time += 1
+        total_time_check += 1
+
+        energy_timeline.append(energy)
+        time_timeline.append(elapsed_time)
+        labels.append(f"{stop}\n{int(energy)}%")
+
+    # Rest stops - proportional recharge
     if zone == "relaxation":
-        energy += energy_settings["rest_boost"]
-    elif zone == "food":
-        energy += energy_settings["food_boost"]
-    else:
-        energy -= zone_intensity.get(zone, 1) * energy_settings["loss_factor"] * 6
+        for minute in range(duration):
+            energy += adjusted_rest_boost / duration
+            energy = min(100, energy)
+            elapsed_time += 1
+            total_time_check += 1
+            energy_timeline.append(energy)
+            time_timeline.append(elapsed_time)
+            labels.append(f"{stop}\n{int(energy)}%")
 
-    energy = max(0, min(100, energy))  # clamp
-    elapsed_time += total_this_stop
-    total_time_check += total_this_stop
+    # Food stops - proportional recharge
+    if zone == "food":
+        for minute in range(duration):
+            energy += adjusted_food_boost / duration
+            energy = min(100, energy)
+            elapsed_time += 1
+            total_time_check += 1
+            energy_timeline.append(energy)
+            time_timeline.append(elapsed_time)
+            labels.append(f"{stop}\n{int(energy)}%")
 
-    energy_timeline.append(energy)
-    time_timeline.append(elapsed_time)
-    labels.append(f"{stop}\n{int(energy)}%")
-
-    previous_location = current_location
+    previous_location = attraction_coordinates[stop]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
@@ -1026,7 +1051,7 @@ ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
 ax.set_ylabel("Energy Level (%)")
 ax.grid(True)
-#st.pyplot(fig)
+st.pyplot(fig)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 15. Final Schedule Display with Times
