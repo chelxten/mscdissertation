@@ -1053,7 +1053,7 @@ for stop in energy_plan_used:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-fig, ax = plt.subplots(figsize=(18, 8))
+fig, ax = plt.subplots(figsize=(12, 8))
 
 # Plot the energy curve over time
 ax.plot(time_timeline, energy_timeline, color='blue', linewidth=1)
@@ -1079,7 +1079,7 @@ for i, (time_point, energy_level, stop_name) in enumerate(stop_label_points):
         textcoords="offset points",
         xytext=(0, y_offset),
         ha='center',
-        fontsize=8
+        fontsize=6
     )
 
 # Final cleanup
