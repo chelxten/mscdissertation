@@ -1144,7 +1144,7 @@ else:
 st.subheader("⭐ Plan Feedback")
 
 st.markdown("""
-<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
+<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:400'>
 Please rate the following aspects of your personalized plan:
 </span>
 """, unsafe_allow_html=True)
@@ -1189,7 +1189,7 @@ q_variety = st.radio(
 
 # 3️⃣ Meal timing question
 st.markdown("""
-<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
+<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:450'>
 3. The timing of meal/rest breaks was well-distributed.
 </span>
 """, unsafe_allow_html=True)
@@ -1204,7 +1204,7 @@ q_meal_timing = st.radio(
 
 # 4️⃣ Overall satisfaction
 st.markdown("""
-<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
+<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:400'>
 4. Overall, I’m satisfied with the personalized tour plan.
 </span>
 """, unsafe_allow_html=True)
@@ -1218,7 +1218,7 @@ q_overall = st.radio(
 )
 
 st.markdown("""
-<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
+<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:500'>
 5. Do you have any comments or suggestions?
 </span>
 """, unsafe_allow_html=True)
