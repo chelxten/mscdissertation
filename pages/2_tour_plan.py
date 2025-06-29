@@ -1141,6 +1141,30 @@ with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Exit**")
     plan_text_lines.append("Exit")
 
+
+    
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 16. Saving to Session and Google Sheet
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+leftover_time = visit_duration - total_time_used
+st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
+
+# Save Plan
+final_clean_plan = "\n".join(plan_text_lines)
+st.session_state.tour_plan = final_clean_plan
+
+# 🧾 Save to Sheet
+uid = st.session_state.get("unique_id")
+sheet = get_consent_worksheet()
+cell = sheet.find(uid, in_column=2)
+if cell:
+    row_num = cell.row
+    sheet.update_cell(row_num, 17, final_clean_plan)
+    sheet.update_cell(row_num, 18, str(int(total_time_used)))
+    sheet.update_cell(row_num, 19, str(int(leftover_time)))
+else:
+    st.warning("⚠️ Could not save tour plan. User ID not found in the sheet.")
+
 st.markdown("""
 ### 📈 Energy Level Graph
 This graph shows how your estimated energy level changes throughout the day based on your planned activities.
@@ -1234,29 +1258,6 @@ if show_energy_plot:
     fig.tight_layout()
     st.pyplot(fig)
     
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 16. Saving to Session and Google Sheet
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-leftover_time = visit_duration - total_time_used
-st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
-
-# Save Plan
-final_clean_plan = "\n".join(plan_text_lines)
-st.session_state.tour_plan = final_clean_plan
-
-# 🧾 Save to Sheet
-uid = st.session_state.get("unique_id")
-sheet = get_consent_worksheet()
-cell = sheet.find(uid, in_column=2)
-if cell:
-    row_num = cell.row
-    sheet.update_cell(row_num, 17, final_clean_plan)
-    sheet.update_cell(row_num, 18, str(int(total_time_used)))
-    sheet.update_cell(row_num, 19, str(int(leftover_time)))
-else:
-    st.warning("⚠️ Could not save tour plan. User ID not found in the sheet.")
-
-
 #  Feedback & Rating
 
 st.subheader("⭐ Plan Feedback")
