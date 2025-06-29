@@ -1214,8 +1214,8 @@ q_overall = st.radio(
 )
 
 st.markdown("""
-<span style='font-size:17px; font-weight:bold'>
-💬 Do you have any comments or suggestions?
+<span style='font-family:Inter, sans-serif; font-size:17px; font-weight:bold'>
+5. Do you have any comments or suggestions?
 </span>
 """, unsafe_allow_html=True)
 
