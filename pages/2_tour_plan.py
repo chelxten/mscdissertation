@@ -1031,14 +1031,10 @@ for stop in final_plan:
 fig, ax = plt.subplots(figsize=(12, 8))
 
 # Add synthetic Entrance point at 100%
-ax.plot(
-    [time_timeline[0]] + time_timeline,
-    [100] + energy_timeline,
-    color='blue',
-    linewidth=1
-)
+# Plot the energy curve over time
+ax.plot(time_timeline, energy_timeline, color='blue', linewidth=1)
 
-# Add marker and label for Entrance
+# Entrance marker
 ax.scatter(time_timeline[0], 100, color='green', marker='o', s=60, zorder=3)
 ax.annotate(
     "Entrance\n100%",
@@ -1049,38 +1045,18 @@ ax.annotate(
     fontsize=8
 )
 
-# Find where each ride ends (last index before next ride starts)
-ride_ends = []
-prev_ride = labels[0].split("\n")[0]
-for i in range(1, len(labels)):
-    current_ride = labels[i].split("\n")[0]
-    if current_ride != prev_ride:
-        ride_ends.append(i - 1)
-        prev_ride = current_ride
-# Add final ride end
-ride_ends.append(len(labels) - 1)
-
-# Plot markers and labels at the end of each ride
-for idx_num, idx in enumerate(ride_ends):
-    x = time_timeline[idx]
-    y = energy_timeline[idx]
-    ride_name = labels[idx].split("\n")[0]
-    energy_pct = int(y)
-
-    # Alternate label offset to avoid overlap
-    y_offset = 10 if idx_num % 2 == 0 else -15
-
-    # Marker at end of ride
-    ax.scatter(x, y, color='red', marker='o', s=60, zorder=3)
+# One marker and label for each stop
+for i, (time_point, energy_level, stop_name) in enumerate(stop_label_points):
+    y_offset = 10 if i % 2 == 0 else -15  # alternate to avoid overlap
+    ax.scatter(time_point, energy_level, color='red', marker='o', s=60, zorder=3)
     ax.annotate(
-        f"{ride_name}\n{energy_pct}%",
-        (x, y),
+        f"{stop_name}\n{int(energy_level)}%",
+        (time_point, energy_level),
         textcoords="offset points",
         xytext=(0, y_offset),
         ha='center',
         fontsize=8
     )
-
 # Final cleanup
 ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
