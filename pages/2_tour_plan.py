@@ -994,7 +994,7 @@ for stop in final_plan:
     adjusted_food_boost = energy_settings['food_boost'] * (2 - energy_settings['loss_factor'])
 
     if zone in ["relaxation", "food"]:
-        # Recharge stops (only add energy)
+        # Recharge stops only ONCE
         boost = adjusted_rest_boost if zone == "relaxation" else adjusted_food_boost
         for minute in range(duration):
             energy += boost / duration
@@ -1003,16 +1003,13 @@ for stop in final_plan:
             total_time_check += 1
             energy_timeline.append(energy)
             time_timeline.append(elapsed_time)
-            labels.append(f"{stop}\n{int(energy)}%")
-        
-        # Add one label point at the *end* of the recharge stop
+        # Add *one* label
         stop_label_points.append((elapsed_time, energy, stop))
 
     else:
-        # Compute fuzzy energy loss
+        # Energy loss over entire total_this_stop
         energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
         loss_per_minute = energy_loss / max(1, total_this_stop)
-
         for minute in range(total_this_stop):
             energy -= loss_per_minute
             if intensity < 0.3:
@@ -1022,9 +1019,7 @@ for stop in final_plan:
             total_time_check += 1
             energy_timeline.append(energy)
             time_timeline.append(elapsed_time)
-            labels.append(f"{stop}\n{int(energy)}%")
-        
-        # Add one label point at the *end* of the ride stop
+        # Add *one* label
         stop_label_points.append((elapsed_time, energy, stop))
 
     previous_location = attraction_coordinates[stop]
