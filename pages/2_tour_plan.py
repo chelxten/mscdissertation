@@ -1039,7 +1039,7 @@ for stop in final_plan:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 fig, ax = plt.subplots(figsize=(20, 10))
 ax.set_ylim(0, 150)  # or 110 for more space
-ax.plot(time_timeline, energy_timeline, marker='o', linewidth=0.5, markersize=1)
+ax.plot(time_timeline, energy_timeline, marker='o', linewidth=0.8, markersize=3)
 
 # Label start and end of each ride
 prev_stop = labels[0].split("\n")[0]
