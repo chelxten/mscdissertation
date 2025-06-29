@@ -1071,7 +1071,7 @@ ax.annotate(
     "Entrance\n100%",
     (time_timeline[0], 100),
     textcoords="offset points",
-    xytext=(0, 10),
+    xytext=(0, 20),
     ha='center',
     fontsize=8
 )
