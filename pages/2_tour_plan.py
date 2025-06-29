@@ -1053,7 +1053,7 @@ for stop in energy_plan_used:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-fig, ax = plt.subplots(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(18, 8))
 
 # Plot the energy curve over time
 ax.plot(time_timeline, energy_timeline, color='blue', linewidth=1)
