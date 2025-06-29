@@ -1056,7 +1056,7 @@ for stop in energy_plan_used:
 fig, ax = plt.subplots(figsize=(12, 8))
 
 # 1️⃣ Thinner line + dashed grid
-ax.plot(time_timeline, energy_timeline, color='2E86AB', linewidth=1.5, linestyle='-')
+ax.plot(time_timeline, energy_timeline, color='#2E86AB', linewidth=1.5, linestyle='-')
 ax.grid(True, linestyle='--', alpha=0.5)
 ax.set_facecolor('#f9f9f9')
 
