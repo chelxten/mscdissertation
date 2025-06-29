@@ -1071,7 +1071,7 @@ ax.annotate(
     "Entrance\n100%",
     (time_timeline[0], 100),
     textcoords="offset points",
-    xytext=(0, 20),
+    xytext=(0, 10),
     ha='center',
     fontsize=8
 )
@@ -1095,7 +1095,7 @@ for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_point
         marker_style = 'o'
         color = 'blue'
 
-    y_offset = 10 if i % 2 == 0 else -15  # alternate offsets
+    y_offset = 20 if i % 2 == 0 else -25  # alternate offsets
 
     ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
     ax.annotate(
