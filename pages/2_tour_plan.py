@@ -1141,31 +1141,42 @@ else:
 
 #  Feedback & Rating
 
+likert_options = [
+    "1 - Strongly Disagree",
+    "2 - Disagree",
+    "3 - Neutral",
+    "4 - Agree",
+    "5 - Strongly Agree"
+]
+
 st.subheader("⭐ Plan Feedback")
 
-st.markdown("Please rate the following aspects of your personalized plan (1 = Strongly Disagree, 5 = Strongly Agree):")
+st.markdown("Please rate the following aspects of your personalized plan:")
 
 q_spacing = st.radio(
     "1️⃣ The spacing between activities (including breaks) felt balanced.",
-    [1, 2, 3, 4, 5],
+    likert_options,
     index=2,
     horizontal=True
 )
+
 q_variety = st.radio(
     "2️⃣ The variety of attractions matched my interests.",
-    [1, 2, 3, 4, 5],
+    likert_options,
     index=2,
     horizontal=True
 )
+
 q_meal_timing = st.radio(
     "3️⃣ The timing of meal/rest breaks was well-distributed.",
-    [1, 2, 3, 4, 5],
+    likert_options,
     index=2,
     horizontal=True
 )
+
 q_overall = st.radio(
     "4️⃣ Overall, I’m satisfied with the personalized tour plan.",
-    [1, 2, 3, 4, 5],
+    likert_options,
     index=3,
     horizontal=True
 )
