@@ -1153,47 +1153,65 @@ likert_options = [
     "Strongly Agree"
 ]
 
+# 1️⃣ Spacing question
 st.markdown("""
-<span style='font-size:18px'>
-1. The spacing between activities (including breaks) felt balanced.
+<span style='font-size:17px; font-weight:bold'>
+1️⃣ The spacing between activities, including breaks, felt balanced.
 </span>
 """, unsafe_allow_html=True)
-
 q_spacing = st.radio(
     label="",
     options=likert_options,
     index=2,
     horizontal=True,
-    key="spacing"
+    key="spacing",
+    label_visibility="collapsed"
 )
 
-st.markdown("**2️⃣ The variety of attractions matched my interests.**")
+# 2️⃣ Variety question
+st.markdown("""
+<span style='font-size:17px; font-weight:bold'>
+2️⃣ The variety of attractions matched my interests.
+</span>
+""", unsafe_allow_html=True)
 q_variety = st.radio(
-    "",
-    likert_options,
+    label="",
+    options=likert_options,
     index=2,
     horizontal=True,
-    key="variety"
+    key="variety",
+    label_visibility="collapsed"
 )
 
-st.markdown("**3️⃣ The timing of meal/rest breaks was well-distributed.**")
+# 3️⃣ Meal timing question
+st.markdown("""
+<span style='font-size:17px; font-weight:bold'>
+3️⃣ The timing of meal/rest breaks was well-distributed.
+</span>
+""", unsafe_allow_html=True)
 q_meal_timing = st.radio(
-    "",
-    likert_options,
+    label="",
+    options=likert_options,
     index=2,
     horizontal=True,
-    key="meal_timing"
+    key="meal_timing",
+    label_visibility="collapsed"
 )
 
-st.markdown("**4️⃣ Overall, I’m satisfied with the personalized tour plan.**")
+# 4️⃣ Overall satisfaction
+st.markdown("""
+<span style='font-size:17px; font-weight:bold'>
+4️⃣ Overall, I’m satisfied with the personalized tour plan.
+</span>
+""", unsafe_allow_html=True)
 q_overall = st.radio(
-    "",
-    likert_options,
+    label="",
+    options=likert_options,
     index=3,
     horizontal=True,
-    key="overall"
+    key="overall",
+    label_visibility="collapsed"
 )
-
 feedback = st.text_area("Do you have any comments or suggestions?")
 
 if st.button("Submit Feedback"):
