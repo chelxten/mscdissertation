@@ -1073,11 +1073,14 @@ for i in range(1, len(labels)):
 ride_ends.append(len(labels) - 1)
 
 # Plot markers and labels at the end of each ride
-for idx in ride_ends:
+for idx_num, idx in enumerate(ride_ends):
     x = time_timeline[idx]
     y = energy_timeline[idx]
     ride_name = labels[idx].split("\n")[0]
     energy_pct = int(y)
+
+    # Alternate label offset to avoid overlap
+    y_offset = 10 if idx_num % 2 == 0 else -15
 
     # Marker at end of ride
     ax.scatter(x, y, color='red', marker='o', s=60, zorder=3)
@@ -1085,7 +1088,7 @@ for idx in ride_ends:
         f"{ride_name}\n{energy_pct}%",
         (x, y),
         textcoords="offset points",
-        xytext=(0, 10),
+        xytext=(0, y_offset),
         ha='center',
         fontsize=8
     )
