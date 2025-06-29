@@ -1037,45 +1037,64 @@ for stop in final_plan:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 14. Energy Visualization (Line Plot)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 fig, ax = plt.subplots(figsize=(12, 5))
-ax.set_ylim(0, 150)  # or 110 for more space
-# Plot the full energy curve (thin line, small markers)
-ax.plot(time_timeline, energy_timeline, color='blue', linewidth=0.8)
 
-# Find start indices of each new ride
+# Add synthetic Entrance point at 100%
+ax.plot(
+    [time_timeline[0]] + time_timeline,
+    [100] + energy_timeline,
+    color='blue',
+    linewidth=1
+)
+
+# Add marker and label for Entrance
+ax.scatter(time_timeline[0], 100, color='green', marker='o', s=60, zorder=3)
+ax.annotate(
+    "Entrance\n100%",
+    (time_timeline[0], 100),
+    textcoords="offset points",
+    xytext=(0, 10),
+    ha='center',
+    fontsize=8
+)
+
+# Find where each ride ends (last index before next ride starts)
+ride_ends = []
 prev_ride = labels[0].split("\n")[0]
-start_indices = [0]
-
 for i in range(1, len(labels)):
     current_ride = labels[i].split("\n")[0]
     if current_ride != prev_ride:
-        start_indices.append(i)
+        ride_ends.append(i - 1)
         prev_ride = current_ride
+# Add final ride end
+ride_ends.append(len(labels) - 1)
 
-# Add a marker and label at each ride start
-for idx in start_indices:
+# Plot markers and labels at the end of each ride
+for idx in ride_ends:
     x = time_timeline[idx]
     y = energy_timeline[idx]
-    ride_label = labels[idx].split("\n")[0]
+    ride_name = labels[idx].split("\n")[0]
     energy_pct = int(y)
-    
-    # Draw a special marker
-    ax.scatter(x, y, color='red', marker='o', s=50, zorder=3)
-    
-    # Add annotation
+
+    # Marker at end of ride
+    ax.scatter(x, y, color='red', marker='o', s=60, zorder=3)
     ax.annotate(
-        f"{ride_label}\n{energy_pct}%",
+        f"{ride_name}\n{energy_pct}%",
         (x, y),
         textcoords="offset points",
         xytext=(0, 10),
         ha='center',
-        fontsize=8,
-        rotation=0
+        fontsize=8
     )
-        
+
+# Final cleanup
 ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
 ax.set_ylabel("Energy Level (%)")
+ax.set_ylim(0, 150)
 ax.grid(True)
 st.pyplot(fig)
 
