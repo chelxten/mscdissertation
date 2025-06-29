@@ -1056,8 +1056,9 @@ for stop in energy_plan_used:
 fig, ax = plt.subplots(figsize=(12, 8))
 
 # 1️⃣ Thinner line + dashed grid
-ax.plot(time_timeline, energy_timeline, color='blue', linewidth=1.5, linestyle='-')
-ax.grid(which='major', linestyle='--', alpha=0.4)
+ax.plot(time_timeline, energy_timeline, color='2E86AB', linewidth=1.5, linestyle='-')
+ax.grid(True, linestyle='--', alpha=0.5)
+ax.set_facecolor('#f9f9f9')
 
 # 2️⃣ Energy bands
 ax.axhspan(80, 100, color='green', alpha=0.1, label='High Energy (80–100%)')
@@ -1103,7 +1104,8 @@ for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_point
         textcoords="offset points",
         xytext=(0, y_offset),
         ha='center',
-        fontsize=8
+        fontsize=8,
+        rotation=90
     )
 
 # 7️⃣ Legend
@@ -1113,8 +1115,8 @@ ax.scatter([], [], marker='D', color='darkgreen', label='Rest Stop')
 ax.legend()
 
 # Titles and labels
-ax.set_title("🧠 Energy Over Time", fontsize=16)
-ax.set_xlabel("Minutes Since Start", fontsize=12)
+ax.set_title("Visitor Energy Level Throughout the Day", fontsize=16, weight='bold')
+ax.set_xlabel("Minutes Elapsed", fontsize=12)
 ax.set_ylabel("Energy Level (%)", fontsize=12)
 ax.set_ylim(0, 110)
 
