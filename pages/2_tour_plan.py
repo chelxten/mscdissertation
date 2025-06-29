@@ -1142,29 +1142,41 @@ else:
 #  Feedback & Rating
 
 st.subheader("⭐ Plan Feedback")
+st.markdown("Please rate the following aspects of your personalized plan:")
 
-st.markdown("Please rate the following aspects of your personalized plan (1 = Strongly Disagree, 5 = Strongly Agree):")
+# Define scale
+scale_labels = ["Very Unsatisfied", "Unsatisfied", "Neutral", "Satisfied", "Very Satisfied"]
+scale_values = [1, 2, 3, 4, 5]
 
-q_spacing = st.radio(
+# Define questions
+questions = [
     "1️⃣ The spacing between activities (including breaks) felt balanced.",
-    [1, 2, 3, 4, 5],
-    index=2
-)
-q_variety = st.radio(
     "2️⃣ The variety of attractions matched my interests.",
-    [1, 2, 3, 4, 5],
-    index=2
-)
-q_meal_timing = st.radio(
     "3️⃣ The timing of meal/rest breaks was well-distributed.",
-    [1, 2, 3, 4, 5],
-    index=2
-)
-q_overall = st.radio(
-    "4️⃣ Overall, I’m satisfied with the personalized tour plan.",
-    [1, 2, 3, 4, 5],
-    index=3
-)
+    "4️⃣ Overall, I’m satisfied with the personalized tour plan."
+]
+
+# Store responses
+responses = {}
+
+# Header row
+header_cols = st.columns([3] + [1]*5)
+header_cols[0].markdown("**Question**")
+for i in range(5):
+    header_cols[i+1].markdown(f"**{scale_labels[i]}**")
+
+# Rows for each question
+for q in questions:
+    cols = st.columns([3] + [1]*5)
+    cols[0].markdown(q)
+    selected = None
+    for i in range(5):
+        if cols[i+1].radio(q, options=[scale_values[i]], label_visibility="collapsed", index=0, key=f"{q}_{i}"):
+            selected = scale_values[i]
+    responses[q] = selected
+
+st.write("### Your responses")
+st.json(responses)
 
 feedback = st.text_area("Do you have any comments or suggestions?")
 
