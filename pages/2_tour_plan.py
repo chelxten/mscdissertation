@@ -1039,58 +1039,39 @@ for stop in final_plan:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.set_ylim(0, 150)  # or 110 for more space
-ax.plot(time_timeline, energy_timeline, marker='o', linewidth=0.8, markersize=3)
+# Plot the full energy curve (thin line, small markers)
+ax.plot(time_timeline, energy_timeline, color='blue', linewidth=0.8)
 
-# Label start and end of each ride
-prev_stop = labels[0].split("\n")[0]
-start_idx = 0
+# Find start indices of each new ride
+prev_ride = labels[0].split("\n")[0]
+start_indices = [0]
 
 for i in range(1, len(labels)):
-    current_stop = labels[i].split("\n")[0]
-    if current_stop != prev_stop:
-        # Label at start of previous ride
-        ax.annotate(
-            prev_stop,
-            (time_timeline[start_idx], energy_timeline[start_idx]),
-            textcoords="offset points",
-            xytext=(0, 8),
-            ha='center',
-            fontsize=8,
-            rotation=30
-        )
-        # Label at end of previous ride
-        ax.annotate(
-            prev_stop,
-            (time_timeline[i-1], energy_timeline[i-1]),
-            textcoords="offset points",
-            xytext=(0, 8),
-            ha='center',
-            fontsize=8,
-            rotation=30
-        )
-        # Reset for new ride
-        prev_stop = current_stop
-        start_idx = i
+    current_ride = labels[i].split("\n")[0]
+    if current_ride != prev_ride:
+        start_indices.append(i)
+        prev_ride = current_ride
 
-# Label last ride's start and end
-ax.annotate(
-    prev_stop,
-    (time_timeline[start_idx], energy_timeline[start_idx]),
-    textcoords="offset points",
-    xytext=(0, 8),
-    ha='center',
-    fontsize=8,
-    rotation=30
-)
-ax.annotate(
-    prev_stop,
-    (time_timeline[-1], energy_timeline[-1]),
-    textcoords="offset points",
-    xytext=(0, 8),
-    ha='center',
-    fontsize=8,
-    rotation=30
-)
+# Add a marker and label at each ride start
+for idx in start_indices:
+    x = time_timeline[idx]
+    y = energy_timeline[idx]
+    ride_label = labels[idx].split("\n")[0]
+    energy_pct = int(y)
+    
+    # Draw a special marker
+    ax.scatter(x, y, color='red', marker='o', s=50, zorder=3)
+    
+    # Add annotation
+    ax.annotate(
+        f"{ride_label}\n{energy_pct}%",
+        (x, y),
+        textcoords="offset points",
+        xytext=(0, 10),
+        ha='center',
+        fontsize=8,
+        rotation=0
+    )
         
 ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
