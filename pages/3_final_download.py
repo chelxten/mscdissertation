@@ -41,6 +41,14 @@ Your personalized amusement park tour plan â€” combined with your consent form â
 Please keep the document for your records.
 """)
 
+LIKERT_LABELS = {
+    "1": "Strongly Disagree",
+    "2": "Disagree",
+    "3": "Neutral",
+    "4": "Agree",
+    "5": "Strongly Agree"
+}
+
 # -----------------------
 # 4. Google Sheets Access
 # -----------------------
@@ -104,10 +112,10 @@ def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety
     <p><b>Leftover Time:</b> {leftover_time} minutes</p>
 
     <h2>Participant Feedback</h2>
-    <p><b>1. Activity Spacing:</b> {q_spacing}/5</p>
-    <p><b>2. Attraction Variety:</b> {q_variety}/5</p>
-    <p><b>3. Meal/Rest Timing:</b> {q_meal_timing}/5</p>
-    <p><b>4. Overall Satisfaction:</b> {q_overall}/5</p>
+    <p><b>1. Activity Spacing:</b> {LIKERT_LABELS.get(q_spacing, q_spacing)}</p>
+    <p><b>2. Attraction Variety:</b> {LIKERT_LABELS.get(q_variety, q_variety)}</p>
+    <p><b>3. Meal/Rest Timing:</b> {LIKERT_LABELS.get(q_meal_timing, q_meal_timing)}</p>
+    <p><b>4. Overall Satisfaction:</b> {LIKERT_LABELS.get(q_overall, q_overall)}</p>
     <p><b>Comments:</b> {feedback}</p>
 
     <p style="margin-top: 30px; font-size: 8pt;"><i>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>
