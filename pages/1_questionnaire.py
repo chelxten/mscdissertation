@@ -174,7 +174,7 @@ with st.form("questionnaire_form"):
     """, unsafe_allow_html=True)
 
      # Required by Streamlit to properly process the form
-    submit = st.form_submit_button("📩 Submit")
+    submit = st.form_submit_button("Submit")
 
     if submit:
         if len(top_priorities) > 3:
