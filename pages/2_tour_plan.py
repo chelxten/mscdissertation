@@ -69,6 +69,8 @@ visit_duration = duration_map.get(data["duration"], 180)
 # 3. Define zones and coordinates
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+SCALE_FACTOR_METERS_PER_UNIT = 2.0  # Each grid unit is 2 meters
+
 zones = {
     "thrill": ["Roller Coaster", "Drop Tower", "Haunted Mine Train", "Spinning Vortex", "Freefall Cannon"],
     "water": ["Water Slide", "Lazy River", "Log Flume", "Splash Battle", "Wave Pool"],
@@ -986,31 +988,12 @@ for stop in final_plan:
     if total_time_check + total_this_stop > visit_duration + 15:
         break
 
-    # Energy loss fuzzy model
-    energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
-    loss_per_minute = energy_loss / max(1, total_this_stop)
-
     # Age-adjusted boosts
     adjusted_rest_boost = energy_settings['rest_boost'] * (2 - energy_settings['loss_factor'])
     adjusted_food_boost = energy_settings['food_boost'] * (2 - energy_settings['loss_factor'])
 
-    # Per-minute simulation
-    for minute in range(total_this_stop):
-        energy -= loss_per_minute
-        # partial recovery during low-intensity rides
-        if intensity < 0.3:
-            energy += (adjusted_rest_boost * 0.2) / total_this_stop
-        energy = max(0, min(100, energy))
-        elapsed_time += 1
-        total_time_check += 1
-
-        energy_timeline.append(energy)
-        time_timeline.append(elapsed_time)
-        labels.append(f"{stop}\n{int(energy)}%")
-
-    # Rest stops - proportional recharge
     if zone in ["relaxation", "food"]:
-        # Pure recharge only
+        # Rest stops - proportional recharge
         boost = adjusted_rest_boost if zone == "relaxation" else adjusted_food_boost
         for minute in range(duration):
             energy += boost / duration
@@ -1021,10 +1004,13 @@ for stop in final_plan:
             time_timeline.append(elapsed_time)
             labels.append(f"{stop}\n{int(energy)}%")
     else:
-        # Normal loss for other stops
+        # Energy loss fuzzy model
+        energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
+        loss_per_minute = energy_loss / max(1, total_this_stop)
+
+        # Per-minute simulation
         for minute in range(total_this_stop):
             energy -= loss_per_minute
-            # partial recovery during low-intensity rides
             if intensity < 0.3:
                 energy += (adjusted_rest_boost * 0.2) / total_this_stop
             energy = max(0, min(100, energy))
@@ -1120,7 +1106,7 @@ entrance_location = (250, 250)
 previous_location = entrance_location
 start_time = datetime.strptime("10:00", "%H:%M")
 walking_speed = 67  # meters/min
-SCALE_FACTOR_METERS_PER_UNIT = 2.0  # Each grid unit is 2 meters
+
 
 show_details_block = st.checkbox("Show detailed time breakdown", value=False)
 
