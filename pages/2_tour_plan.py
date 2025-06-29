@@ -1118,7 +1118,7 @@ ax.legend()
 ax.set_title("Visitor Energy Level Throughout the Day", fontsize=16, weight='bold')
 ax.set_xlabel("Minutes Elapsed", fontsize=12)
 ax.set_ylabel("Energy Level (%)", fontsize=12)
-ax.set_ylim(0, 110)
+ax.set_ylim(30, 110)
 
 # 8️⃣ Tight layout
 fig.tight_layout()
