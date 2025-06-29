@@ -1076,7 +1076,7 @@ ax.annotate(
 )
 
 # 3️⃣ Custom markers for food/relax/rides
-for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
+for i, (time_point, energy_level, stop_name) in enumerate(stop_label_points):
     # 4️⃣ Shorter labels: abbreviate
     if len(stop_name) > 15:
         label_text = f"{stop_name[:12]}…\n{int(energy_level)}%"
