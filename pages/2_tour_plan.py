@@ -979,7 +979,7 @@ for stop in final_plan:
     duration = attraction_durations.get(stop, 5)
     wait = attraction_wait_times.get(stop, 0)
     walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
-     walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+    walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
     walk_time = max(1, round(walk_dist_meters / walking_speed))
     total_this_stop = duration + wait + walk_time
 
