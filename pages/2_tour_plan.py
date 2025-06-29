@@ -1257,7 +1257,10 @@ if show_energy_plot:
     # 8️⃣ Tight layout
     fig.tight_layout()
     st.pyplot(fig)
-    
+
+# Divider before feedback section
+st.markdown("---")
+
 #  Feedback & Rating
 
 st.subheader("⭐ Plan Feedback")
