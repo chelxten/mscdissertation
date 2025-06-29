@@ -1212,9 +1212,17 @@ q_overall = st.radio(
     key="overall",
     label_visibility="collapsed"
 )
-feedback = st.text_area("""<span style='font-size:17px; '>
-Do you have any comments or suggestions?
-</span>"" ")
+
+st.markdown("""
+<span style='font-size:17px; font-weight:bold'>
+💬 Do you have any comments or suggestions?
+</span>
+""", unsafe_allow_html=True)
+
+feedback = st.text_area(
+    label="",
+    height=150
+)
 
 if st.button("Submit Feedback"):
     try:
