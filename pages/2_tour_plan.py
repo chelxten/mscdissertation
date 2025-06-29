@@ -1080,7 +1080,7 @@ ax.annotate(
 for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
     # 4️⃣ Shorter labels: abbreviate
     if len(stop_name) > 15:
-        label_text = f"{stop_name[:12]}…\n{int(energy_level)}%"
+        label_text = f"{stop_name[:10]}…\n{int(energy_level)}%"
     else:
         label_text = f"{stop_name}\n{int(energy_level)}%"
 
@@ -1105,7 +1105,7 @@ for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_point
         xytext=(0, y_offset),
         ha='center',
         fontsize=8,
-        rotation=90
+        rotation=0
     )
 
 # 7️⃣ Legend
