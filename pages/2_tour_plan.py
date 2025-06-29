@@ -1040,24 +1040,59 @@ for stop in final_plan:
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(time_timeline, energy_timeline, marker='o')
 
-# 1️⃣ Make sure Y axis is always 0-100%
-ax.set_ylim(0, 150)
+ax.set_ylim(0, 150)  # or 110 for more space
+ax.plot(time_timeline, energy_timeline, marker='o', linewidth=0.8, markersize=3)
 
-# 2️⃣ Add ONE label per stop (first time it appears)
-seen_stops = set()
-for i, label in enumerate(labels):
-    if label.split("\n")[0] not in seen_stops:
-        stop_name = label.split("\n")[0]
+# Label start and end of each ride
+prev_stop = labels[0].split("\n")[0]
+start_idx = 0
+
+for i in range(1, len(labels)):
+    current_stop = labels[i].split("\n")[0]
+    if current_stop != prev_stop:
+        # Label at start of previous ride
         ax.annotate(
-            stop_name,
-            (time_timeline[i], energy_timeline[i]),
+            prev_stop,
+            (time_timeline[start_idx], energy_timeline[start_idx]),
             textcoords="offset points",
             xytext=(0, 8),
             ha='center',
             fontsize=8,
             rotation=30
         )
-        seen_stops.add(stop_name)
+        # Label at end of previous ride
+        ax.annotate(
+            prev_stop,
+            (time_timeline[i-1], energy_timeline[i-1]),
+            textcoords="offset points",
+            xytext=(0, 8),
+            ha='center',
+            fontsize=8,
+            rotation=30
+        )
+        # Reset for new ride
+        prev_stop = current_stop
+        start_idx = i
+
+# Label last ride's start and end
+ax.annotate(
+    prev_stop,
+    (time_timeline[start_idx], energy_timeline[start_idx]),
+    textcoords="offset points",
+    xytext=(0, 8),
+    ha='center',
+    fontsize=8,
+    rotation=30
+)
+ax.annotate(
+    prev_stop,
+    (time_timeline[-1], energy_timeline[-1]),
+    textcoords="offset points",
+    xytext=(0, 8),
+    ha='center',
+    fontsize=8,
+    rotation=30
+)
         
 ax.set_title("🧠 Energy Over Time")
 ax.set_xlabel("Minutes Since Start")
