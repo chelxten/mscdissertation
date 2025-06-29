@@ -967,6 +967,7 @@ energy = 100
 energy_timeline = [energy]
 time_timeline = [0]
 labels = []
+stop_label_points = []
 
 elapsed_time = 0
 total_time_check = 0
