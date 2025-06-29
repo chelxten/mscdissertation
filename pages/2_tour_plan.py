@@ -1040,7 +1040,7 @@ for stop in final_plan:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-fig, ax = plt.subplots(figsize=(12, 5))
+fig, ax = plt.subplots(figsize=(12, 8))
 
 # Add synthetic Entrance point at 100%
 ax.plot(
