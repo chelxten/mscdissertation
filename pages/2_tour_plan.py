@@ -1007,21 +1007,25 @@ for stop in final_plan:
         labels.append(f"{stop}\n{int(energy)}%")
 
     # Rest stops - proportional recharge
-    if zone == "relaxation":
+    if zone in ["relaxation", "food"]:
+        # Pure recharge only
+        boost = adjusted_rest_boost if zone == "relaxation" else adjusted_food_boost
         for minute in range(duration):
-            energy += adjusted_rest_boost / duration
+            energy += boost / duration
             energy = min(100, energy)
             elapsed_time += 1
             total_time_check += 1
             energy_timeline.append(energy)
             time_timeline.append(elapsed_time)
             labels.append(f"{stop}\n{int(energy)}%")
-
-    # Food stops - proportional recharge
-    if zone == "food":
-        for minute in range(duration):
-            energy += adjusted_food_boost / duration
-            energy = min(100, energy)
+    else:
+        # Normal loss for other stops
+        for minute in range(total_this_stop):
+            energy -= loss_per_minute
+            # partial recovery during low-intensity rides
+            if intensity < 0.3:
+                energy += (adjusted_rest_boost * 0.2) / total_this_stop
+            energy = max(0, min(100, energy))
             elapsed_time += 1
             total_time_check += 1
             energy_timeline.append(energy)
