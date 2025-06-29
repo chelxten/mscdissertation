@@ -843,8 +843,9 @@ def insert_breaks(route):
 
         duration = attraction_durations[stop]
         wait = attraction_wait_times[stop]
-        walk_dist = calculate_distance(previous_location, attraction_coordinates[stop])
-        walk_time = max(1, int(walk_dist / walking_speed))
+        walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
+        walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+        walk_time = max(1, round(walk_dist_meters / walking_speed))
         total_this_stop = duration + wait + walk_time
 
         total_elapsed_time += total_this_stop
@@ -977,8 +978,9 @@ for stop in final_plan:
     intensity = zone_intensity.get(zone, 1.0)
     duration = attraction_durations.get(stop, 5)
     wait = attraction_wait_times.get(stop, 0)
-    walk_dist = calculate_distance(previous_location, attraction_coordinates[stop])
-    walk_time = max(1, int(walk_dist / walking_speed))
+    walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
+     walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+    walk_time = max(1, round(walk_dist_meters / walking_speed))
     total_this_stop = duration + wait + walk_time
 
     if total_time_check + total_this_stop > visit_duration + 15:
@@ -1118,6 +1120,7 @@ entrance_location = (250, 250)
 previous_location = entrance_location
 start_time = datetime.strptime("10:00", "%H:%M")
 walking_speed = 67  # meters/min
+SCALE_FACTOR_METERS_PER_UNIT = 2.0  # Each grid unit is 2 meters
 
 show_details_block = st.checkbox("Show detailed time breakdown", value=False)
 
@@ -1146,8 +1149,9 @@ with st.expander("The Fun Starts Here", expanded=True):
         ride_time = attraction_durations[stop]
         wait_time = attraction_wait_times[stop]
         attraction_loc = attraction_coordinates[stop]
-        walk_dist = calculate_distance(previous_location, attraction_loc)
-        walk_time = max(1, int(walk_dist / walking_speed))
+        walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
+        walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+        walk_time = max(1, round(walk_dist_meters / walking_speed))
         total_duration = ride_time + wait_time + walk_time
 
         if total_time_used + total_duration > visit_duration + 15:
