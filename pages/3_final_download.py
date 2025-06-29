@@ -104,10 +104,10 @@ def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety
     <p><b>Leftover Time:</b> {leftover_time} minutes</p>
 
     <h2>Participant Feedback</h2>
-    <p><b>1️⃣ Activity Spacing:</b> {q_spacing}/5</p>
-    <p><b>2️⃣ Attraction Variety:</b> {q_variety}/5</p>
-    <p><b>3️⃣ Meal/Rest Timing:</b> {q_meal_timing}/5</p>
-    <p><b>4️⃣ Overall Satisfaction:</b> {q_overall}/5</p>
+    <p><b>1. Activity Spacing:</b> {q_spacing}/5</p>
+    <p><b>2. Attraction Variety:</b> {q_variety}/5</p>
+    <p><b>3. Meal/Rest Timing:</b> {q_meal_timing}/5</p>
+    <p><b>4. Overall Satisfaction:</b> {q_overall}/5</p>
     <p><b>Comments:</b> {feedback}</p>
 
     <p style="margin-top: 30px; font-size: 8pt;"><i>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>
