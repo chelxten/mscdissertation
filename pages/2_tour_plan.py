@@ -1037,7 +1037,7 @@ for stop in final_plan:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-fig, ax = plt.subplots(figsize=(10, 5))
+fig, ax = plt.subplots(figsize=(12, 5))
 ax.set_ylim(0, 150)  # or 110 for more space
 # Plot the full energy curve (thin line, small markers)
 ax.plot(time_timeline, energy_timeline, color='blue', linewidth=0.8)
