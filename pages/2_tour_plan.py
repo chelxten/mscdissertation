@@ -1095,36 +1095,19 @@ for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_point
         marker_style = 'o'
         color = 'blue'
 
-    last_time_point = None
+      y_offset = 20 if i % 2 == 0 else -25  # alternate offsets
 
-    for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
-        # Default offset
-        y_offset = 20
-    
-        if last_time_point is not None:
-            if abs(time_point - last_time_point) < 5:
-                # If they are too close horizontally, push further to avoid overlap
-                y_offset = 35 if (i % 2 == 0) else -40
-            else:
-                # Default alternating pattern if not too close
-                y_offset = 20 if (i % 2 == 0) else -25
-    
-        # Store this time_point to compare with the next
-        last_time_point = time_point
-    
-        # Plot the marker
-        ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
-    
-        # Add annotation with computed offset
-        ax.annotate(
-            label_text,
-            (time_point, energy_level),
-            textcoords="offset points",
-            xytext=(0, y_offset),
-            ha='center',
-            fontsize=8,
-            rotation=0
-        )
+    ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
+    ax.annotate(
+        label_text,
+        (time_point, energy_level),
+        textcoords="offset points",
+        xytext=(0, y_offset),
+        ha='center',
+        fontsize=8,
+        rotation=0
+    )
+
 
 # 7️⃣ Legend
 ax.scatter([], [], marker='o', color='blue', label='Ride')
