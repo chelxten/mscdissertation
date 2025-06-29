@@ -1157,6 +1157,14 @@ likert_options = [
     "Strongly Agree"
 ]
 
+likert_mapping = {
+    "Strongly Disagree": 1,
+    "Disagree": 2,
+    "Neutral": 3,
+    "Agree": 4,
+    "Strongly Agree": 5
+}
+
 st.markdown("")
 
 # 1️⃣ Spacing question
@@ -1232,10 +1240,10 @@ feedback = st.text_area(
 
 if st.button("Submit Feedback"):
     try:
-        sheet.update_cell(row_num, 20, str(q_spacing))
-        sheet.update_cell(row_num, 21, str(q_variety))
-        sheet.update_cell(row_num, 22, str(q_meal_timing))
-        sheet.update_cell(row_num, 23, str(q_overall))
+        sheet.update_cell(row_num, 20, str(likert_mapping[q_spacing]))
+        sheet.update_cell(row_num, 21, str(likert_mapping[q_variety]))
+        sheet.update_cell(row_num, 22, str(likert_mapping[q_meal_timing]))
+        sheet.update_cell(row_num, 23, str(likert_mapping[q_overall]))
         sheet.update_cell(row_num, 24, feedback)
 
         st.success("✅ Feedback saved!")
