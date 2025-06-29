@@ -1041,7 +1041,7 @@ fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(time_timeline, energy_timeline, marker='o')
 
 # 1️⃣ Make sure Y axis is always 0-100%
-ax.set_ylim(0, 100)
+ax.set_ylim(0, 150)
 
 # 2️⃣ Add ONE label per stop (first time it appears)
 seen_stops = set()
