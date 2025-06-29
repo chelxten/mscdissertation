@@ -1142,9 +1142,6 @@ else:
 #  Feedback & Rating
 
 st.subheader("⭐ Plan Feedback")
-rating = st.slider("How would you rate your personalized tour plan?", 1, 10, 8)
-feedback = st.text_area("Do you have any comments or suggestions?")
-st.subheader("⭐ Plan Feedback")
 
 st.markdown("Please rate the following aspects of your personalized plan (1 = Strongly Disagree, 5 = Strongly Agree):")
 
@@ -1161,7 +1158,7 @@ q_overall = st.slider(
     "4️⃣ Overall, I’m satisfied with the personalized tour plan.", 1, 5, 4
 )
 
-feedback = st.text_area("💬 Additional comments or suggestions:")
+feedback = st.text_area("Do you have any comments or suggestions?")
 
 if st.button("Submit Feedback"):
     try:
