@@ -1141,6 +1141,10 @@ else:
 
 #  Feedback & Rating
 
+st.subheader("⭐ Plan Feedback")
+
+st.markdown("Please rate the following aspects of your personalized plan:")
+
 likert_options = [
     "Strongly Disagree",
     "Disagree",
@@ -1149,11 +1153,7 @@ likert_options = [
     "Strongly Agree"
 ]
 
-st.subheader("⭐ Plan Feedback")
-
-st.markdown("Please rate the following aspects of your personalized plan:")
-
-st.markdown("<h4>1️⃣ The spacing between activities (including breaks) felt balanced.</h4>", unsafe_allow_html=True)
+st.markdown("**1️⃣ The spacing between activities (including breaks) felt balanced.**")
 q_spacing = st.radio(
     "",
     likert_options,
@@ -1162,7 +1162,7 @@ q_spacing = st.radio(
     key="spacing"
 )
 
-st.markdown("<h4>2️⃣ The variety of attractions matched my interests.</h4>", unsafe_allow_html=True)
+st.markdown("**2️⃣ The variety of attractions matched my interests.**")
 q_variety = st.radio(
     "",
     likert_options,
@@ -1171,7 +1171,7 @@ q_variety = st.radio(
     key="variety"
 )
 
-st.markdown("<h4>3️⃣ The timing of meal/rest breaks was well-distributed.</h4>", unsafe_allow_html=True)
+st.markdown("**3️⃣ The timing of meal/rest breaks was well-distributed.**")
 q_meal_timing = st.radio(
     "",
     likert_options,
@@ -1180,7 +1180,7 @@ q_meal_timing = st.radio(
     key="meal_timing"
 )
 
-st.markdown("<h4>4️⃣ Overall, I’m satisfied with the personalized tour plan.</h4>", unsafe_allow_html=True)
+st.markdown("**4️⃣ Overall, I’m satisfied with the personalized tour plan.**")
 q_overall = st.radio(
     "",
     likert_options,
