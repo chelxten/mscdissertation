@@ -1155,10 +1155,11 @@ st.markdown("Please rate the following aspects of your personalized plan:")
 
 st.markdown("<h4>1️⃣ The spacing between activities (including breaks) felt balanced.</h4>", unsafe_allow_html=True)
 q_spacing = st.radio(
-    "", 
+    "",
     likert_options,
     index=2,
-    horizontal=True
+    horizontal=True,
+    key="spacing"
 )
 
 st.markdown("<h4>2️⃣ The variety of attractions matched my interests.</h4>", unsafe_allow_html=True)
@@ -1166,7 +1167,8 @@ q_variety = st.radio(
     "",
     likert_options,
     index=2,
-    horizontal=True
+    horizontal=True,
+    key="variety"
 )
 
 st.markdown("<h4>3️⃣ The timing of meal/rest breaks was well-distributed.</h4>", unsafe_allow_html=True)
@@ -1174,7 +1176,8 @@ q_meal_timing = st.radio(
     "",
     likert_options,
     index=2,
-    horizontal=True
+    horizontal=True,
+    key="meal_timing"
 )
 
 st.markdown("<h4>4️⃣ Overall, I’m satisfied with the personalized tour plan.</h4>", unsafe_allow_html=True)
@@ -1182,8 +1185,10 @@ q_overall = st.radio(
     "",
     likert_options,
     index=3,
-    horizontal=True
+    horizontal=True,
+    key="overall"
 )
+
 feedback = st.text_area("Do you have any comments or suggestions?")
 
 if st.button("Submit Feedback"):
