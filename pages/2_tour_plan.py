@@ -980,6 +980,9 @@ energy_plan_used = []
 total_time_check_for_plan = 0
 
 for stop in final_plan:
+    if stop.startswith("[Clothing Change]"):
+        continue
+
     duration = attraction_durations.get(stop, 5)
     wait = attraction_wait_times.get(stop, 0)
     walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
