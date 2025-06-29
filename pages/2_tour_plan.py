@@ -1153,10 +1153,15 @@ likert_options = [
     "Strongly Agree"
 ]
 
-st.markdown("**1️⃣ The spacing between activities (including breaks) felt balanced.**")
+st.markdown("""
+<span style='font-size:16px; font-weight:bold'>
+1️⃣ The spacing between activities (including breaks) felt balanced.
+</span>
+""", unsafe_allow_html=True)
+
 q_spacing = st.radio(
-    "",
-    likert_options,
+    label="",
+    options=likert_options,
     index=2,
     horizontal=True,
     key="spacing"
