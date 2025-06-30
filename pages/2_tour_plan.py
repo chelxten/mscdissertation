@@ -505,6 +505,10 @@ INTENSITY_COMFORT_FACTOR = 0.2 # bonus for low intensity zones
 attraction_scores = {}
 recent_zones = []
 
+# ─── Ensure wet_time_pct has safe default ───
+if 'wet_time_pct' not in globals() or wet_time_pct is None:
+    wet_time_pct = 50
+    
 for zone, attractions in zones.items():
     for attraction in attractions:
         # Get base values
@@ -516,8 +520,8 @@ for zone, attractions in zones.items():
         user_pref = pref / 10.0
         is_wet = attraction in wet_ride_names
 
-        # Ensure wet_time_pct has safe value
-        wet_time_threshold = wet_time_pct if wet_time_pct is not None else 50
+        # Use threshold directly
+        wet_time_threshold = wet_time_pct
 
         # Comfort penalty if wet and user dislikes discomfort
         comfort_penalty = 1.0
