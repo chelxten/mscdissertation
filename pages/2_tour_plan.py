@@ -516,23 +516,26 @@ for zone, attractions in zones.items():
         user_pref = pref / 10.0
         is_wet = attraction in wet_ride_names
 
+        # Ensure wet_time_pct has safe value
+        wet_time_threshold = wet_time_pct if wet_time_pct is not None else 50
+
         # Comfort penalty if wet and user dislikes discomfort
         comfort_penalty = 1.0
-        if is_wet and priority_comfort_val and wet_time_pct < 35:
+        if is_wet and priority_comfort_val and wet_time_threshold < 35:
             comfort_penalty = 0.7
 
         # 🧠 Rhythm-aware fuzzy scoring
         repeat_count = recent_zones.count(zone)
         repeat_count = min(repeat_count, 3)  # Clamp to fuzzy input range
 
-    
+        fuzzy_weight = get_fuzzy_weight(
+            pref, acc, wait_val, walking_val,
+            1.0 if zone == "thrill" and priority_thrill_val else 0.0,
+            1.0 if zone == "food" and priority_food_val else 0.0,
+            1.0 if zone == "relaxation" and priority_comfort_val else 0.0,
+            intensity, repeat_count
+        )
 
-        fuzzy_weight = get_fuzzy_weight(pref, acc, wait_val, walking_val,
-                                1.0 if zone == "thrill" and priority_thrill_val else 0.0,
-                                1.0 if zone == "food" and priority_food_val else 0.0,
-                                1.0 if zone == "relaxation" and priority_comfort_val else 0.0,
-                                intensity, repeat_count)
-        
         # Final attraction score (with comfort and wait considered)
         score = (
             fuzzy_weight *
