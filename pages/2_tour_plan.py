@@ -866,12 +866,15 @@ def insert_breaks(route):
         walk_time = max(2, round(walk_dist_meters / WALKING_SPEED))  # 👈 slightly slower, min 2m
 
         total_this_stop = duration + wait + walk_time
+        current_clock = start_time_clock + timedelta(minutes=total_elapsed_time)
+
+        # Use current_clock for your meal-break and rest-break checks here
+        
+        # Then after checks:
         total_elapsed_time += total_this_stop
         elapsed_since_break += total_this_stop
         elapsed_since_food += total_this_stop
         meal_activity_counter += 1
-
-        current_clock = start_time_clock + timedelta(minutes=total_elapsed_time)
 
         intensity_val = zone_intensity.get(zone, 1.0)
         age_sens = energy_settings['loss_factor']
