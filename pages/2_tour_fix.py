@@ -179,9 +179,16 @@ for ante in [preference, intensity_input]:
 accessibility_input.automf(3)
 wait_tol.automf(3)
 walking_input.automf(3)
-priority_thrill.automf(2)
-priority_food.automf(2)
-priority_comfort.automf(2)
+
+priority_thrill['no'] = fuzz.trimf(priority_thrill.universe, [0, 0, 1])
+priority_thrill['yes'] = fuzz.trimf(priority_thrill.universe, [0, 1, 1])
+
+priority_food['no'] = fuzz.trimf(priority_food.universe, [0, 0, 1])
+priority_food['yes'] = fuzz.trimf(priority_food.universe, [0, 1, 1])
+
+priority_comfort['no'] = fuzz.trimf(priority_comfort.universe, [0, 0, 1])
+priority_comfort['yes'] = fuzz.trimf(priority_comfort.universe, [0, 1, 1])
+
 repeat_count.automf(3)
 
 weight['low'] = fuzz.trimf(weight.universe, [0, 0, 4])
