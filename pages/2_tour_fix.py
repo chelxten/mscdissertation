@@ -180,8 +180,7 @@ accessibility_input['poor'] = fuzz.trimf(accessibility_input.universe, [0.0, 0.0
 accessibility_input['moderate'] = fuzz.trimf(accessibility_input.universe, [0.2, 0.5, 0.8])
 accessibility_input['good'] = fuzz.trimf(accessibility_input.universe, [0.5, 1.0, 1.0])
 
-wait_tol.automf(3)
-walking_input.automf(3)
+
 
 priority_thrill['no'] = fuzz.trimf(priority_thrill.universe, [0, 0, 1])
 priority_thrill['yes'] = fuzz.trimf(priority_thrill.universe, [0, 1, 1])
@@ -192,7 +191,17 @@ priority_food['yes'] = fuzz.trimf(priority_food.universe, [0, 1, 1])
 priority_comfort['no'] = fuzz.trimf(priority_comfort.universe, [0, 0, 1])
 priority_comfort['yes'] = fuzz.trimf(priority_comfort.universe, [0, 1, 1])
 
-repeat_count.automf(3)
+wait_tol['low'] = fuzz.trimf(wait_tol.universe, [0.0, 0.0, 0.4])
+wait_tol['medium'] = fuzz.trimf(wait_tol.universe, [0.2, 0.5, 0.8])
+wait_tol['high'] = fuzz.trimf(wait_tol.universe, [0.6, 1.0, 1.0])
+
+walking_input['short'] = fuzz.trimf(walking_input.universe, [0.0, 0.0, 0.4])
+walking_input['medium'] = fuzz.trimf(walking_input.universe, [0.2, 0.5, 0.8])
+walking_input['long'] = fuzz.trimf(walking_input.universe, [0.6, 1.0, 1.0])
+
+repeat_count['none'] = fuzz.trimf(repeat_count.universe, [0, 0, 1])
+repeat_count['few'] = fuzz.trimf(repeat_count.universe, [0, 1, 2])
+repeat_count['many'] = fuzz.trimf(repeat_count.universe, [1, 3, 3])
 
 weight['low'] = fuzz.trimf(weight.universe, [0, 0, 4])
 weight['medium'] = fuzz.trimf(weight.universe, [3, 5, 7])
