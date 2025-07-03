@@ -994,7 +994,7 @@ def move_meals_after_noon(route, start_time="10:00"):
 
     for stop in cleaned:
         zone = next((z for z, a in zones.items() if stop in a), None)
-
+    
         if stop.startswith("[Clothing Change]"):
             duration = CLOTHING_CHANGE_DURATION
         elif zone:
@@ -1004,15 +1004,17 @@ def move_meals_after_noon(route, start_time="10:00"):
             duration += max(2, round(walk_dist_meters / 50))
         else:
             duration = 5  # Fallback
-
-        current_clock = start_time_clock + timedelta(minutes=total_time)
-
-        # If we've reached noon or later and have meals waiting, insert them now
-        while meals_to_shift and current_clock.time() >= datetime.strptime("12:00", "%H:%M").time():
+    
+        # NEW CHECK: will *this* attraction cross noon?
+        arrival_time = start_time_clock + timedelta(minutes=total_time)
+        departure_time = arrival_time + timedelta(minutes=duration)
+    
+        if meals_to_shift and arrival_time.time() < datetime.strptime("12:00", "%H:%M").time() <= departure_time.time():
+            # Crossing noon: insert meal before this attraction
             meal_stop = meals_to_shift.pop(0)
             final_route.append(meal_stop)
             meals_added += 1
-
+    
         final_route.append(stop)
         total_time += duration
         if stop in attraction_coordinates:
