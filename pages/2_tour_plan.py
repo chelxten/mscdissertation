@@ -837,8 +837,7 @@ def insert_breaks(route):
 
     MIN_FOOD_GAP_MINUTES = 90
     MIN_FOOD_GAP_ACTIVITIES = 3
-    MIN_BREAK_FOOD_SPACING = 30
-    WALKING_SPEED = 50  # meters/min: more realistic
+    MIN_BREAK_FOOD_SPACING = 30  # Enforce min gap between food/rest
 
     start_time_clock = datetime.strptime("10:00", "%H:%M")
 
@@ -863,9 +862,9 @@ def insert_breaks(route):
         wait = attraction_wait_times.get(stop, 0)
         walk_dist_units = calculate_distance(current_location, attraction_coordinates[stop])
         walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
-        walk_time = max(2, round(walk_dist_meters / WALKING_SPEED))  # 👈 slightly slower, min 2m
-
+        walk_time = max(1, round(walk_dist_meters / walking_speed))
         total_this_stop = duration + wait + walk_time
+
         total_elapsed_time += total_this_stop
         elapsed_since_break += total_this_stop
         elapsed_since_food += total_this_stop
@@ -882,7 +881,7 @@ def insert_breaks(route):
             current_location = attraction_coordinates[stop]
             continue
 
-        # 💤 REST
+        # 💤 REST INSERTION
         if (
             energy_level < 40 and
             elapsed_since_break > 10 and
@@ -898,7 +897,7 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
 
-        # 😴 SCHEDULED BREAK
+        # 😴 SCHEDULED BREAKS (if preferred)
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
@@ -918,7 +917,7 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
 
-        # 🍽️ MEAL BREAK (AFTER 12:00 ONLY)
+        # 🍽️ MEAL BREAKS (AFTER 12:00 ONLY)
         noon_time = datetime.strptime("12:00", "%H:%M").time()
         if current_clock.time() >= noon_time:
             can_add_meal_now = True
