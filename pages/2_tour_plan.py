@@ -1381,7 +1381,7 @@ if show_energy_plot:
     last_time_point = None
     # 4️⃣ Custom markers with vertical stems (short/long alternating, with down for ≤10min)
     short_stem_len = 20
-    long_stem_len = 45
+    long_stem_len = 15
     alternate_counter = 0
     last_stem_end_y = None
     MIN_VERTICAL_GAP = 40
