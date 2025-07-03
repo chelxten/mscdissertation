@@ -1379,23 +1379,29 @@ if show_energy_plot:
 
     # Stop markers with labels
     last_time_point = None
+    max_time = time_timeline[-1]
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
-        if time_point > time_timeline[-1]:
+        if time_point - max_time > 5:
             continue
-
+    
+        # If it's a bit beyond the line, snap to end
+        if time_point > max_time:
+            time_point = max_time
+    
         label_text = f"{stop_name[:12]}…\n{int(energy_level)}%" if len(stop_name) > 15 else f"{stop_name}\n{int(energy_level)}%"
+    
         if zone == "food":
             marker_style, color = 's', 'green'
         elif zone == "relaxation":
             marker_style, color = 'D', 'darkgreen'
         else:
             marker_style, color = 'o', 'blue'
-
+    
         y_offset = 20
         if last_time_point is not None and abs(time_point - last_time_point) < 5:
             y_offset = 35 if (i % 2 == 0) else -40
         last_time_point = time_point
-
+    
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
         ax.annotate(label_text, (time_point, energy_level),
                     textcoords="offset points", xytext=(0, y_offset),
@@ -1414,6 +1420,7 @@ if show_energy_plot:
     fig.tight_layout()
 
     st.pyplot(fig)
+    
 # Divider before feedback section
 st.markdown("---")
 
