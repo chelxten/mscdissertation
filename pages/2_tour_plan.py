@@ -1069,9 +1069,7 @@ final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
 show_breaks_debug("After enforce_max_two_meals", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-final_route = no_consecutive_food_or_break(final_route, zones)
 
-show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = list(dict.fromkeys(final_route))
@@ -1079,6 +1077,10 @@ final_route = list(dict.fromkeys(final_route))
 
 final_route = move_meals_after_two_hours(final_route, min_elapsed=150)
 show_breaks_debug("After remove_meals_before_noon", final_route, zones)
+
+final_route = no_consecutive_food_or_break(final_route, zones)
+
+show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 final_plan = final_route
 
