@@ -979,7 +979,15 @@ def insert_breaks(route):
 
         current_location = attraction_coordinates[stop]
 
+    while updated:
+        zone = next((z for z, a in zones.items() if updated[-1] in a), None)
+        if zone in ["food", "relaxation"]:
+            updated.pop()
+        else:
+            break
+    
     return updated
+
     
 def move_meals_after_two_hours(route, min_elapsed=120):
     """
