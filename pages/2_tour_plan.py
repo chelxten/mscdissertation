@@ -1110,22 +1110,26 @@ show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
 # Schedule wet rides mid-tour if needed
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
 
+# 🧭 Build and enrich the route
 final_route = insert_breaks(wet_scheduled)
-show_breaks_debug("After insert_breaks", final_route, zones)
-
 final_route = list(dict.fromkeys(final_route))
-show_breaks_debug("After deduplication", final_route, zones)
-
-)
-
-final_plan = final_route
-final_plan = plan_text_lines
-show_breaks_debug("FINAL FINAL PLAN", final_plan, zones)
 final_route = remove_trailing_breaks(final_route)
-show_breaks_debug("After remove_trailing_breaks", final_route, zones
-import matplotlib.pyplot as plt
 
-# ➜ Use only the filtered plan
+# 🧭 Time trim step
+energy_plan_used = []
+time_check = 0
+for stop in final_route:
+    ...
+    if time_check + stop_time > visit_duration + 15:
+        break
+    energy_plan_used.append(stop)
+    time_check += stop_time
+
+# ✅ Remove trailing breaks AGAIN after trimming
+energy_plan_used = remove_trailing_breaks(energy_plan_used)
+
+final_plan = energy_plan_used
+
 import matplotlib.pyplot as plt
 
 # ➜ Use only the filtered plan
