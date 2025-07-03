@@ -1097,28 +1097,49 @@ first_pref_attraction = next(
     None
 )
 
-# Apply distance optimization
+# ➜ Apply distance optimization
 optimized_initial = reorder_by_distance(
     initial_attractions,
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
-
 show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-# Schedule wet rides mid-tour if needed
+# ➜ Schedule wet rides mid-tour
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
 
-# 🧭 Build and enrich the route
-final_route = insert_breaks(wet_scheduled)
-final_route = list(dict.fromkeys(final_route))
-final_route = remove_trailing_breaks(final_route)
+# ➜ Insert breaks and meals
+full_allocated_plan = insert_breaks(wet_scheduled)
+full_allocated_plan = list(dict.fromkeys(full_allocated_plan))  # Remove exact duplicates
+show_breaks_debug("After insert_breaks", full_allocated_plan, zones)
 
-# ✅ Remove trailing breaks AGAIN after trimming
-final_route = remove_trailing_breaks(final_route)
+# ➜ Trim plan to fit within visit duration
+trimmed_plan = []
+time_used = 0
+previous_location = (0, 0)
 
-final_plan = final_route
+for stop in full_allocated_plan:
+    if stop.startswith("[Clothing Change]"):
+        stop_time = CLOTHING_CHANGE_DURATION
+    else:
+        ride_time = attraction_durations.get(stop, 5)
+        wait_time = attraction_wait_times.get(stop, 0)
+        walk_units = calculate_distance(previous_location, attraction_coordinates[stop])
+        walk_meters = walk_units * SCALE_FACTOR_METERS_PER_UNIT
+        walk_time = max(1, round(walk_meters / walking_speed))
+        stop_time = ride_time + wait_time + walk_time
+
+    if time_used + stop_time > visit_duration + 15:
+        break
+
+    trimmed_plan.append(stop)
+    time_used += stop_time
+    previous_location = attraction_coordinates[stop]
+
+show_breaks_debug("After time-based trimming", trimmed_plan, zones)
+
+# ➜ Finally remove any trailing break stops
+final_plan = remove_trailing_breaks(trimmed_plan)
+show_breaks_debug("After remove_trailing_breaks", final_plan, zones)
 
 import matplotlib.pyplot as plt
 
