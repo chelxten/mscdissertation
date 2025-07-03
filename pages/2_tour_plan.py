@@ -1382,6 +1382,11 @@ if show_energy_plot:
     # 4️⃣ Custom markers with vertical lines (lollipop labels)
     # 4️⃣ Custom markers with alternating short/long vertical stems (lollipop labels)
     last_time_point = None
+    # 4️⃣ Custom markers with vertical stems (short/long alternating, with down for ≤10min)
+    short_stem_len = 20
+    long_stem_len = 45
+    alternate_counter = 0
+    
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
         if time_point > time_timeline[-1] + 5:
             continue
@@ -1390,7 +1395,7 @@ if show_energy_plot:
         if time_point > time_timeline[-1]:
             time_point = time_timeline[-1]
     
-        # Clean label text
+        # Label text
         label_text = f"{stop_name[:12]}…" if len(stop_name) > 15 else stop_name
         label_text += f"\n{int(energy_level)}%"
     
@@ -1402,14 +1407,21 @@ if show_energy_plot:
         else:
             marker_style, color = 'o', 'blue'
     
-        # Alternate stem length
-        SHORT_STEM = 10
-        LONG_STEM = 20
-        label_offset = SHORT_STEM if (i % 2 == 0) else LONG_STEM
+        # Determine ride duration
+        stop_duration = attraction_durations.get(stop_name, 5)
     
-        # Direction: alternate up and down if desired
-        direction = 1 if (i % 2 == 0) else -1
-        stem_end_y = energy_level + direction * label_offset
+        if stop_duration <= 10:
+            # SHORT downward stem for short stops
+            direction = -1
+            stem_length = short_stem_len
+        else:
+            # Alternate short/long stems upward
+            direction = 1
+            stem_length = short_stem_len if (alternate_counter % 2 == 0) else long_stem_len
+            alternate_counter += 1
+    
+        # Compute end of stem
+        stem_end_y = energy_level + direction * stem_length
     
         # Place marker
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
