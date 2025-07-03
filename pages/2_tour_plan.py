@@ -897,11 +897,12 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
 
         # 🍽️ MEAL BREAKS (PREDICTED TIME after insertion)
-        predicted_meal_duration = 20  # Average meal time if not precise
+        predicted_meal_duration = 20  # Average meal time
         predicted_meal_time = current_clock + timedelta(minutes=predicted_meal_duration)
+        noon_time = datetime.strptime("12:00", "%H:%M").time()
 
         if (
-            predicted_meal_time.hour >= 12 and
+            predicted_meal_time.time() >= noon_time and
             elapsed_since_food >= MIN_FOOD_GAP_MINUTES and
             meal_activity_counter >= MIN_FOOD_GAP_ACTIVITIES and
             meal_break_count < max_meals and
