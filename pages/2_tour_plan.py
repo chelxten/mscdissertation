@@ -1162,25 +1162,6 @@ previous_location = (0, 0)
 # 💡 THIS IS THE KEY CHANGE
 # We will use only those stops that fit in time budget.
 energy_plan_used = final_plan
-total_time_check_for_plan = 0
-
-for stop in final_plan:
-    if stop.startswith("[Clothing Change]"):
-        continue
-
-    duration = attraction_durations.get(stop, 5)
-    wait = attraction_wait_times.get(stop, 0)
-    walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
-    walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
-    walk_time = max(1, round(walk_dist_meters / walking_speed))
-    total_this_stop = duration + wait + walk_time
-
-    if total_time_check_for_plan + total_this_stop > visit_duration + 15:
-        break
-
-    energy_plan_used.append(stop)
-    total_time_check_for_plan += total_this_stop
-    previous_location = attraction_coordinates[stop]
 
 # Now simulate only these
 energy = 100
