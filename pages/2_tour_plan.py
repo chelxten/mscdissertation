@@ -1380,6 +1380,7 @@ if show_energy_plot:
     # Stop markers with labels
     # 4️⃣ Custom markers for food/rest/rides
     # 4️⃣ Custom markers with vertical lines (lollipop labels)
+    # 4️⃣ Custom markers with alternating short/long vertical stems (lollipop labels)
     last_time_point = None
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
         if time_point > time_timeline[-1] + 5:
@@ -1389,7 +1390,7 @@ if show_energy_plot:
         if time_point > time_timeline[-1]:
             time_point = time_timeline[-1]
     
-        # Label text
+        # Clean label text
         label_text = f"{stop_name[:12]}…" if len(stop_name) > 15 else stop_name
         label_text += f"\n{int(energy_level)}%"
     
@@ -1401,25 +1402,25 @@ if show_energy_plot:
         else:
             marker_style, color = 'o', 'blue'
     
-        # Fancy alternating label positioning
-        if last_time_point is not None and abs(time_point - last_time_point) < 10:
-            label_offset = 30 if (i % 2 == 0) else -40
-        else:
-            label_offset = 20
+        # Alternate stem length
+        SHORT_STEM = 20
+        LONG_STEM = 45
+        label_offset = SHORT_STEM if (i % 2 == 0) else LONG_STEM
     
-        last_time_point = time_point
+        # Direction: alternate up and down if desired
+        direction = 1 if (i % 2 == 0) else -1
+        stem_end_y = energy_level + direction * label_offset
     
-        # Draw the marker
+        # Place marker
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
     
-        # Draw the vertical stem line
-        line_end_y = energy_level + label_offset
-        ax.plot([time_point, time_point], [energy_level, line_end_y], color=color, linestyle='--', linewidth=1)
+        # Draw vertical stem line
+        ax.plot([time_point, time_point], [energy_level, stem_end_y], color=color, linestyle='--', linewidth=1)
     
-        # Add the label at the end of the stem
+        # Place label at stem end
         ax.annotate(
             label_text,
-            (time_point, line_end_y),
+            (time_point, stem_end_y),
             textcoords="offset points",
             xytext=(0, 0),
             ha='center',
