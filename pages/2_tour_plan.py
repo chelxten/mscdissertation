@@ -873,7 +873,7 @@ def insert_breaks(route):
         # 💤 REST INSERTION
         if (
             energy_level < 40 and
-            elapsed_since_break > 10 and
+            elapsed_since_break > 30 and
             (total_elapsed_time - last_break_time) > 15 and
             zone not in ["relaxation", "food"]
         ):
