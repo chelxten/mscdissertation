@@ -1272,19 +1272,45 @@ import matplotlib.pyplot as plt
 # 13. Energy Simulation for final_plan
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+# ➜ Use only the filtered plan
 energy = 100
 energy_timeline = [energy]
 time_timeline = [0]
+labels = []
 stop_label_points = []
 
 elapsed_time = 0
+total_time_check = 0
 previous_location = (0, 0)
 
-# ✅ Use exactly the final_plan already respecting time budget
-energy_plan_used = final_plan
+# 💡 THIS IS THE KEY CHANGE
+# We will use only those stops that fit in time budget.
+energy_plan_used = []
+total_time_check_for_plan = 0
 
-# Settings
-SAMPLING_INTERVAL = 5
+for stop in final_plan:
+    if stop.startswith("[Clothing Change]"):
+        continue
+
+    duration = attraction_durations.get(stop, 5)
+    wait = attraction_wait_times.get(stop, 0)
+    walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
+    walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+    walk_time = max(1, round(walk_dist_meters / walking_speed))
+    total_this_stop = duration + wait + walk_time
+
+    if total_time_check_for_plan + total_this_stop > visit_duration + 15:
+        break
+
+    energy_plan_used.append(stop)
+    total_time_check_for_plan += total_this_stop
+    previous_location = attraction_coordinates[stop]
+
+# Now simulate only these
+energy = 100
+elapsed_time = 0
+total_time_check = 0
+previous_location = (0, 0)
 
 for stop in energy_plan_used:
     zone = next((z for z, a in zones.items() if stop in a), None)
@@ -1294,9 +1320,9 @@ for stop in energy_plan_used:
     intensity = zone_intensity.get(zone, 1.0)
     duration = attraction_durations.get(stop, 5)
     wait = attraction_wait_times.get(stop, 0)
-    walk_units = calculate_distance(previous_location, attraction_coordinates[stop])
-    walk_meters = walk_units * SCALE_FACTOR_METERS_PER_UNIT
-    walk_time = max(1, round(walk_meters / walking_speed))
+    walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
+    walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+    walk_time = max(1, round(walk_dist_meters / walking_speed))
     total_this_stop = duration + wait + walk_time
 
     # Age-adjusted boosts
@@ -1304,17 +1330,19 @@ for stop in energy_plan_used:
     adjusted_food_boost = energy_settings['food_boost'] * (2 - energy_settings['loss_factor'])
 
     if zone in ["relaxation", "food"]:
-        # Recharge stops
+        # Recharge stops only ONCE
         boost = adjusted_rest_boost if zone == "relaxation" else adjusted_food_boost
         for minute in range(duration):
             energy += boost / duration
             energy = min(100, energy)
-            if minute % SAMPLING_INTERVAL == 0 or minute == duration - 1:
-                energy_timeline.append(energy)
-                time_timeline.append(elapsed_time)
             elapsed_time += 1
+            total_time_check += 1
+            energy_timeline.append(energy)
+            time_timeline.append(elapsed_time)
+        # Add *one* label
+        stop_label_points.append((elapsed_time, energy, stop, zone))
     else:
-        # Energy loss over this stop
+        # Energy loss over entire total_this_stop
         energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
         loss_per_minute = energy_loss / max(1, total_this_stop)
         for minute in range(total_this_stop):
@@ -1322,21 +1350,14 @@ for stop in energy_plan_used:
             if intensity < 0.3:
                 energy += (adjusted_rest_boost * 0.2) / total_this_stop
             energy = max(0, min(100, energy))
-            if minute % SAMPLING_INTERVAL == 0 or minute == total_this_stop - 1:
-                energy_timeline.append(energy)
-                time_timeline.append(elapsed_time)
             elapsed_time += 1
+            total_time_check += 1
+            energy_timeline.append(energy)
+            time_timeline.append(elapsed_time)
+        # Add *one* label
+        stop_label_points.append((elapsed_time, energy, stop, zone))
 
     previous_location = attraction_coordinates[stop]
-    stop_label_points.append((elapsed_time, energy, stop, zone))
-
-# ✅ Ensure the last stop is always labeled
-if energy_plan_used:
-    last_stop = energy_plan_used[-1]
-    last_zone = next((z for z, a in zones.items() if last_stop in a), None)
-    if not stop_label_points or stop_label_points[-1][2] != last_stop:
-        stop_label_points.append((elapsed_time, energy, last_stop, last_zone))
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
