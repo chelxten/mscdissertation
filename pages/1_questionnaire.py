@@ -229,4 +229,4 @@ if submit:
 
     st.success("✅ Submitted! Redirecting to your personalized tour plan...")
     time.sleep(1.5)
-    st.switch_page("pages/2_tour_plan.py")
+    st.switch_page("pages/2_tour_fix.py")
