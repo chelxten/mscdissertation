@@ -1106,34 +1106,13 @@ wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zon
 
 show_breaks_debug("After schedule_wet_rides_midday", wet_scheduled, zones)
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-# Insert breaks and food stops
 final_route = insert_breaks(wet_scheduled)
 
 show_breaks_debug("After insert_breaks", final_route, zones)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-#final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
-
-#show_breaks_debug("After enforce_max_two_meals", final_route, zones)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = list(dict.fromkeys(final_route))
 
-
-#final_route = move_meals_after_two_hours(final_route, min_elapsed=150)
-#show_breaks_debug("After remove_meals_before_noon", final_route, zones)
-
 final_route = remove_trailing_breaks(final_route)
-
-#final_route = no_consecutive_food_or_break(final_route, zones)
-
-#show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 final_plan = final_route
 
 import matplotlib.pyplot as plt
