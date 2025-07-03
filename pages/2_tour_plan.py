@@ -1378,14 +1378,13 @@ if show_energy_plot:
                 ha='center', fontsize=8)
 
     # Stop markers with labels
-    # 4️⃣ Custom markers for food/rest/rides
-    # 4️⃣ Custom markers with vertical lines (lollipop labels)
-    # 4️⃣ Custom markers with alternating short/long vertical stems (lollipop labels)
     last_time_point = None
     # 4️⃣ Custom markers with vertical stems (short/long alternating, with down for ≤10min)
     short_stem_len = 20
     long_stem_len = 45
     alternate_counter = 0
+    last_stem_end_y = None
+    MIN_VERTICAL_GAP = 40
     
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
         if time_point > time_timeline[-1] + 5:
@@ -1407,37 +1406,38 @@ if show_energy_plot:
         else:
             marker_style, color = 'o', 'blue'
     
-        # Determine ride duration
-        stop_duration = attraction_durations.get(stop_name, 5)
+        # Default is up direction
+        direction = 1
+        stem_length = short_stem_len if (alternate_counter % 2 == 0) else long_stem_len
     
-        if stop_duration <= 10:
-            # SHORT downward stem for short stops
+        # Predict stem end Y if we go up
+        predicted_end_y = energy_level + direction * stem_length
+    
+        # Check against last label to avoid overlap
+        if last_stem_end_y is not None and abs(predicted_end_y - last_stem_end_y) < MIN_VERTICAL_GAP:
+            # Flip to down if too close
             direction = -1
-            stem_length = short_stem_len
-        else:
-            # Alternate short/long stems upward
-            direction = 1
-            stem_length = short_stem_len if (alternate_counter % 2 == 0) else long_stem_len
-            alternate_counter += 1
-    
-        # Compute end of stem
-        stem_end_y = energy_level + direction * stem_length
+            predicted_end_y = energy_level + direction * stem_length
     
         # Place marker
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
     
         # Draw vertical stem line
-        ax.plot([time_point, time_point], [energy_level, stem_end_y], color=color, linestyle='--', linewidth=1)
+        ax.plot([time_point, time_point], [energy_level, predicted_end_y], color=color, linestyle='--', linewidth=1)
     
         # Place label at stem end
         ax.annotate(
             label_text,
-            (time_point, stem_end_y),
+            (time_point, predicted_end_y),
             textcoords="offset points",
             xytext=(0, 0),
             ha='center',
             fontsize=8
         )
+    
+        # Remember last label position
+        last_stem_end_y = predicted_end_y
+        alternate_counter += 1
 
     # Legend
     ax.scatter([], [], marker='o', color='blue', label='Ride')
