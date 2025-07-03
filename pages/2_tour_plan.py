@@ -997,6 +997,18 @@ def enforce_max_two_meals(route):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Final Route Optimization and Tweaks
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# 1️⃣ After initial reordering
+optimized_initial = reorder_by_distance(
+    initial_attractions,
+    start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
+)
+food, rest = list_breaks(optimized_initial, zones)
+st.write("After reorder_by_distance -> Food:", food)
+st.write("After reorder_by_distance -> Rest:", rest)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 first_preference_zone = max(preferences, key=preferences.get)
 first_pref_attraction = next(
     (a for a in zones[first_preference_zone] if a in initial_attractions),
@@ -1009,22 +1021,48 @@ optimized_initial = reorder_by_distance(
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
 
+food, rest = list_breaks(optimized_initial, zones)
+st.write("After reorder_by_distance -> Food:", food)
+st.write("After reorder_by_distance -> Rest:", rest)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 # Schedule wet rides mid-tour if needed
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
 
+food, rest = list_breaks(wet_scheduled, zones)
+st.write("After schedule_wet_rides_midday -> Food:", food)
+st.write("After schedule_wet_rides_midday -> Rest:", rest)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 # Insert breaks and food stops
 final_route = insert_breaks(wet_scheduled)
+food, rest = list_breaks(final_route, zones)
+st.write("After insert_breaks -> Food:", food)
+st.write("After insert_breaks -> Rest:", rest)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
+food, rest = list_breaks(final_route, zones)
+st.write("After enforce_max_two_meals -> Food:", food)
+st.write("After enforce_max_two_meals -> Rest:", rest)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = no_consecutive_food_or_break(final_route, zones)
-
+food, rest = list_breaks(final_route, zones)
+st.write("After no_consecutive_food_or_break -> Food:", food)
+st.write("After no_consecutive_food_or_break -> Rest:", rest)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = list(dict.fromkeys(final_route))
 
 
 final_route = remove_meals_before_noon(final_route)  
-
+food, rest = list_breaks(final_route, zones)
+st.write("After remove_meals_before_noon -> Food:", food)
+st.write("After remove_meals_before_noon -> Rest:", rest)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 final_plan = final_route
 
 import matplotlib.pyplot as plt
