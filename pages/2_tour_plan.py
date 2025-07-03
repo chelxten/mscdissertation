@@ -910,7 +910,7 @@ def insert_breaks(route):
         # REST INSERTION - Flexible (emergency)
         if (
             break_pref == "Flexible"
-            and energy_level < 40
+            and energy_level < 20
             and elapsed_since_break > 10
             and (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING
             and zone not in ["relaxation", "food"]
@@ -935,7 +935,7 @@ def insert_breaks(route):
 
         if (
             needs_break
-            and energy_level >= 40
+            and energy_level >= 20
             and (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING
             and zone not in ["relaxation", "food"]
             and activities_since_last_meal >= 2
