@@ -1161,7 +1161,7 @@ previous_location = (0, 0)
 
 # 💡 THIS IS THE KEY CHANGE
 # We will use only those stops that fit in time budget.
-energy_plan_used = []
+energy_plan_used = final_plan
 total_time_check_for_plan = 0
 
 for stop in final_plan:
