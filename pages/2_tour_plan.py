@@ -1118,6 +1118,9 @@ final_plan = final_route
 import matplotlib.pyplot as plt
 
 # ➜ Use only the filtered plan
+import matplotlib.pyplot as plt
+
+# ➜ Use only the filtered plan
 energy = 100
 energy_timeline = [energy]
 time_timeline = [0]
@@ -1174,16 +1177,20 @@ for stop in energy_plan_used:
     adjusted_rest_boost = energy_settings['rest_boost'] * (2 - energy_settings['loss_factor'])
     adjusted_food_boost = energy_settings['food_boost'] * (2 - energy_settings['loss_factor'])
 
+    # ✅ Sample every 5 minutes to reduce plot size
+    SAMPLING_INTERVAL = 5
+
     if zone in ["relaxation", "food"]:
         # Recharge stops only ONCE
         boost = adjusted_rest_boost if zone == "relaxation" else adjusted_food_boost
         for minute in range(duration):
             energy += boost / duration
             energy = min(100, energy)
+            if minute % SAMPLING_INTERVAL == 0 or minute == duration - 1:
+                energy_timeline.append(energy)
+                time_timeline.append(elapsed_time)
             elapsed_time += 1
             total_time_check += 1
-            energy_timeline.append(energy)
-            time_timeline.append(elapsed_time)
         # Add *one* label
         stop_label_points.append((elapsed_time, energy, stop, zone))
     else:
@@ -1195,10 +1202,11 @@ for stop in energy_plan_used:
             if intensity < 0.3:
                 energy += (adjusted_rest_boost * 0.2) / total_this_stop
             energy = max(0, min(100, energy))
+            if minute % SAMPLING_INTERVAL == 0 or minute == total_this_stop - 1:
+                energy_timeline.append(energy)
+                time_timeline.append(elapsed_time)
             elapsed_time += 1
             total_time_check += 1
-            energy_timeline.append(energy)
-            time_timeline.append(elapsed_time)
         # Add *one* label
         stop_label_points.append((elapsed_time, energy, stop, zone))
 
