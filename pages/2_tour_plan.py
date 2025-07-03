@@ -854,14 +854,13 @@ def insert_breaks(route):
     MIN_FOOD_GAP_MINUTES = 180
     MIN_FOOD_GAP_ACTIVITIES = 3
     MIN_BREAK_FOOD_SPACING = 30
-    WALKING_SPEED = 50  # meters/min realistic
+    WALKING_SPEED = 50
 
     start_time_clock = datetime.strptime("10:00", "%H:%M")
 
-    # NEW COUNTER for Rule 10
     activities_since_last_meal = 0
 
-    # Detect wet block range
+    # Wet block detection
     wet_start = None
     wet_end = None
     for i, stop in enumerate(route):
@@ -892,12 +891,10 @@ def insert_breaks(route):
         elapsed_since_food += total_this_stop
         meal_activity_counter += 1
 
-        # ------------------------
         # Count activities for Rule 10
         is_soft = zone in ["food", "relaxation"]
         if not is_soft:
             activities_since_last_meal += 1
-        # ------------------------
 
         # Energy loss
         intensity_val = zone_intensity.get(zone, 1.0)
@@ -910,7 +907,7 @@ def insert_breaks(route):
             continue
 
         # ------------------------
-        # REST INSERTION - Flexible energy-based
+        # REST INSERTION - Flexible (emergency)
         if (
             break_pref == "Flexible"
             and energy_level < 40
@@ -927,10 +924,9 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
                 activities_since_last_meal = 0
-        # ------------------------
 
         # ------------------------
-        # REST INSERTION - Scheduled based on break_pref
+        # REST INSERTION - Scheduled (strict Rule 10)
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
@@ -953,16 +949,12 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
                 activities_since_last_meal = 0
-        # ------------------------
 
         # ------------------------
         # MEAL INSERTION
         can_add_meal_now = (elapsed_since_food >= MIN_FOOD_GAP_MINUTES)
         min_elapsed_to_allow_meal = 120
-        if total_elapsed_time >= min_elapsed_to_allow_meal:
-            can_schedule_meal_time = True
-        else:
-            can_schedule_meal_time = False
+        can_schedule_meal_time = total_elapsed_time >= min_elapsed_to_allow_meal
 
         if (
             can_schedule_meal_time
@@ -984,11 +976,11 @@ def insert_breaks(route):
                 last_meal_time = total_elapsed_time
                 energy_level = min(100, energy_level + energy_settings['food_boost'])
                 activities_since_last_meal = 0
-        # ------------------------
 
         current_location = attraction_coordinates[stop]
 
     return updated
+    
 def move_meals_after_two_hours(route, min_elapsed=120):
     """
     Ensures meals are only inserted after min_elapsed minutes
