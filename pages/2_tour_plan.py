@@ -1404,7 +1404,7 @@ if show_energy_plot:
     
         # Alternate stem length
         SHORT_STEM = 20
-        LONG_STEM = 45
+        LONG_STEM = 30
         label_offset = SHORT_STEM if (i % 2 == 0) else LONG_STEM
     
         # Direction: alternate up and down if desired
