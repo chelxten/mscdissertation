@@ -1378,15 +1378,15 @@ if show_energy_plot:
                 ha='center', fontsize=8)
 
     # Stop markers with labels
+    # 4️⃣ Custom markers for food/rest/rides
     last_time_point = None
-    max_time = time_timeline[-1]
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
-        if time_point - max_time > 5:
+        if time_point > time_timeline[-1] + 5:
             continue
     
-        # If it's a bit beyond the line, snap to end
-        if time_point > max_time:
-            time_point = max_time
+        # Snap label if overshooting
+        if time_point > time_timeline[-1]:
+            time_point = time_timeline[-1]
     
         label_text = f"{stop_name[:12]}…\n{int(energy_level)}%" if len(stop_name) > 15 else f"{stop_name}\n{int(energy_level)}%"
     
@@ -1397,15 +1397,23 @@ if show_energy_plot:
         else:
             marker_style, color = 'o', 'blue'
     
-        y_offset = 20
-        if last_time_point is not None and abs(time_point - last_time_point) < 5:
+        # ✅ Fancy alternating y-offset
+        if last_time_point is not None and abs(time_point - last_time_point) < 10:
             y_offset = 35 if (i % 2 == 0) else -40
+        else:
+            y_offset = 20
+    
         last_time_point = time_point
     
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
-        ax.annotate(label_text, (time_point, energy_level),
-                    textcoords="offset points", xytext=(0, y_offset),
-                    ha='center', fontsize=8)
+        ax.annotate(
+            label_text,
+            (time_point, energy_level),
+            textcoords="offset points",
+            xytext=(0, y_offset),
+            ha='center',
+            fontsize=8
+        )
 
     # Legend
     ax.scatter([], [], marker='o', color='blue', label='Ride')
