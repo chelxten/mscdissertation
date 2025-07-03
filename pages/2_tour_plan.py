@@ -1003,10 +1003,12 @@ optimized_initial = reorder_by_distance(
     initial_attractions,
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
-food, rest = list_breaks(optimized_initial, zones)
-st.write("After reorder_by_distance -> Food:", food)
-st.write("After reorder_by_distance -> Rest:", rest)
-
+def show_breaks_debug(stage, route, zones):
+    food_stops = [s for s in route if any(s in zones[z] for z in ["food"])]
+    rest_stops = [s for s in route if any(s in zones[z] for z in ["relaxation"])]
+    st.markdown(f"**🧭 Debug: {stage}**")
+    st.write(f"🍽️ Meal Stops ({len(food_stops)}):", food_stops)
+    st.write(f"🌳 Rest Stops ({len(rest_stops)}):", rest_stops)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 first_preference_zone = max(preferences, key=preferences.get)
@@ -1021,47 +1023,38 @@ optimized_initial = reorder_by_distance(
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
 
-food, rest = list_breaks(optimized_initial, zones)
-st.write("After reorder_by_distance -> Food:", food)
-st.write("After reorder_by_distance -> Rest:", rest)
+show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Schedule wet rides mid-tour if needed
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
 
-food, rest = list_breaks(wet_scheduled, zones)
-st.write("After schedule_wet_rides_midday -> Food:", food)
-st.write("After schedule_wet_rides_midday -> Rest:", rest)
+show_breaks_debug("After schedule_wet_rides_midday", wet_scheduled, zones)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Insert breaks and food stops
 final_route = insert_breaks(wet_scheduled)
-food, rest = list_breaks(final_route, zones)
-st.write("After insert_breaks -> Food:", food)
-st.write("After insert_breaks -> Rest:", rest)
+
+show_breaks_debug("After insert_breaks", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
-food, rest = list_breaks(final_route, zones)
-st.write("After enforce_max_two_meals -> Food:", food)
-st.write("After enforce_max_two_meals -> Rest:", rest)
+
+show_breaks_debug("After enforce_max_two_meals", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = no_consecutive_food_or_break(final_route, zones)
-food, rest = list_breaks(final_route, zones)
-st.write("After no_consecutive_food_or_break -> Food:", food)
-st.write("After no_consecutive_food_or_break -> Rest:", rest)
+
+show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 final_route = list(dict.fromkeys(final_route))
 
 
 final_route = remove_meals_before_noon(final_route)  
-food, rest = list_breaks(final_route, zones)
-st.write("After remove_meals_before_noon -> Food:", food)
-st.write("After remove_meals_before_noon -> Rest:", rest)
+show_breaks_debug("After remove_meals_before_noon", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 final_plan = final_route
 
