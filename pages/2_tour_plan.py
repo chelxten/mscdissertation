@@ -1133,7 +1133,12 @@ with st.expander("The Fun Starts Here", expanded=True):
         st.markdown(display_line)
 
         if show_details_block:
-            detail_line = f"• Includes: {ride_time}m ride, {wait_time}m wait, {walk_time}m walk"
+            if zone == "food":
+                detail_line = f"• Includes: {ride_time}m meal time, {wait_time}m wait, {walk_time}m walk"
+            elif zone == "relaxation":
+                detail_line = f"• Includes: {ride_time}m rest time, {wait_time}m wait, {walk_time}m walk"
+            else:
+                detail_line = f"• Includes: {ride_time}m ride time, {wait_time}m wait, {walk_time}m walk"
             st.markdown(detail_line)
 
         if zone in ["relaxation", "food"]:
