@@ -1063,7 +1063,15 @@ def enforce_max_two_meals(route):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Final Route Optimization and Tweaks
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+def remove_trailing_breaks(route):
+    while route:
+        zone = next((z for z, a in zones.items() if route[-1] in a), None)
+        if zone in ["food", "relaxation"]:
+            route.pop()
+        else:
+            break
+    return route
+    
 # 1️⃣ After initial reordering
 optimized_initial = reorder_by_distance(
     initial_attractions,
@@ -1119,6 +1127,8 @@ final_route = list(dict.fromkeys(final_route))
 
 #final_route = move_meals_after_two_hours(final_route, min_elapsed=150)
 #show_breaks_debug("After remove_meals_before_noon", final_route, zones)
+
+final_route = remove_trailing_breaks(final_route)
 
 #final_route = no_consecutive_food_or_break(final_route, zones)
 
