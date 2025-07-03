@@ -231,7 +231,7 @@ weight_sim = ctrl.ControlSystemSimulation(weight_ctrl)
 zone_weights = {}
 for zone in zones:
     pref = preferences.get(zone, 5)
-    acc = accessibility_factors.get(zone, 1.0)
+    acc = accessibility.get(zone, 1.0)
     intensity = zone_intensity.get(zone, 0.5)
     repeat_count_val = 0
 
@@ -268,7 +268,7 @@ for zone, attractions in zones.items():
         wait = attraction_wait_times.get(attraction, 0)
         duration = attraction_durations.get(attraction, 5)
         intensity = zone_intensity.get(zone, 0.5)
-        acc = accessibility_factors.get(zone, 1.0)
+        acc = accessibility.get(zone, 1.0))
         pref = preferences.get(zone, 5) / 10.0
         is_wet = attraction in wet_ride_names
 
