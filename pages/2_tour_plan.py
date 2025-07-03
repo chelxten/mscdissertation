@@ -985,6 +985,7 @@ def remove_meals_before_noon(route, start_time="10:00"):
         previous_location = attraction_coordinates[stop]
 
     return cleaned
+    
 
 def enforce_max_two_meals(route):
     cleaned = []
