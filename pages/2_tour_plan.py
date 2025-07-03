@@ -1080,9 +1080,15 @@ optimized_initial = reorder_by_distance(
 def show_breaks_debug(stage, route, zones):
     food_stops = [s for s in route if any(s in zones[z] for z in ["food"])]
     rest_stops = [s for s in route if any(s in zones[z] for z in ["relaxation"])]
+
     st.markdown(f"**🧭 Debug: {stage}**")
     st.write(f"🍽️ Meal Stops ({len(food_stops)}):", food_stops)
     st.write(f"🌳 Rest Stops ({len(rest_stops)}):", rest_stops)
+
+    st.write(f"📜 **Full Plan ({len(route)} stops):**")
+    for i, stop in enumerate(route, 1):
+        zone = next((z for z, a in zones.items() if stop in a), "Unknown")
+        st.markdown(f"{i}. {stop} *(Zone: {zone})*")
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 first_preference_zone = max(preferences, key=preferences.get)
