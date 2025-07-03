@@ -851,14 +851,17 @@ def insert_breaks(route):
     meal_break_count = 0
     max_meals = 2
 
-    MIN_FOOD_GAP_MINUTES = 90
+    MIN_FOOD_GAP_MINUTES = 180
     MIN_FOOD_GAP_ACTIVITIES = 3
     MIN_BREAK_FOOD_SPACING = 30
     WALKING_SPEED = 50  # meters/min realistic
 
     start_time_clock = datetime.strptime("10:00", "%H:%M")
 
-    # Wet ride block range detection
+    # NEW COUNTER for Rule 10
+    activities_since_last_meal = 0
+
+    # Detect wet block range
     wet_start = None
     wet_end = None
     for i, stop in enumerate(route):
@@ -889,6 +892,14 @@ def insert_breaks(route):
         elapsed_since_food += total_this_stop
         meal_activity_counter += 1
 
+        # ------------------------
+        # Count activities for Rule 10
+        is_soft = zone in ["food", "relaxation"]
+        if not is_soft:
+            activities_since_last_meal += 1
+        # ------------------------
+
+        # Energy loss
         intensity_val = zone_intensity.get(zone, 1.0)
         age_sens = energy_settings['loss_factor']
         energy_loss = compute_energy_loss(intensity_val, walk_time, age_sens)
@@ -898,68 +909,87 @@ def insert_breaks(route):
             current_location = attraction_coordinates[stop]
             continue
 
-        # 💤 REST BREAK
+        # ------------------------
+        # REST INSERTION - Flexible energy-based
         if (
-            energy_level < 40 and
-            elapsed_since_break > 10 and
-            (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING and
-            zone not in ["relaxation", "food"]
+            break_pref == "Flexible"
+            and energy_level < 40
+            and elapsed_since_break > 10
+            and (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING
+            and zone not in ["relaxation", "food"]
+            and activities_since_last_meal >= 2
         ):
             relax_options = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
             if relax_options:
                 best_relax = min(relax_options, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
-                if best_relax not in updated:
-                    updated.append(best_relax)
-                    used_break_spots.add(best_relax)
-                    elapsed_since_break = 0
-                    energy_level = min(100, energy_level + energy_settings['rest_boost'])
-                    last_break_time = total_elapsed_time
+                updated.append(best_relax)
+                used_break_spots.add(best_relax)
+                elapsed_since_break = 0
+                energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                last_break_time = total_elapsed_time
+                activities_since_last_meal = 0
+        # ------------------------
 
-        # 😴 SCHEDULED BREAK
+        # ------------------------
+        # REST INSERTION - Scheduled based on break_pref
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
             (break_pref == "After every big ride" and stop in {"Roller Coaster", "Drop Tower", "Log Flume", "Water Slide"})
         )
+
         if (
-            needs_break and
-            energy_level >= 40 and
-            (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING
+            needs_break
+            and energy_level >= 40
+            and (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING
+            and zone not in ["relaxation", "food"]
+            and activities_since_last_meal >= 2
         ):
             relax_options = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
-            if relax_options and zone not in ["relaxation", "food"]:
+            if relax_options:
                 best_relax = min(relax_options, key=lambda s: calculate_distance(attraction_coordinates[stop], attraction_coordinates[s]))
-                if best_relax not in updated:
-                    updated.append(best_relax)
-                    used_break_spots.add(best_relax)
-                    elapsed_since_break = 0
-                    energy_level = min(100, energy_level + energy_settings['rest_boost'])
-                    last_break_time = total_elapsed_time
+                updated.append(best_relax)
+                used_break_spots.add(best_relax)
+                elapsed_since_break = 0
+                energy_level = min(100, energy_level + energy_settings['rest_boost'])
+                last_break_time = total_elapsed_time
+                activities_since_last_meal = 0
+        # ------------------------
 
-        # 🍽️ MEAL BREAK
+        # ------------------------
+        # MEAL INSERTION
+        can_add_meal_now = (elapsed_since_food >= MIN_FOOD_GAP_MINUTES)
+        min_elapsed_to_allow_meal = 120
+        if total_elapsed_time >= min_elapsed_to_allow_meal:
+            can_schedule_meal_time = True
+        else:
+            can_schedule_meal_time = False
+
         if (
-            elapsed_since_food >= MIN_FOOD_GAP_MINUTES and
-            meal_activity_counter >= MIN_FOOD_GAP_ACTIVITIES and
-            meal_break_count < max_meals and
-            zone not in ["relaxation", "food"] and
-            (last_meal_time == -999 or total_elapsed_time - last_meal_time >= MIN_BREAK_FOOD_SPACING)
+            can_schedule_meal_time
+            and can_add_meal_now
+            and meal_activity_counter >= MIN_FOOD_GAP_ACTIVITIES
+            and meal_break_count < max_meals
+            and zone not in ["relaxation", "food"]
+            and (last_break_time == -999 or total_elapsed_time - last_break_time >= MIN_BREAK_FOOD_SPACING)
+            and (last_meal_time == -999 or total_elapsed_time - last_meal_time >= MIN_BREAK_FOOD_SPACING)
         ):
             food_options = [f for f in zones["food"] if f not in used_food_spots and f not in updated]
             if food_options:
                 best_food = min(food_options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
-                if best_food not in updated:
-                    updated.append(best_food)
-                    used_food_spots.add(best_food)
-                    elapsed_since_food = 0
-                    meal_activity_counter = 0
-                    meal_break_count += 1
-                    last_meal_time = total_elapsed_time
-                    energy_level = min(100, energy_level + energy_settings['food_boost'])
+                updated.append(best_food)
+                used_food_spots.add(best_food)
+                elapsed_since_food = 0
+                meal_activity_counter = 0
+                meal_break_count += 1
+                last_meal_time = total_elapsed_time
+                energy_level = min(100, energy_level + energy_settings['food_boost'])
+                activities_since_last_meal = 0
+        # ------------------------
 
         current_location = attraction_coordinates[stop]
 
     return updated
-
 def move_meals_after_two_hours(route, min_elapsed=120):
     """
     Ensures meals are only inserted after min_elapsed minutes
@@ -1077,9 +1107,9 @@ final_route = insert_breaks(wet_scheduled)
 show_breaks_debug("After insert_breaks", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
+#final_route = enforce_max_two_meals(final_route)  # ✅ Apply correctly
 
-show_breaks_debug("After enforce_max_two_meals", final_route, zones)
+#show_breaks_debug("After enforce_max_two_meals", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
@@ -1088,12 +1118,12 @@ show_breaks_debug("After enforce_max_two_meals", final_route, zones)
 final_route = list(dict.fromkeys(final_route))
 
 
-final_route = move_meals_after_two_hours(final_route, min_elapsed=150)
-show_breaks_debug("After remove_meals_before_noon", final_route, zones)
+#final_route = move_meals_after_two_hours(final_route, min_elapsed=150)
+#show_breaks_debug("After remove_meals_before_noon", final_route, zones)
 
-final_route = no_consecutive_food_or_break(final_route, zones)
+#final_route = no_consecutive_food_or_break(final_route, zones)
 
-show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
+#show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 final_plan = final_route
 
