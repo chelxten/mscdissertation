@@ -1115,20 +1115,10 @@ final_route = insert_breaks(wet_scheduled)
 final_route = list(dict.fromkeys(final_route))
 final_route = remove_trailing_breaks(final_route)
 
-# 🧭 Time trim step
-energy_plan_used = []
-time_check = 0
-for stop in final_route:
-    ...
-    if time_check + stop_time > visit_duration + 15:
-        break
-    energy_plan_used.append(stop)
-    time_check += stop_time
-
 # ✅ Remove trailing breaks AGAIN after trimming
-energy_plan_used = remove_trailing_breaks(energy_plan_used)
+final_route = remove_trailing_breaks(final_route)
 
-final_plan = energy_plan_used
+final_plan = final_route
 
 import matplotlib.pyplot as plt
 
