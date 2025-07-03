@@ -917,7 +917,6 @@ def insert_breaks(route):
             and elapsed_since_break > 10
             and (total_elapsed_time - last_break_time) > MIN_BREAK_FOOD_SPACING
             and zone not in ["relaxation", "food"]
-            and activities_since_last_meal >= 2
         ):
             relax_options = [s for s in zones["relaxation"] if s not in used_break_spots and s not in updated]
             if relax_options:
