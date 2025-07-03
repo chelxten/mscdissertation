@@ -1114,6 +1114,7 @@ final_route = remove_trailing_breaks(final_route)
 show_breaks_debug("After remove_trailing_breaks", final_route, zones)
 
 final_plan = final_route
+show_breaks_debug("FINAL FINAL PLAN", final_plan, zones)
 
 import matplotlib.pyplot as plt
 
