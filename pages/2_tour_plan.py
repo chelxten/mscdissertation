@@ -915,25 +915,25 @@ def insert_breaks(route):
 
         # 🍽️ MEAL BREAKS (STRICTLY after 12:00)
         noon_time = datetime.strptime("12:00", "%H:%M").time()
-        if (
-            current_clock.time() >= noon_time and
-            elapsed_since_food >= MIN_FOOD_GAP_MINUTES and
-            meal_activity_counter >= MIN_FOOD_GAP_ACTIVITIES and
-            meal_break_count < max_meals and
-            zone not in ["relaxation", "food"] and
-            (last_break_time == -999 or total_elapsed_time - last_break_time >= MIN_BREAK_FOOD_SPACING) and
-            (last_meal_time == -999 or total_elapsed_time - last_meal_time >= MIN_BREAK_FOOD_SPACING)
-        ):
-            food_options = [f for f in zones["food"] if f not in used_food_spots and f not in updated]
-            if food_options:
-                best_food = min(food_options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
-                updated.append(best_food)
-                used_food_spots.add(best_food)
-                elapsed_since_food = 0
-                meal_activity_counter = 0
-                meal_break_count += 1
-                last_meal_time = total_elapsed_time
-                energy_level = min(100, energy_level + energy_settings['food_boost'])
+        if current_clock.time() >= noon_time:
+            if (
+                elapsed_since_food >= MIN_FOOD_GAP_MINUTES and
+                meal_activity_counter >= MIN_FOOD_GAP_ACTIVITIES and
+                meal_break_count < max_meals and
+                zone not in ["relaxation", "food"] and
+                (last_break_time == -999 or total_elapsed_time - last_break_time >= MIN_BREAK_FOOD_SPACING) and
+                (last_meal_time == -999 or total_elapsed_time - last_meal_time >= MIN_BREAK_FOOD_SPACING)
+            ):
+                food_options = [f for f in zones["food"] if f not in used_food_spots and f not in updated]
+                if food_options:
+                    best_food = min(food_options, key=lambda f: calculate_distance(attraction_coordinates[stop], attraction_coordinates[f]))
+                    updated.append(best_food)
+                    used_food_spots.add(best_food)
+                    elapsed_since_food = 0
+                    meal_activity_counter = 0
+                    meal_break_count += 1
+                    last_meal_time = total_elapsed_time
+                    energy_level = min(100, energy_level + energy_settings['food_boost'])
 
         current_location = attraction_coordinates[stop]
 
