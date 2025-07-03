@@ -1116,12 +1116,13 @@ show_breaks_debug("After insert_breaks", final_route, zones)
 final_route = list(dict.fromkeys(final_route))
 show_breaks_debug("After deduplication", final_route, zones)
 
-final_route = remove_trailing_breaks(final_route)
-show_breaks_debug("After remove_trailing_breaks", final_route, zones)
+)
 
 final_plan = final_route
+final_plan = plan_text_lines
 show_breaks_debug("FINAL FINAL PLAN", final_plan, zones)
-
+final_route = remove_trailing_breaks(final_route)
+show_breaks_debug("After remove_trailing_breaks", final_route, zones
 import matplotlib.pyplot as plt
 
 # ➜ Use only the filtered plan
