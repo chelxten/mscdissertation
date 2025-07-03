@@ -947,12 +947,15 @@ def insert_breaks(route):
 
     return updated
 
-def remove_meals_before_noon(route, start_time="10:00"):
+def move_meals_after_noon(route, start_time="10:00"):
     cleaned = []
+    meals_to_shift = []
+
     total_time = 0
     start_time_clock = datetime.strptime(start_time, "%H:%M")
     previous_location = (0, 0)
 
+    # First pass: separate early meals
     for stop in route:
         if stop.startswith("[Clothing Change]"):
             total_time += CLOTHING_CHANGE_DURATION
@@ -968,13 +971,14 @@ def remove_meals_before_noon(route, start_time="10:00"):
         wait = attraction_wait_times.get(stop, 0)
         walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
         walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
-        walk_time = max(2, round(walk_dist_meters / 50))  # match walking speed
+        walk_time = max(2, round(walk_dist_meters / 50))
 
         total_this_stop = duration + wait + walk_time
         scheduled_time = start_time_clock + timedelta(minutes=total_time)
 
         if zone == "food" and scheduled_time.time() < datetime.strptime("12:00", "%H:%M").time():
-            total_time += total_this_stop  # skip meal but account for time
+            meals_to_shift.append(stop)
+            total_time += total_this_stop
             previous_location = attraction_coordinates[stop]
             continue
 
@@ -982,7 +986,42 @@ def remove_meals_before_noon(route, start_time="10:00"):
         total_time += total_this_stop
         previous_location = attraction_coordinates[stop]
 
-    return cleaned
+    # Second pass: reinsert shifted meals *after* first noon slot
+    final_route = []
+    total_time = 0
+    previous_location = (0, 0)
+    meals_added = 0
+
+    for stop in cleaned:
+        zone = next((z for z, a in zones.items() if stop in a), None)
+
+        if stop.startswith("[Clothing Change]"):
+            duration = CLOTHING_CHANGE_DURATION
+        elif zone:
+            duration = attraction_durations.get(stop, 5) + attraction_wait_times.get(stop, 0)
+            walk_dist_units = calculate_distance(previous_location, attraction_coordinates[stop])
+            walk_dist_meters = walk_dist_units * SCALE_FACTOR_METERS_PER_UNIT
+            duration += max(2, round(walk_dist_meters / 50))
+        else:
+            duration = 5  # Fallback
+
+        current_clock = start_time_clock + timedelta(minutes=total_time)
+
+        # If we've reached noon or later and have meals waiting, insert them now
+        while meals_to_shift and current_clock.time() >= datetime.strptime("12:00", "%H:%M").time():
+            meal_stop = meals_to_shift.pop(0)
+            final_route.append(meal_stop)
+            meals_added += 1
+
+        final_route.append(stop)
+        total_time += duration
+        if stop in attraction_coordinates:
+            previous_location = attraction_coordinates[stop]
+
+    # Any leftover meals go to the end
+    final_route.extend(meals_to_shift)
+
+    return final_route
     
 
 def enforce_max_two_meals(route):
@@ -1061,7 +1100,7 @@ show_breaks_debug("After no_consecutive_food_or_break", final_route, zones)
 final_route = list(dict.fromkeys(final_route))
 
 
-final_route = remove_meals_before_noon(final_route)  
+final_route = move_meals_after_noon(final_route)
 show_breaks_debug("After remove_meals_before_noon", final_route, zones)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 final_plan = final_route
