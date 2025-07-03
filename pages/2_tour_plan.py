@@ -1379,6 +1379,7 @@ if show_energy_plot:
 
     # Stop markers with labels
     # 4️⃣ Custom markers for food/rest/rides
+    # 4️⃣ Custom markers with vertical lines (lollipop labels)
     last_time_point = None
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
         if time_point > time_timeline[-1] + 5:
@@ -1388,8 +1389,11 @@ if show_energy_plot:
         if time_point > time_timeline[-1]:
             time_point = time_timeline[-1]
     
-        label_text = f"{stop_name[:12]}…\n{int(energy_level)}%" if len(stop_name) > 15 else f"{stop_name}\n{int(energy_level)}%"
+        # Label text
+        label_text = f"{stop_name[:12]}…" if len(stop_name) > 15 else stop_name
+        label_text += f"\n{int(energy_level)}%"
     
+        # Marker style and color
         if zone == "food":
             marker_style, color = 's', 'green'
         elif zone == "relaxation":
@@ -1397,20 +1401,27 @@ if show_energy_plot:
         else:
             marker_style, color = 'o', 'blue'
     
-        # ✅ Fancy alternating y-offset
+        # Fancy alternating label positioning
         if last_time_point is not None and abs(time_point - last_time_point) < 10:
-            y_offset = 35 if (i % 2 == 0) else -40
+            label_offset = 30 if (i % 2 == 0) else -40
         else:
-            y_offset = 20
+            label_offset = 20
     
         last_time_point = time_point
     
+        # Draw the marker
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
+    
+        # Draw the vertical stem line
+        line_end_y = energy_level + label_offset
+        ax.plot([time_point, time_point], [energy_level, line_end_y], color=color, linestyle='--', linewidth=1)
+    
+        # Add the label at the end of the stem
         ax.annotate(
             label_text,
-            (time_point, energy_level),
+            (time_point, line_end_y),
             textcoords="offset points",
-            xytext=(0, y_offset),
+            xytext=(0, 0),
             ha='center',
             fontsize=8
         )
