@@ -1384,7 +1384,7 @@ if show_energy_plot:
     long_stem_len = 15
     alternate_counter = 0
     last_stem_end_y = None
-    MIN_VERTICAL_GAP = 40
+    MIN_VERTICAL_GAP = 30
     
     for i, (time_point, energy_level, stop_name, zone) in enumerate(stop_label_points):
         if time_point > time_timeline[-1] + 5:
