@@ -110,6 +110,9 @@ accessibility_factors = {
     "entertainment": 0.9, "food": 1.0, "shopping": 1.0, "relaxation": 1.0
 }
 
+
+CLOTHING_CHANGE_DURATION = 10 
+
 attraction_durations = {
     # Thrill (longer ride time)
     "Roller Coaster": 5, "Drop Tower": 3, "Haunted Mine Train": 4, "Spinning Vortex": 4, "Freefall Cannon": 3,
