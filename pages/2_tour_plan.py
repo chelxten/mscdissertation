@@ -834,11 +834,10 @@ def insert_breaks(route):
 
     MIN_FOOD_GAP_MINUTES = 90
     MIN_FOOD_GAP_ACTIVITIES = 3
-    MIN_BREAK_FOOD_SPACING = 30  # Enforce min gap between food/rest
+    MIN_BREAK_FOOD_SPACING = 30
 
     start_time_clock = datetime.strptime("10:00", "%H:%M")
 
-    # Wet ride block range detection
     wet_start = None
     wet_end = None
     for i, stop in enumerate(route):
@@ -878,7 +877,7 @@ def insert_breaks(route):
             current_location = attraction_coordinates[stop]
             continue
 
-        # 💤 REST INSERTION
+        # 💦 REST INSERTION
         if (
             energy_level < 40 and
             elapsed_since_break > 10 and
@@ -894,7 +893,7 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
 
-        # 😴 SCHEDULED BREAKS (if preferred)
+        # 😴 SCHEDULED BREAKS
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
@@ -914,15 +913,10 @@ def insert_breaks(route):
                 energy_level = min(100, energy_level + energy_settings['rest_boost'])
                 last_break_time = total_elapsed_time
 
-        # 🍽️ MEAL BREAKS (AFTER 12:00 ONLY)
+        # 🍽️ MEAL BREAKS (STRICTLY after 12:00)
         noon_time = datetime.strptime("12:00", "%H:%M").time()
-        if current_clock.time() >= noon_time:
-            can_add_meal_now = True
-        else:
-            can_add_meal_now = False
-
         if (
-            can_add_meal_now and
+            current_clock.time() >= noon_time and
             elapsed_since_food >= MIN_FOOD_GAP_MINUTES and
             meal_activity_counter >= MIN_FOOD_GAP_ACTIVITIES and
             meal_break_count < max_meals and
