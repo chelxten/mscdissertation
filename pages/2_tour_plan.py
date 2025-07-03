@@ -513,7 +513,8 @@ if 'wet_time_pct' not in globals() or wet_time_pct is None:
     wet_time_pct = 50
     
 
-for zone, attractions in zones.items():
+for zone in ["thrill", "water", "family", "entertainment", "shopping"]:
+    attractions = zones[zone]
     for attraction in attractions:
         wait_time = attraction_wait_times.get(attraction, 0)
         duration = attraction_durations.get(attraction, 5)
