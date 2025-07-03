@@ -764,27 +764,39 @@ preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 
 # 11. Final Route Cleanup (No Consecutive Breaks)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-def no_consecutive_food_or_break(attractions, zones):
-    final = []
-    prev_soft = False
+def no_consecutive_food_or_break(route, zones):
+    """
+    Reorders the route so that no two food/rest stops are consecutive.
+    Instead of dropping them, it swaps them with next non-food/rest.
+    """
+    # Helper: identify if a stop is food or rest
+    def is_soft(stop):
+        zone = next((z for z, a in zones.items() if stop in a), None)
+        return zone in {"food", "relaxation"}
 
-    for item in attractions:
-        zone = next((z for z, a in zones.items() if item in a), None)
-        is_soft = zone in {"food", "relaxation"}
+    result = []
+    i = 0
+    while i < len(route):
+        current_stop = route[i]
+        result.append(current_stop)
 
-        if item.startswith("[Clothing Change]"):
-            final.append(item)
-            prev_soft = False
-            continue
+        # Check next stop
+        if i + 1 < len(route):
+            next_stop = route[i + 1]
 
-        # Skip if previous was food/rest and current is also soft
-        if is_soft and prev_soft:
-            continue
+            if is_soft(current_stop) and is_soft(next_stop):
+                # Look ahead for next non-soft to swap
+                swap_idx = i + 2
+                while swap_idx < len(route):
+                    if not is_soft(route[swap_idx]):
+                        # Swap next_stop with this
+                        route[i + 1], route[swap_idx] = route[swap_idx], route[i + 1]
+                        break
+                    swap_idx += 1
 
-        final.append(item)
-        prev_soft = is_soft
+        i += 1
 
-    return final
+    return route
     
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 12. Break and Meal Insertion Logic
