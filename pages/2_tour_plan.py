@@ -955,7 +955,7 @@ def move_meals_after_noon(route, start_time="10:00"):
     start_time_clock = datetime.strptime(start_time, "%H:%M")
     previous_location = (0, 0)
 
-    # First pass: separate early meals
+    # First pass: remove all meals before noon
     for stop in route:
         if stop.startswith("[Clothing Change]"):
             total_time += CLOTHING_CHANGE_DURATION
@@ -976,7 +976,8 @@ def move_meals_after_noon(route, start_time="10:00"):
         total_this_stop = duration + wait + walk_time
         scheduled_time = start_time_clock + timedelta(minutes=total_time)
 
-        if zone == "food" and scheduled_time.time() < datetime.strptime("12:00", "%H:%M").time():
+        if zone == "food":
+            # Always shift meals out
             meals_to_shift.append(stop)
             total_time += total_this_stop
             previous_location = attraction_coordinates[stop]
@@ -986,15 +987,15 @@ def move_meals_after_noon(route, start_time="10:00"):
         total_time += total_this_stop
         previous_location = attraction_coordinates[stop]
 
-    # Second pass: reinsert shifted meals *after* first noon slot
+    # Second pass: insert meals *after* 12:00
     final_route = []
     total_time = 0
     previous_location = (0, 0)
-    meals_added = 0
+    noon_time = datetime.strptime("12:00", "%H:%M").time()
 
     for stop in cleaned:
         zone = next((z for z, a in zones.items() if stop in a), None)
-    
+
         if stop.startswith("[Clothing Change]"):
             duration = CLOTHING_CHANGE_DURATION
         elif zone:
@@ -1004,17 +1005,14 @@ def move_meals_after_noon(route, start_time="10:00"):
             duration += max(2, round(walk_dist_meters / 50))
         else:
             duration = 5  # Fallback
-    
-        # NEW CHECK: will *this* attraction cross noon?
-        arrival_time = start_time_clock + timedelta(minutes=total_time)
-        departure_time = arrival_time + timedelta(minutes=duration)
-    
-        if meals_to_shift and arrival_time.time() < datetime.strptime("12:00", "%H:%M").time() <= departure_time.time():
-            # Crossing noon: insert meal before this attraction
+
+        current_clock = start_time_clock + timedelta(minutes=total_time)
+
+        # Only insert meals when current_clock is after noon
+        while meals_to_shift and current_clock.time() >= noon_time:
             meal_stop = meals_to_shift.pop(0)
             final_route.append(meal_stop)
-            meals_added += 1
-    
+
         final_route.append(stop)
         total_time += duration
         if stop in attraction_coordinates:
