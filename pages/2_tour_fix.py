@@ -176,7 +176,10 @@ for ante in [preference, intensity_input]:
     ante['medium'] = fuzz.trimf(ante.universe, [2, 5, 8])
     ante['high'] = fuzz.trimf(ante.universe, [5, 10, 10])
 
-accessibility_input.automf(3)
+accessibility_input['poor'] = fuzz.trimf(accessibility_input.universe, [0.0, 0.0, 0.5])
+accessibility_input['moderate'] = fuzz.trimf(accessibility_input.universe, [0.2, 0.5, 0.8])
+accessibility_input['good'] = fuzz.trimf(accessibility_input.universe, [0.5, 1.0, 1.0])
+
 wait_tol.automf(3)
 walking_input.automf(3)
 
