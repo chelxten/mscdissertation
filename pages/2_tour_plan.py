@@ -1104,15 +1104,15 @@ show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
 # Schedule wet rides mid-tour if needed
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
 
-show_breaks_debug("After schedule_wet_rides_midday", wet_scheduled, zones)
-
 final_route = insert_breaks(wet_scheduled)
-
 show_breaks_debug("After insert_breaks", final_route, zones)
 
 final_route = list(dict.fromkeys(final_route))
+show_breaks_debug("After deduplication", final_route, zones)
 
 final_route = remove_trailing_breaks(final_route)
+show_breaks_debug("After remove_trailing_breaks", final_route, zones)
+
 final_plan = final_route
 
 import matplotlib.pyplot as plt
