@@ -1398,7 +1398,7 @@ if show_energy_plot:
             marker_style, color = 'o', 'blue'
     
         # ✅ Fancy alternating y-offset
-        if last_time_point is not None and abs(time_point - last_time_point) < 15:
+        if last_time_point is not None and abs(time_point - last_time_point) < 12:
             y_offset = 35 if (i % 2 == 0) else -40
         else:
             y_offset = 20
