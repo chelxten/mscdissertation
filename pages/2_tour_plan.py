@@ -1403,8 +1403,8 @@ if show_energy_plot:
             marker_style, color = 'o', 'blue'
     
         # Alternate stem length
-        SHORT_STEM = 20
-        LONG_STEM = 30
+        SHORT_STEM = 10
+        LONG_STEM = 20
         label_offset = SHORT_STEM if (i % 2 == 0) else LONG_STEM
     
         # Direction: alternate up and down if desired
