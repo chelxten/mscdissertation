@@ -1123,7 +1123,13 @@ for stop in full_allocated_plan:
     else:
         ride_time = attraction_durations.get(stop, 5)
         wait_time = attraction_wait_times.get(stop, 0)
-        walk_units = calculate_distance(previous_location, attraction_coordinates[stop])
+
+        if stop in attraction_coordinates:
+            walk_units = calculate_distance(previous_location, attraction_coordinates[stop])
+            previous_location = attraction_coordinates[stop]
+        else:
+            walk_units = 0  # Default to 0 if unknown
+
         walk_meters = walk_units * SCALE_FACTOR_METERS_PER_UNIT
         walk_time = max(1, round(walk_meters / walking_speed))
         stop_time = ride_time + wait_time + walk_time
@@ -1133,7 +1139,6 @@ for stop in full_allocated_plan:
 
     trimmed_plan.append(stop)
     time_used += stop_time
-    previous_location = attraction_coordinates[stop]
 
 show_breaks_debug("After time-based trimming", trimmed_plan, zones)
 
