@@ -1242,7 +1242,6 @@ if energy_plan_used and (not stop_label_points or stop_label_points[-1][2] != en
     last_zone = next((z for z, a in zones.items() if last_stop in a), None)
     stop_label_points.append((elapsed_time, energy, last_stop, last_zone))
 
-    previous_location = attraction_coordinates[stop]
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
