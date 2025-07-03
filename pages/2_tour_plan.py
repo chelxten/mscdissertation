@@ -512,9 +512,9 @@ recent_zones = []
 if 'wet_time_pct' not in globals() or wet_time_pct is None:
     wet_time_pct = 50
     
+
 for zone, attractions in zones.items():
     for attraction in attractions:
-        # Get base values
         wait_time = attraction_wait_times.get(attraction, 0)
         duration = attraction_durations.get(attraction, 5)
         intensity = zone_intensity.get(zone, 0.5)
@@ -523,17 +523,13 @@ for zone, attractions in zones.items():
         user_pref = pref / 10.0
         is_wet = attraction in wet_ride_names
 
-        # Use threshold directly
         wet_time_threshold = wet_time_pct
-
-        # Comfort penalty if wet and user dislikes discomfort
         comfort_penalty = 1.0
         if is_wet and priority_comfort_val and wet_time_threshold < 35:
             comfort_penalty = 0.7
 
-        # 🧠 Rhythm-aware fuzzy scoring
         repeat_count = recent_zones.count(zone)
-        repeat_count = min(repeat_count, 3)  # Clamp to fuzzy input range
+        repeat_count = min(repeat_count, 3)
 
         fuzzy_weight = get_fuzzy_weight(
             pref, acc, wait_val, walking_val,
@@ -543,7 +539,6 @@ for zone, attractions in zones.items():
             intensity, repeat_count
         )
 
-        # Final attraction score (with comfort and wait considered)
         score = (
             fuzzy_weight *
             user_pref *
@@ -556,10 +551,18 @@ for zone, attractions in zones.items():
         recent_zones.append(zone)
         if len(recent_zones) > 4:
             recent_zones.pop(0)
-        
 
-# Sort all attractions based on score (high to low)
-sorted_attractions = sorted(attraction_scores, key=lambda a: attraction_scores[a], reverse=True)
+# ⭐️ NEW: Exclude food and rest stops from initial selection
+sorted_attractions = sorted(
+    attraction_scores, 
+    key=lambda a: attraction_scores[a], 
+    reverse=True
+)
+
+initial_attractions = [
+    a for a in sorted_attractions
+    if not any(a in zones[z] for z in ["food", "relaxation"])
+]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 8. Smart Initial Attraction Selection with Rhythm
