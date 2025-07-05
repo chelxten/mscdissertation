@@ -1544,9 +1544,25 @@ q_overall = st.radio(
     label_visibility="collapsed"
 )
 
+# 5️⃣ Energy graph question
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
-5. Do you have any comments or suggestions?
+5. The energy graph gave me helpful insights about my planned day.
+</span>
+""", unsafe_allow_html=True)
+q_energy_graph = st.radio(
+    label="",
+    options=likert_options,
+    index=2,
+    horizontal=True,
+    key="energy_graph",
+    label_visibility="collapsed"
+)
+
+# 6️⃣ Comments
+st.markdown("""
+<span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
+6. Do you have any comments or suggestions?
 </span>
 """, unsafe_allow_html=True)
 
@@ -1561,7 +1577,8 @@ if st.button("Submit Feedback"):
         sheet.update_cell(row_num, 21, str(likert_mapping[q_variety]))
         sheet.update_cell(row_num, 22, str(likert_mapping[q_meal_timing]))
         sheet.update_cell(row_num, 23, str(likert_mapping[q_overall]))
-        sheet.update_cell(row_num, 24, feedback)
+        sheet.update_cell(row_num, 24, str(likert_mapping[q_energy_graph]))
+        sheet.update_cell(row_num, 25, feedback)
 
         st.success("✅ Feedback saved!")
         time.sleep(1)
