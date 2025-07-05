@@ -1454,43 +1454,20 @@ if show_energy_plot:
     st.pyplot(fig)
     
 # Divider before feedback section
+# -----------------------------------
+# ⭐ Plan Feedback Section
+# -----------------------------------
+
 st.markdown("---")
-
-#  Feedback & Rating
-
 st.subheader("⭐ Plan Feedback")
 
-st.markdown("""
-<span style='font-family:Inter, sans-serif; font-size:17px; font-weight:400'>
-Please rate the following aspects of your personalized plan:
-</span>
-""", unsafe_allow_html=True)
+likert_options = ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+likert_mapping = {opt: i + 1 for i, opt in enumerate(likert_options)}
 
-likert_options = [
-    "Strongly Disagree",
-    "Disagree",
-    "Neutral",
-    "Agree",
-    "Strongly Agree"
-]
-
-likert_mapping = {
-    "Strongly Disagree": 1,
-    "Disagree": 2,
-    "Neutral": 3,
-    "Agree": 4,
-    "Strongly Agree": 5
-}
-
-st.markdown("")
-
-# 1️⃣ Spacing question
-# Define keys to store in session state
-feedback_keys = ["spacing", "variety", "meal_timing", "overall", "energy_graph"]
-
-for key in feedback_keys:
+# ✅ Ensure defaults in session_state
+for key in ["spacing", "variety", "meal_timing", "overall", "energy_graph"]:
     if key not in st.session_state:
-        st.session_state[key] = likert_options[2]  # Default to Neutral
+        st.session_state[key] = likert_options[2]  # Default to "Neutral"
 
 # 1️⃣ Spacing question
 st.markdown("""
@@ -1498,10 +1475,10 @@ st.markdown("""
 1. The spacing between activities, including breaks, felt balanced.
 </span>
 """, unsafe_allow_html=True)
-st.session_state.spacing = st.radio(
+st.radio(
     label="",
     options=likert_options,
-    index=likert_options.index(st.session_state.spacing),
+    index=likert_options.index(st.session_state["spacing"]),
     horizontal=True,
     key="spacing",
     label_visibility="collapsed"
@@ -1513,10 +1490,10 @@ st.markdown("""
 2. The variety of attractions matched my interests.
 </span>
 """, unsafe_allow_html=True)
-st.session_state.variety = st.radio(
+st.radio(
     label="",
     options=likert_options,
-    index=likert_options.index(st.session_state.variety),
+    index=likert_options.index(st.session_state["variety"]),
     horizontal=True,
     key="variety",
     label_visibility="collapsed"
@@ -1528,10 +1505,10 @@ st.markdown("""
 3. The timing of meal/rest breaks was well-distributed.
 </span>
 """, unsafe_allow_html=True)
-st.session_state.meal_timing = st.radio(
+st.radio(
     label="",
     options=likert_options,
-    index=likert_options.index(st.session_state.meal_timing),
+    index=likert_options.index(st.session_state["meal_timing"]),
     horizontal=True,
     key="meal_timing",
     label_visibility="collapsed"
@@ -1543,47 +1520,51 @@ st.markdown("""
 4. Overall, I’m satisfied with the personalized tour plan.
 </span>
 """, unsafe_allow_html=True)
-st.session_state.overall = st.radio(
+st.radio(
     label="",
     options=likert_options,
-    index=likert_options.index(st.session_state.overall),
+    index=likert_options.index(st.session_state["overall"]),
     horizontal=True,
     key="overall",
     label_visibility="collapsed"
 )
 
-# 5️⃣ NEW Energy Graph question
+# 5️⃣ Energy graph question
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 5. The energy graph helped me understand my day’s pacing.
 </span>
 """, unsafe_allow_html=True)
-st.session_state.energy_graph = st.radio(
+st.radio(
     label="",
     options=likert_options,
-    index=likert_options.index(st.session_state.get("energy_graph", likert_options[2])),
+    index=likert_options.index(st.session_state["energy_graph"]),
     horizontal=True,
     key="energy_graph",
     label_visibility="collapsed"
 )
 
-# Comments
+# 6️⃣ Comments
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 6. Do you have any comments or suggestions?
 </span>
 """, unsafe_allow_html=True)
-feedback = st.text_area(label="", height=150)
+feedback = st.text_area(
+    label="",
+    height=150
+)
 
-# Submit button
+# ✅ Submit button
 if st.button("Submit Feedback"):
     try:
-        sheet.update_cell(row_num, 20, str(likert_mapping[st.session_state.spacing]))
-        sheet.update_cell(row_num, 21, str(likert_mapping[st.session_state.variety]))
-        sheet.update_cell(row_num, 22, str(likert_mapping[st.session_state.meal_timing]))
-        sheet.update_cell(row_num, 23, str(likert_mapping[st.session_state.overall]))
-        sheet.update_cell(row_num, 24, str(likert_mapping[st.session_state.energy_graph]))
+        sheet.update_cell(row_num, 20, str(likert_mapping[st.session_state["spacing"]]))
+        sheet.update_cell(row_num, 21, str(likert_mapping[st.session_state["variety"]]))
+        sheet.update_cell(row_num, 22, str(likert_mapping[st.session_state["meal_timing"]]))
+        sheet.update_cell(row_num, 23, str(likert_mapping[st.session_state["overall"]]))
+        sheet.update_cell(row_num, 24, str(likert_mapping[st.session_state["energy_graph"]]))
         sheet.update_cell(row_num, 25, feedback)
+
         st.success("✅ Feedback saved!")
         time.sleep(1)
         st.switch_page("pages/3_final_download.py")
