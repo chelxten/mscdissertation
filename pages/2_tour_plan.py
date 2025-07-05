@@ -1102,7 +1102,7 @@ optimized_initial = reorder_by_distance(
     initial_attractions,
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
-show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
+#show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
 
 # ➜ Schedule wet rides mid-tour
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
@@ -1110,7 +1110,7 @@ wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zon
 # ➜ Insert breaks and meals
 full_allocated_plan = insert_breaks(wet_scheduled)
 full_allocated_plan = list(dict.fromkeys(full_allocated_plan))  # Remove exact duplicates
-show_breaks_debug("After insert_breaks", full_allocated_plan, zones)
+#show_breaks_debug("After insert_breaks", full_allocated_plan, zones)
 
 # ➜ Trim plan to fit within visit duration
 trimmed_plan = []
@@ -1140,11 +1140,11 @@ for stop in full_allocated_plan:
     trimmed_plan.append(stop)
     time_used += stop_time
 
-show_breaks_debug("After time-based trimming", trimmed_plan, zones)
+#show_breaks_debug("After time-based trimming", trimmed_plan, zones)
 
 # ➜ Finally remove any trailing break stops
 final_plan = remove_trailing_breaks(trimmed_plan)
-show_breaks_debug("After remove_trailing_breaks", final_plan, zones)
+#show_breaks_debug("After remove_trailing_breaks", final_plan, zones)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
