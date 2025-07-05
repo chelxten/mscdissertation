@@ -72,13 +72,13 @@ q_spacing = sheet.cell(row_num, 20).value
 q_variety = sheet.cell(row_num, 21).value
 q_meal_timing = sheet.cell(row_num, 22).value
 q_overall = sheet.cell(row_num, 23).value
-feedback = sheet.cell(row_num, 24).value
-
+q_energy_graph = sheet.cell(row_num, 24).value
+feedback = sheet.cell(row_num, 25).value
 # -----------------------
 # 5. Generate PDF
 # -----------------------
 
-def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety, q_meal_timing, q_overall, feedback, consent):
+def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety, q_meal_timing, q_overall, q_energy_graph, feedback, consent):
     html_content = f"""
     <html>
     <head>
@@ -116,6 +116,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety
     <p><b>2. Attraction Variety:</b> {LIKERT_LABELS.get(q_variety, q_variety)}</p>
     <p><b>3. Meal/Rest Timing:</b> {LIKERT_LABELS.get(q_meal_timing, q_meal_timing)}</p>
     <p><b>4. Overall Satisfaction:</b> {LIKERT_LABELS.get(q_overall, q_overall)}</p>
+    <p><b>5. Energy Graph Helpfulness:</b> {LIKERT_LABELS.get(q_energy_graph, q_energy_graph)}</p>
     <p><b>Comments:</b> {feedback}</p>
 
     <p style="margin-top: 30px; font-size: 8pt;"><i>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i></p>
@@ -149,7 +150,7 @@ def merge_pdfs(master_path, generated_buffer):
 dynamic_pdf = generate_pdf(
     plan_text, total_time_used, leftover_time,
     q_spacing, q_variety, q_meal_timing, q_overall,
-    feedback, consent
+    q_energy_graph, feedback, consent
 )
 final_pdf = merge_pdfs("PISPCF.pdf", dynamic_pdf)
 
