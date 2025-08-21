@@ -46,9 +46,9 @@ pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pd
 
 # ✅ Generate unique ID
 def generate_unique_id():
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    #timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     random_part = uuid.uuid4().hex[:6]  # 6 hex characters → ~16 million combinations
-    return f"{timestamp}_{random_part}"
+    return f"{random_part}"
 
 st.set_page_config(page_title="Participant Information & Consent")
 
