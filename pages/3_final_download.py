@@ -92,6 +92,7 @@ def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety
     <body>
 
     <h1>Amusement Park Tour Summary</h1>
+    <p style="text-align: center; font-size: 9pt;"><b>Unique ID:</b> {unique_id}</p>
 
     {"<p><i>Consent confirmed by participant.</i></p>" if consent else ""}
 
