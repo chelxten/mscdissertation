@@ -670,14 +670,14 @@ for a in zones[first_preference_zone]:
         first_pref_attraction = a
         break
 
-# ------------------------------------------
-# 9B. Wet Ride Timing: Fuzzy Control Setup
-# ------------------------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# 9B. Wet Ride Timing: Fuzzy Control Setup (robust to missing outputs)
+# ─────────────────────────────────────────────────────────────────────────────
 
-wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  # from preference score
-comfort_priority = ctrl.Antecedent(np.arange(0, 2, 1), 'comfort_priority')  # binary yes/no
+wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  # 0..10
+comfort_priority = ctrl.Antecedent(np.arange(0, 2, 1), 'comfort_priority')  # 0/1
 
-wet_time_position = ctrl.Consequent(np.arange(0, 101, 1), 'wet_time_position')  # % of tour duration
+wet_time_position = ctrl.Consequent(np.arange(0, 101, 1), 'wet_time_position')  # % of tour
 
 wet_ride_pref['low'] = fuzz.trimf(wet_ride_pref.universe, [0, 0, 5])
 wet_ride_pref['medium'] = fuzz.trimf(wet_ride_pref.universe, [3, 5, 7])
@@ -687,25 +687,43 @@ comfort_priority['no'] = fuzz.trimf(comfort_priority.universe, [0, 0, 1])
 comfort_priority['yes'] = fuzz.trimf(comfort_priority.universe, [0, 1, 1])
 
 wet_time_position['early'] = fuzz.trimf(wet_time_position.universe, [0, 0, 30])
-wet_time_position['mid'] = fuzz.trimf(wet_time_position.universe, [25, 50, 75])
-wet_time_position['late'] = fuzz.trimf(wet_time_position.universe, [70, 100, 100])
+wet_time_position['mid']   = fuzz.trimf(wet_time_position.universe, [25, 50, 75])
+wet_time_position['late']  = fuzz.trimf(wet_time_position.universe, [70, 100, 100])
 
 wet_ride_rules = [
     ctrl.Rule(wet_ride_pref['high'] & comfort_priority['no'], wet_time_position['early']),
-    ctrl.Rule(wet_ride_pref['medium'], wet_time_position['mid']),
-    ctrl.Rule(comfort_priority['yes'], wet_time_position['late']),
+    ctrl.Rule(wet_ride_pref['medium'],                         wet_time_position['mid']),
+    ctrl.Rule(comfort_priority['yes'],                         wet_time_position['late']),
 ]
 
 wet_time_ctrl = ctrl.ControlSystem(wet_ride_rules)
 wet_time_sim = ctrl.ControlSystemSimulation(wet_time_ctrl)
 
-# Inputs
-wet_pref_val = preferences.get("water", 5)
-wet_time_sim.input['wet_ride_pref'] = wet_pref_val
-wet_time_sim.input['comfort_priority'] = 1.0 if priority_comfort_val else 0.0
-wet_time_sim.compute()
+def safe_compute_wet_time_pct(wet_pref_val: float, comfort_flag: bool, default_pct: float = 50.0) -> float:
+    """
+    Robustly compute wet ride position % (0–100). Falls back to default on any issue.
+    """
+    try:
+        # Clamp to universes
+        wet_val = float(np.clip(wet_pref_val, wet_ride_pref.universe.min(), wet_ride_pref.universe.max()))
+        comfort_val = 1.0 if comfort_flag else 0.0
 
-wet_time_pct = wet_time_sim.output['wet_time_position']  # e.g., 52%
+        wet_time_sim.input['wet_ride_pref'] = wet_val
+        wet_time_sim.input['comfort_priority'] = comfort_val
+        wet_time_sim.compute()
+
+        pct = float(wet_time_sim.output.get('wet_time_position', default_pct))
+        if math.isnan(pct):
+            return default_pct
+        # Final clamp to 0..100
+        return float(np.clip(pct, 0.0, 100.0))
+    except Exception as e:
+        # Optional: surface once to the UI in debug builds
+        # st.info(f"Using default wet-ride timing (reason: {e})")
+        return default_pct
+
+wet_pref_val = preferences.get("water", 5)
+wet_time_pct = safe_compute_wet_time_pct(wet_pref_val, bool(priority_comfort_val))
 
 
 def schedule_wet_rides_midday(route, wet_rides, zones):
