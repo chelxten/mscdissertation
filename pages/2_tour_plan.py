@@ -1,6 +1,5 @@
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 1. Imports and Setup
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -40,9 +39,7 @@ st.set_page_config(page_title="Personalized Tour Plan")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Your Personalized Tour Plan")
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 2. Load questionnaire data from session
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 if "questionnaire" not in st.session_state:
     st.warning("❗ Please complete the questionnaire first.")
@@ -50,7 +47,6 @@ if "questionnaire" not in st.session_state:
 
 data = st.session_state["questionnaire"]
 
-# Extract answers
 preference_ranks = {
     "thrill": data["thrill"], "family": data["family"], "water": data["water"],
     "entertainment": data["entertainment"], "food": data["food"],
@@ -65,9 +61,7 @@ break_pref = data["break"]
 duration_map = {"<2 hrs": 90, "2–4 hrs": 180, "4–6 hrs": 300, "All day": 420}
 visit_duration = duration_map.get(data["duration"], 180)
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 3. Define zones and coordinates
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 SCALE_FACTOR_METERS_PER_UNIT = 2.0  # Each grid unit is 2 meters
 
@@ -86,7 +80,6 @@ zone_coordinates = {
     "entertainment": (400, 100), "food": (250, 250), "shopping": (300, 300), "relaxation": (200, 200)
 }
 
-# Calculate coordinates for each attraction
 attraction_coordinates = {}
 for zone, attractions in zones.items():
     for idx, attraction in enumerate(attractions):
@@ -97,14 +90,12 @@ for zone, attractions in zones.items():
         zone_x, zone_y = zone_coordinates[zone]
         attraction_coordinates[attraction] = (zone_x + offset_x, zone_y + offset_y)
 
-# Utility location
 change_location = "Shower & Changing Room"
 change_coordinates = (450, 250)  
 attraction_coordinates[change_location] = change_coordinates
 
-# ------------------------------------------
 # 4. Ride durations, wait times, and accessibility levels
-# ------------------------------------------
+
 accessibility_factors = {
     "thrill": 0.7, "water": 0.8, "family": 1.0,
     "entertainment": 0.9, "food": 1.0, "shopping": 1.0, "relaxation": 1.0
@@ -170,13 +161,9 @@ zone_intensity = {
     "relaxation": 0.1       # Passive resting (benches, gardens)
 }
 
-
-# Tag wet rides for special scheduling logic
 wet_ride_names = {"Water Slide", "Wave Pool", "Splash Battle"}
 
-# ------------------------------------------
 # 5A. Fuzzy inputs (user traits and ride traits)
-# ------------------------------------------
 
 preference_input     = ctrl.Antecedent(np.arange(0, 11, 1), 'preference')        # 0–10: how much user likes the zone
 accessibility_input  = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'accessibility') # 0–1: ease of access
@@ -191,13 +178,12 @@ intensity_input      = ctrl.Antecedent(np.arange(0.0, 1.1, 0.1), 'intensity')
 
 weight_output        = ctrl.Consequent(np.arange(0, 11, 1), 'weight')
 
-zone_repeat_count = ctrl.Antecedent(np.arange(0, 4, 1), 'zone_repeat_count')  # 0–3 recent repeats
+zone_repeat_count = ctrl.Antecedent(np.arange(0, 4, 1), 'zone_repeat_count') 
 
 food_interval = ctrl.Consequent(np.arange(60, 241, 1), 'food_interval')
 
-# ------------------------------------------
+
 # 5B. Membership functions
-# ------------------------------------------
 
 # Preference score from 0–10
 preference_input['low'] = fuzz.trimf(preference_input.universe, [0, 0, 5])
@@ -242,10 +228,7 @@ zone_repeat_count['none'] = fuzz.trimf(zone_repeat_count.universe, [0, 0, 1])
 zone_repeat_count['few'] = fuzz.trimf(zone_repeat_count.universe, [0, 1, 2])
 zone_repeat_count['many'] = fuzz.trimf(zone_repeat_count.universe, [1, 3, 3])
 
-
-# ------------------------------------------
 # 5C. Fuzzy Rules: Inputs → Weight Output
-# ------------------------------------------
 
 top_zone = max(preferences, key=preferences.get)
 
@@ -325,9 +308,7 @@ elif top_zone == "shopping":
 
 rules += reinforcement_rules
 
-# ------------------------------------------
 # 5D. Fuzzy Subsystem: Food Interval Estimation
-# ------------------------------------------
 
 food_interval_rules = [
     ctrl.Rule(preference_input['high'] & priority_food['yes'], food_interval['short']),
@@ -338,9 +319,7 @@ food_interval_rules = [
 food_interval_ctrl = ctrl.ControlSystem(food_interval_rules)
 food_interval_sim = ctrl.ControlSystemSimulation(food_interval_ctrl)
 
-# ------------------------------------------
 # 5E. Fuzzy Rules: Energy Loss Estimation
-# ------------------------------------------
 
 # Input: Ride intensity, walking time, age sensitivity
 intensity_input_energy = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'intensity')
@@ -382,9 +361,8 @@ energy_loss_rules = [
 energy_loss_ctrl = ctrl.ControlSystem(energy_loss_rules)
 energy_loss_sim = ctrl.ControlSystemSimulation(energy_loss_ctrl)
 
-# ------------------------------------------
+
 # 5F. Fuzzy Controller Setup and User Mappings
-# ------------------------------------------
 
 weight_ctrl = ctrl.ControlSystem(rules)
 weight_sim = ctrl.ControlSystemSimulation(weight_ctrl)
@@ -417,7 +395,7 @@ age_energy_scaling = {
     "Young Adult":  {"loss_factor": 1.2, "rest_boost": 25, "food_boost": 15},
     "Middle-aged":  {"loss_factor": 1.0, "rest_boost": 30, "food_boost": 18},
     "Older Adult":  {"loss_factor": 1.3, "rest_boost": 40, "food_boost": 25},
-    "Adult":        {"loss_factor": 1.1, "rest_boost": 30, "food_boost": 18},  # fallback
+    "Adult":        {"loss_factor": 1.1, "rest_boost": 30, "food_boost": 18}, 
 }
 
 raw_age = data.get("age", "Adult")
@@ -434,7 +412,6 @@ age_group_map = {
 user_age_group = age_group_map.get(raw_age, "Adult")
 energy_settings = age_energy_scaling[user_age_group]
 
-# Helper: Compute fuzzy-based energy loss per stop
 def compute_energy_loss(intensity, walk_time, age_factor):
     try:
         # Clamp to valid fuzzy input ranges
@@ -449,12 +426,10 @@ def compute_energy_loss(intensity, walk_time, age_factor):
 
         return energy_loss_sim.output['energy_loss']
     except Exception as e:
-        print(f"⚠️ Energy loss fallback due to: {e}")
+        print(f" Energy loss fallback due to: {e}")
         return 8  # Safe default
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 6. Fuzzy Weight Evaluation and Zone Scoring
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 zone_weights = {}
 
@@ -478,17 +453,15 @@ for zone in zones:
     weight_sim.compute()
     zone_weights[zone] = weight_sim.output['weight']
         
-# Cap passive zones
 for zone in ["food", "relaxation"]:
     if zone in zone_weights:
         zone_weights[zone] = min(zone_weights[zone], 4.5)  # limit to moderate level
 
-# Normalize weights
 total_weight = sum(zone_weights.values())
 if total_weight > 0:
     normalized_weights = {z: w / total_weight for z, w in zone_weights.items()}
 else:
-    normalized_weights = {z: 1 / len(zone_weights) for z in zone_weights}  # equal weighting
+    normalized_weights = {z: 1 / len(zone_weights) for z in zone_weights} 
 
 # Remove intense rides for children
 if data["age"] == "Under 12":
@@ -497,22 +470,19 @@ if data["age"] == "Under 12":
         for zone_list in zones.values():
             if ride in zone_list:
                 zone_list.remove(ride)
-                
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 7. Attraction Scoring Based on Zone Weights + Rhythm
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-WAIT_PENALTY_FACTOR = 0.02     # reduces score if wait is high
-INTENSITY_COMFORT_FACTOR = 0.2 # bonus for low intensity zones
+# 7. Attraction Scoring Based on Zone Weights + Rhythm
+
+
+WAIT_PENALTY_FACTOR = 0.02     
+INTENSITY_COMFORT_FACTOR = 0.2
 
 attraction_scores = {}
 recent_zones = []
 
-# ─── Ensure wet_time_pct has safe default ───
 if 'wet_time_pct' not in globals() or wet_time_pct is None:
     wet_time_pct = 50
     
-
 for zone in ["thrill", "water", "family", "entertainment", "shopping"]:
     attractions = zones[zone]
     for attraction in attractions:
@@ -553,7 +523,6 @@ for zone in ["thrill", "water", "family", "entertainment", "shopping"]:
         if len(recent_zones) > 4:
             recent_zones.pop(0)
 
-# ⭐️ NEW: Exclude food and rest stops from initial selection
 sorted_attractions = sorted(
     attraction_scores, 
     key=lambda a: attraction_scores[a], 
@@ -565,9 +534,8 @@ initial_attractions = [
     if not any(a in zones[z] for z in ["food", "relaxation"])
 ]
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 # 8. Smart Initial Attraction Selection with Rhythm
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 initial_attractions = []
 time_budget = visit_duration + 15
@@ -589,24 +557,19 @@ for attraction in ranked_attractions:
     if current_time_used + time_required > time_budget:
         continue
 
-    # 🧠 Rhythm control: avoid same zone 3+ times in a row
     if recent_zones[-2:] == [zone, zone]:
         continue
 
-    # Accept attraction
     initial_attractions.append(attraction)
     current_time_used += time_required
     recent_zones.append(zone)
 
-    # Trim memory
     if len(recent_zones) > 4:
         recent_zones.pop(0)
 
 
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 9. Route Optimization and Wet Ride Scheduling
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 
 def nearest_relaxation_spot(from_attraction):
     last_loc = attraction_coordinates[from_attraction]
@@ -615,9 +578,8 @@ def nearest_relaxation_spot(from_attraction):
         key=lambda spot: calculate_distance(last_loc, attraction_coordinates[spot])
     )
 
-# ------------------------------------------
 # 9A. Route Distance Functions
-# ------------------------------------------
+
 def calculate_distance(point_a, point_b):
     if isinstance(point_a, str):
         point_a = attraction_coordinates[point_a]
@@ -644,7 +606,6 @@ def greedy_route(attractions, start_with=None):
     route = []
     pool = attractions.copy()
 
-    # Optional forced first attraction
     if start_with and start_with in pool:
         route.append(start_with)
         current = attraction_coordinates[start_with]
@@ -652,7 +613,6 @@ def greedy_route(attractions, start_with=None):
     else:
         current = (0, 0)  # Default: Entrance
 
-    # Greedy selection of remaining attractions
     while pool:
         next_attraction = min(pool, key=lambda a: calculate_distance(current, attraction_coordinates[a]))
         route.append(next_attraction)
@@ -664,20 +624,18 @@ def greedy_route(attractions, start_with=None):
 first_preference_zone = max(preferences, key=preferences.get)
 first_pref_attraction = None
 
-# Choose one attraction from top preference zone
 for a in zones[first_preference_zone]:
     if a in initial_attractions:
         first_pref_attraction = a
         break
 
-# ─────────────────────────────────────────────────────────────────────────────
 # 9B. Wet Ride Timing: Fuzzy Control Setup (robust to missing outputs)
-# ─────────────────────────────────────────────────────────────────────────────
 
-wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  # 0..10
-comfort_priority = ctrl.Antecedent(np.arange(0, 2, 1), 'comfort_priority')  # 0/1
 
-wet_time_position = ctrl.Consequent(np.arange(0, 101, 1), 'wet_time_position')  # % of tour
+wet_ride_pref = ctrl.Antecedent(np.arange(0, 11, 1), 'wet_ride_pref')  
+comfort_priority = ctrl.Antecedent(np.arange(0, 2, 1), 'comfort_priority') 
+
+wet_time_position = ctrl.Consequent(np.arange(0, 101, 1), 'wet_time_position')  
 
 wet_ride_pref['low'] = fuzz.trimf(wet_ride_pref.universe, [0, 0, 5])
 wet_ride_pref['medium'] = fuzz.trimf(wet_ride_pref.universe, [3, 5, 7])
@@ -700,11 +658,8 @@ wet_time_ctrl = ctrl.ControlSystem(wet_ride_rules)
 wet_time_sim = ctrl.ControlSystemSimulation(wet_time_ctrl)
 
 def safe_compute_wet_time_pct(wet_pref_val: float, comfort_flag: bool, default_pct: float = 50.0) -> float:
-    """
-    Robustly compute wet ride position % (0–100). Falls back to default on any issue.
-    """
+
     try:
-        # Clamp to universes
         wet_val = float(np.clip(wet_pref_val, wet_ride_pref.universe.min(), wet_ride_pref.universe.max()))
         comfort_val = 1.0 if comfort_flag else 0.0
 
@@ -715,11 +670,9 @@ def safe_compute_wet_time_pct(wet_pref_val: float, comfort_flag: bool, default_p
         pct = float(wet_time_sim.output.get('wet_time_position', default_pct))
         if math.isnan(pct):
             return default_pct
-        # Final clamp to 0..100
         return float(np.clip(pct, 0.0, 100.0))
     except Exception as e:
-        # Optional: surface once to the UI in debug builds
-        # st.info(f"Using default wet-ride timing (reason: {e})")
+
         return default_pct
 
 wet_pref_val = preferences.get("water", 5)
@@ -727,10 +680,7 @@ wet_time_pct = safe_compute_wet_time_pct(wet_pref_val, bool(priority_comfort_val
 
 
 def schedule_wet_rides_midday(route, wet_rides, zones):
-    """
-    Moves all wet rides to the middle of the route, followed by [Clothing Change],
-    and injects 1–2 medium-intensity fillers between wet rides and food/rest zones.
-    """
+
     wet_block = [a for a in route if a in wet_rides]
     dry_block = [a for a in route if a not in wet_rides and not a.startswith("[Clothing Change]")]
 
@@ -747,7 +697,6 @@ def schedule_wet_rides_midday(route, wet_rides, zones):
     insert_pos = min(max(1, insert_pos), len(dry_block)-1)
     merged = dry_block[:insert_pos] + wet_block + dry_block[insert_pos:]
 
-    # ➕ Insert relaxing fillers after wet rides to help dry off before next food/rest zone
     last_wet_idx = merged.index(wet_block[-1])
     after_wet = merged[last_wet_idx + 1:]
 
@@ -755,19 +704,15 @@ def schedule_wet_rides_midday(route, wet_rides, zones):
     filler_count = 2 if len(fillers) >= 2 else 1 if fillers else 0
     selected_fillers = fillers[:filler_count]
 
-    # Remove fillers from original location
     merged = [a for a in merged if a not in selected_fillers]
 
-    # Re-insert fillers right after wet block
     insert_pos = merged.index(wet_block[-1]) + 1
     merged = merged[:insert_pos] + selected_fillers + merged[insert_pos:]
 
     return merged
     
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 10. Food Timing Estimation (Fuzzy)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 
 food_pref = preferences["food"]
 
@@ -778,17 +723,11 @@ food_interval_sim.compute()
 preferred_food_gap = int(np.clip(food_interval_sim.output['food_interval'], 60, 240))  # cap between 1h and 4h
 
 
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 11. Final Route Cleanup (No Consecutive Breaks)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 
 def no_consecutive_food_or_break(route, zones):
-    """
-    Reorders the route so that no two food/rest stops are consecutive.
-    Instead of dropping them, it swaps them with next non-food/rest.
-    """
-    # Helper: identify if a stop is food or rest
+
     def is_soft(stop):
         zone = next((z for z, a in zones.items() if stop in a), None)
         return zone in {"food", "relaxation"}
@@ -817,11 +756,8 @@ def no_consecutive_food_or_break(route, zones):
 
     return route
     
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 12. Break and Meal Insertion Logic
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# 🧠 Automatically reorder medium-intensity zones for rhythm
 def reorder_medium_intensity(route):
     medium_stops = []
     other_stops = []
@@ -838,7 +774,6 @@ def reorder_medium_intensity(route):
         else:
             other_stops.append(stop)
 
-    # Alternate medium with others
     reordered = []
     m_idx = 0
     for i, stop in enumerate(other_stops):
@@ -878,7 +813,6 @@ def insert_breaks(route):
 
     activities_since_last_meal = 0
 
-    # Wet block detection
     wet_start = None
     wet_end = None
     for i, stop in enumerate(route):
@@ -909,12 +843,10 @@ def insert_breaks(route):
         elapsed_since_food += total_this_stop
         meal_activity_counter += 1
 
-        # Count activities for Rule 10
         is_soft = zone in ["food", "relaxation"]
         if not is_soft:
             activities_since_last_meal += 1
 
-        # Energy loss
         intensity_val = zone_intensity.get(zone, 1.0)
         age_sens = energy_settings['loss_factor']
         energy_loss = compute_energy_loss(intensity_val, walk_time, age_sens)
@@ -924,8 +856,7 @@ def insert_breaks(route):
             current_location = attraction_coordinates[stop]
             continue
 
-        # ------------------------
-        # REST INSERTION - Flexible (emergency)
+        # REST INSERTION - Flexible 
         if (
             break_pref == "Flexible"
             and energy_level < 20
@@ -943,8 +874,8 @@ def insert_breaks(route):
                 last_break_time = total_elapsed_time
                 activities_since_last_meal = 0
 
-        # ------------------------
-        # REST INSERTION - Scheduled (strict Rule 10)
+
+        # REST INSERTION - Scheduled 
         needs_break = (
             (break_pref == "After 1 hour" and elapsed_since_break >= 60) or
             (break_pref == "After 2 hours" and elapsed_since_break >= 120) or
@@ -968,7 +899,6 @@ def insert_breaks(route):
                 last_break_time = total_elapsed_time
                 activities_since_last_meal = 0
 
-        # ------------------------
         # MEAL INSERTION
         can_add_meal_now = (elapsed_since_food >= MIN_FOOD_GAP_MINUTES)
         min_elapsed_to_allow_meal = 120
@@ -1008,10 +938,7 @@ def insert_breaks(route):
 
     
 def move_meals_after_two_hours(route, min_elapsed=120):
-    """
-    Ensures meals are only inserted after min_elapsed minutes
-    from the start of the day (e.g., 10am + 2 hours = 12pm).
-    """
+
     meals_to_shift = []
     before_limit = []
     after_limit = []
@@ -1053,7 +980,6 @@ def move_meals_after_two_hours(route, min_elapsed=120):
         total_time += total_this_stop
         previous_location = attraction_coordinates[stop]
 
-    # Build final route
     final_route = before_limit
     final_route.extend(meals_to_shift)
     final_route.extend(after_limit)
@@ -1078,9 +1004,9 @@ def enforce_max_two_meals(route):
             cleaned.append(stop)
     return cleaned
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 # 13. Final Route Optimization and Tweaks
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 def remove_trailing_breaks(route):
     while route:
         zone = next((z for z, a in zones.items() if route[-1] in a), None)
@@ -1090,7 +1016,7 @@ def remove_trailing_breaks(route):
             break
     return route
     
-# 1️⃣ After initial reordering
+
 optimized_initial = reorder_by_distance(
     initial_attractions,
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
@@ -1107,7 +1033,6 @@ def show_breaks_debug(stage, route, zones):
     for i, stop in enumerate(route, 1):
         zone = next((z for z, a in zones.items() if stop in a), "Unknown")
         st.markdown(f"{i}. {stop} *(Zone: {zone})*")
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 first_preference_zone = max(preferences, key=preferences.get)
 first_pref_attraction = next(
@@ -1115,22 +1040,19 @@ first_pref_attraction = next(
     None
 )
 
-# ➜ Apply distance optimization
 optimized_initial = reorder_by_distance(
     initial_attractions,
     start_location=attraction_coordinates[first_pref_attraction] if first_pref_attraction else (0, 0)
 )
-#show_breaks_debug("After reorder_by_distance", optimized_initial, zones)
 
-# ➜ Schedule wet rides mid-tour
 wet_scheduled = schedule_wet_rides_midday(optimized_initial, wet_ride_names, zones)
 
-# ➜ Insert breaks and meals
+# Insert breaks and meals
 full_allocated_plan = insert_breaks(wet_scheduled)
 full_allocated_plan = list(dict.fromkeys(full_allocated_plan))  # Remove exact duplicates
 #show_breaks_debug("After insert_breaks", full_allocated_plan, zones)
 
-# ➜ Trim plan to fit within visit duration
+# Trim plan to fit within visit duration
 trimmed_plan = []
 time_used = 0
 previous_location = (0, 0)
@@ -1158,16 +1080,12 @@ for stop in full_allocated_plan:
     trimmed_plan.append(stop)
     time_used += stop_time
 
-#show_breaks_debug("After time-based trimming", trimmed_plan, zones)
 
-# ➜ Finally remove any trailing break stops
 final_plan = remove_trailing_breaks(trimmed_plan)
-#show_breaks_debug("After remove_trailing_breaks", final_plan, zones)
 
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 15. Final Schedule Display with Times
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 CLOTHING_CHANGE_DURATION = 10  # minutes
 
 zone_emojis = {
@@ -1260,11 +1178,8 @@ with st.expander("The Fun Starts Here", expanded=True):
     st.markdown("🏁 **Exit**")
     plan_text_lines.append("Exit")
 
-
-    
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 16. Saving to Session and Google Sheet
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 leftover_time = visit_duration - total_time_used
 st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time)} mins")
 
@@ -1272,7 +1187,7 @@ st.info(f"Total Used: {int(total_time_used)} mins | Leftover: {int(leftover_time
 final_clean_plan = "\n".join(plan_text_lines)
 st.session_state.tour_plan = final_clean_plan
 
-# 🧾 Save to Sheet
+# Save to Sheet
 uid = st.session_state.get("unique_id")
 sheet = get_consent_worksheet()
 cell = sheet.find(uid, in_column=2)
@@ -1286,9 +1201,7 @@ else:
 
 import matplotlib.pyplot as plt
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 13. Energy Simulation for final_plan
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 energy = 100
 energy_timeline = [energy]
@@ -1298,7 +1211,6 @@ stop_label_points = []
 elapsed_time = 0
 previous_location = (0, 0)
 
-# ✅ Use exactly the final_plan already respecting time budget
 energy_plan_used = final_plan
 
 # Settings
@@ -1317,12 +1229,10 @@ for stop in energy_plan_used:
     walk_time = max(1, round(walk_meters / walking_speed))
     total_this_stop = duration + wait + walk_time
 
-    # Age-adjusted boosts
     adjusted_rest_boost = energy_settings['rest_boost'] * (2 - energy_settings['loss_factor'])
     adjusted_food_boost = energy_settings['food_boost'] * (2 - energy_settings['loss_factor'])
 
     if zone in ["relaxation", "food"]:
-        # Recharge stops
         boost = adjusted_rest_boost if zone == "relaxation" else adjusted_food_boost
         for minute in range(duration):
             energy += boost / duration
@@ -1332,7 +1242,6 @@ for stop in energy_plan_used:
                 time_timeline.append(elapsed_time)
             elapsed_time += 1
     else:
-        # Energy loss over this stop
         energy_loss = compute_energy_loss(intensity, walk_time, energy_settings['loss_factor'])
         loss_per_minute = energy_loss / max(1, total_this_stop)
         for minute in range(total_this_stop):
@@ -1348,18 +1257,14 @@ for stop in energy_plan_used:
     previous_location = attraction_coordinates[stop]
     stop_label_points.append((elapsed_time, energy, stop, zone))
 
-# ✅ Ensure the last stop is always labeled
 if energy_plan_used:
     last_stop = energy_plan_used[-1]
     last_zone = next((z for z, a in zones.items() if last_stop in a), None)
     if not stop_label_points or stop_label_points[-1][2] != last_stop:
         stop_label_points.append((elapsed_time, energy, last_stop, last_zone))
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 14. Energy Visualization (Line Plot)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Downsample if needed for performance
 if len(energy_timeline) > 800:
     SAMPLING_RATE = len(energy_timeline) // 400
     energy_timeline = energy_timeline[::SAMPLING_RATE]
@@ -1397,7 +1302,6 @@ if show_energy_plot:
 
     # Stop markers with labels
     last_time_point = None
-    # 4️⃣ Custom markers with vertical stems (short/long alternating, with down for ≤10min)
     short_stem_len = 20
     long_stem_len = 15
     alternate_counter = 0
@@ -1408,15 +1312,12 @@ if show_energy_plot:
         if time_point > time_timeline[-1] + 5:
             continue
     
-        # Snap label if overshooting
         if time_point > time_timeline[-1]:
             time_point = time_timeline[-1]
     
-        # Label text
         label_text = f"{stop_name[:12]}…" if len(stop_name) > 15 else stop_name
         label_text += f"\n{int(energy_level)}%"
     
-        # Marker style and color
         if zone == "food":
             marker_style, color = 's', 'green'
         elif zone == "relaxation":
@@ -1424,26 +1325,19 @@ if show_energy_plot:
         else:
             marker_style, color = 'o', 'blue'
     
-        # Default is up direction
         direction = 1
         stem_length = short_stem_len if (alternate_counter % 2 == 0) else long_stem_len
     
-        # Predict stem end Y if we go up
         predicted_end_y = energy_level + direction * stem_length
     
-        # Check against last label to avoid overlap
         if last_stem_end_y is not None and abs(predicted_end_y - last_stem_end_y) < MIN_VERTICAL_GAP:
-            # Flip to down if too close
             direction = -1
             predicted_end_y = energy_level + direction * stem_length
     
-        # Place marker
         ax.scatter(time_point, energy_level, marker=marker_style, color=color, s=60, zorder=3)
     
-        # Draw vertical stem line
         ax.plot([time_point, time_point], [energy_level, predicted_end_y], color=color, linestyle='--', linewidth=1)
     
-        # Place label at stem end
         ax.annotate(
             label_text,
             (time_point, predicted_end_y),
@@ -1453,11 +1347,9 @@ if show_energy_plot:
             fontsize=8
         )
     
-        # Remember last label position
         last_stem_end_y = predicted_end_y
         alternate_counter += 1
 
-    # Legend
     ax.scatter([], [], marker='o', color='blue', label='Ride')
     ax.scatter([], [], marker='s', color='green', label='Meal Stop')
     ax.scatter([], [], marker='D', color='darkgreen', label='Rest Stop')
@@ -1471,10 +1363,8 @@ if show_energy_plot:
 
     st.pyplot(fig)
     
-# Divider before feedback section
-# -----------------------------------
-# ⭐ Plan Feedback Section
-# -----------------------------------
+
+#  Plan Feedback Section
 
 st.markdown("---")
 st.subheader("⭐ Plan Feedback")
@@ -1487,7 +1377,7 @@ for key in ["spacing", "variety", "meal_timing", "overall", "energy_graph"]:
     if key not in st.session_state:
         st.session_state[key] = likert_options[2]  # Default to "Neutral"
 
-# 1️⃣ Spacing question
+
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 1. The spacing between activities, including breaks, felt balanced.
@@ -1502,7 +1392,6 @@ st.radio(
     label_visibility="collapsed"
 )
 
-# 2️⃣ Variety question
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 2. The variety of attractions matched my interests.
@@ -1517,7 +1406,6 @@ st.radio(
     label_visibility="collapsed"
 )
 
-# 3️⃣ Meal timing question
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 3. The timing of meal/rest breaks was well-distributed.
@@ -1532,7 +1420,6 @@ st.radio(
     label_visibility="collapsed"
 )
 
-# 4️⃣ Overall satisfaction
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 4. Overall, I’m satisfied with the personalized tour plan.
@@ -1547,7 +1434,6 @@ st.radio(
     label_visibility="collapsed"
 )
 
-# 5️⃣ Energy graph question
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 5. The energy graph helped me understand my day’s pacing.
@@ -1562,7 +1448,6 @@ st.radio(
     label_visibility="collapsed"
 )
 
-# 6️⃣ Comments
 st.markdown("""
 <span style='font-family:Inter, sans-serif; font-size:16px; font-weight:600'>
 6. Do you have any comments or suggestions?
@@ -1573,7 +1458,6 @@ feedback = st.text_area(
     height=150
 )
 
-# ✅ Submit button
 if st.button("Submit Feedback"):
     try:
         sheet.update_cell(row_num, 20, str(likert_mapping[st.session_state["spacing"]]))
@@ -1583,7 +1467,7 @@ if st.button("Submit Feedback"):
         sheet.update_cell(row_num, 24, str(likert_mapping[st.session_state["energy_graph"]]))
         sheet.update_cell(row_num, 25, feedback)
 
-        st.success("✅ Feedback saved!")
+        st.success(" Feedback saved!")
         time.sleep(1)
         st.switch_page("pages/3_final_download.py")
     except Exception as e:
