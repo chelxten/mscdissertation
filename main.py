@@ -7,7 +7,6 @@ import time
 from gspread.exceptions import APIError
 import base64
 
-# ✅ Google Sheets setup
 @st.cache_resource
 def get_questionnaire_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -30,7 +29,7 @@ def get_questionnaire_worksheet():
     st.error("Failed after multiple retries.")
     st.stop()
 
-# ✅ Load PIS file for download
+#  Load PIS file for download
 @st.cache_resource
 def load_pis_file():
     with open("PISPCF.pdf", "rb") as f:
@@ -38,13 +37,10 @@ def load_pis_file():
 
 pis_data = load_pis_file()
 
-# Generate base64-encoded PDF to embed as a hyperlink
 b64_pdf = base64.b64encode(pis_data).decode('utf-8')
 pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">Participant Information Sheet (PDF)</a>'
 
-
-
-# ✅ Generate unique ID
+#  Generate unique ID
 def generate_unique_id():
     #timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     random_part = uuid.uuid4().hex[:6]  # 6 hex characters → ~16 million combinations
@@ -52,11 +48,9 @@ def generate_unique_id():
 
 st.set_page_config(page_title="Participant Information & Consent")
 
-
-
 st.image("static/headerq.png", use_container_width=True)
 
-# ✅ Project Intro (exactly as SHU guideline requests)
+#  Project Intro 
 st.markdown(f"""
 You are being invited to participate in a research study titled **The Search of Advanced AI-Powered Service Robots for Amusement Parks.** This study is being conducted by **Cherry San** from the Department of Computing at Sheffield Hallam University.
 
@@ -102,7 +96,7 @@ If you have any questions, please contact **Cherry San** at:
 
 
 
-# ✅ Consent via Start Button
+#  Consent via Start Button
 st.markdown("### Consent Confirmation")
 
 consent_checkbox = st.checkbox("I have read the Participant Information Sheet and Consent to Participate.")
@@ -120,7 +114,7 @@ if start_clicked:
         st.session_state["unique_id"] = unique_id
         st.session_state["consent_agreed"] = True
 
-        # ✅ Save timestamp & ID into Google Sheet as first row
+        #  Save timestamp & ID into Google Sheet as first row
         row = [timestamp, unique_id] + [""] * 16  # total 18 columns
         get_questionnaire_worksheet().append_row(row)
 
