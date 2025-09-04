@@ -8,7 +8,7 @@ import base64
 
 st.set_page_config(page_title="Visitor Questionnaire")
 
-# 🚫 Block access if consent not given
+# Block access if consent not given
 if "consent_submitted" not in st.session_state or not st.session_state.consent_submitted:
     st.warning("⚠️ You must submit the consent form first.")
     st.stop()
@@ -16,7 +16,6 @@ if "consent_submitted" not in st.session_state or not st.session_state.consent_s
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Visitor Questionnaire")
 
-# ✅ Google Sheets setup
 @st.cache_resource
 def get_questionnaire_worksheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -35,7 +34,7 @@ def get_questionnaire_worksheet():
     st.error("Failed to connect after multiple retries.")
     st.stop()
 
-# ✅ Load PIS file for download
+# Load PIS file for download
 @st.cache_resource
 def load_pis_file():
     with open("PISPCF.pdf", "rb") as f:
@@ -43,7 +42,6 @@ def load_pis_file():
 
 pis_data = load_pis_file()
 
-# Generate base64-encoded PDF to embed as a hyperlink
 b64_pdf = base64.b64encode(pis_data).decode('utf-8')
 pdf_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="PISPCF.pdf">Participant Information Sheet (PDF)</a>'
 
@@ -55,8 +53,6 @@ st.markdown("""
 
 st.image("static/map.jpg", use_container_width=True)
 
-
-# ✅ Inject Custom Styles
 st.markdown("""
     <style>
     .question-label {
@@ -67,7 +63,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ✅ Questionnaire Form
+# Questionnaire Form
 with st.form("questionnaire_form"):
 
     st.markdown('<div class="question-label">1. What is your age group?</div>', unsafe_allow_html=True)
@@ -144,7 +140,7 @@ with st.form("questionnaire_form"):
         format="%d min",
         key="wait_time"
     )
-    # ⏳ Convert numeric slider to fuzzy category
+    # Convert numeric slider to fuzzy category
     if wait_time < 10:
         wait_category = "<10 min"
     elif wait_time <= 20:
@@ -173,7 +169,6 @@ with st.form("questionnaire_form"):
     {pdf_link}. If you did not yet download and keep a copy of this document for your records, we recommend you do that now.
     """, unsafe_allow_html=True)
 
-     # Required by Streamlit to properly process the form
     submit = st.form_submit_button("Submit")
 
     if submit:
@@ -181,11 +176,8 @@ with st.form("questionnaire_form"):
             st.warning("Please reduce your selections to 3 or fewer before submitting.")
             st.stop()
         else:
-            st.success("✅ Form submitted successfully.")
-            # Continue with processing...
+            st.success("Form submitted successfully.")
 
-
-# ✅ Handle form submission
 if submit:
     st.session_state["questionnaire"] = {
         "age": age,
@@ -227,6 +219,6 @@ if submit:
 
     sheet.update(f"C{row_num}:P{row_num}", update_values)
 
-    st.success("✅ Submitted! Redirecting to your personalized tour plan...")
+    st.success("Submitted! Redirecting to your personalized tour plan...")
     time.sleep(1.5)
     st.switch_page("pages/2_tour_plan.py")
