@@ -6,18 +6,15 @@ import io
 from xhtml2pdf import pisa
 import PyPDF2
 
-# -----------------------
 # 1. Setup & Config
-# -----------------------
 
 st.set_page_config(page_title="Final Document Download", layout="centered")
 st.image("Sheffield-Hallam-University.png", width=250)
 st.title("Thank You for Participating!")
 
 
-# -----------------------
+
 # 2. Load Session State
-# -----------------------
 
 unique_id = st.session_state.get("unique_id")
 
@@ -27,9 +24,8 @@ if not unique_id:
     st.error("Session expired or missing. Please restart from the beginning.")
     st.stop()
 
-# -----------------------
+
 # 3. Thank You Message
-# -----------------------
 
 #st.markdown("## Thank You for Participating!")
 
@@ -49,9 +45,8 @@ LIKERT_LABELS = {
     "5": "Strongly Agree"
 }
 
-# -----------------------
+
 # 4. Google Sheets Access
-# -----------------------
 
 @st.cache_resource
 def get_consent_worksheet():
@@ -74,9 +69,8 @@ q_meal_timing = sheet.cell(row_num, 22).value
 q_overall = sheet.cell(row_num, 23).value
 q_energy_graph = sheet.cell(row_num, 24).value
 feedback = sheet.cell(row_num, 25).value
-# -----------------------
+
 # 5. Generate PDF
-# -----------------------
 
 def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety, q_meal_timing, q_overall, q_energy_graph, feedback, consent):
     html_content = f"""
@@ -130,9 +124,8 @@ def generate_pdf(plan_text, total_time_used, leftover_time, q_spacing, q_variety
     pdf_buffer.seek(0)
     return pdf_buffer
 
-# -----------------------
+
 # 6. Merge with Consent Form
-# -----------------------
 
 def merge_pdfs(master_path, generated_buffer):
     merger = PyPDF2.PdfMerger()
@@ -144,9 +137,8 @@ def merge_pdfs(master_path, generated_buffer):
     final_pdf.seek(0)
     return final_pdf
 
-# -----------------------
+
 # 7. Auto-generate & Show Download
-# -----------------------
 
 dynamic_pdf = generate_pdf(
     plan_text, total_time_used, leftover_time,
